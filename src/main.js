@@ -13,10 +13,10 @@ electronReload(path.join(__dirname, '..', 'build'), {})
 
 const createWindow = () => {
 	const win = new BrowserWindow({
-		width: 1000,
-		height: 618,
+		width: 600,
+		height: 690,
 		// titleBarStyle:'customButtonsOnHover',
-		useContentSize:true,
+		// useContentSize:true,
 		transparent:true,
 		// opacity:0.85,
 		/**

@@ -3,12 +3,32 @@
   "packageManager": "yarn@3.1.1",
   "version": "1.0.0",
   "main": "build/main.js",
+  "author": "Fifv",
+  "description": "A GUI to use yt-dlp",
   "scripts": {
     "start": "electron .",
     "watch": "webpack --mode=development --watch --devtool=inline-source-map",
-    "build": "webpack --mode=production"
+    "build": "webpack --mode=production",
+    "electron make": "electron-forge make"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+		  "ignore":["src",".git","playground",".*\\.web.*"]
+	  },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+			  "name":"try-ytdlp"
+		  }
+        }
+      ]
+    }
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.61",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
     "@types/lodash-es": "^4.17.5",
     "@types/node": "^17.0.8",
     "@types/react": "^17.0.38",

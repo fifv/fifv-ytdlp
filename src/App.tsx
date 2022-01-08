@@ -118,7 +118,7 @@ export default class App extends React.Component<
 			let ytdlpOptions: string[] = [];
 			ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 			// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-			ytdlpOptions.push('-r', '50K') //調試用降速
+			// ytdlpOptions.push('-r', '50K') //調試用降速
 			// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
@@ -174,9 +174,9 @@ export default class App extends React.Component<
 					// 	}))
 
 				} else if (info.includes('idk')) {
-
-				} else {
+				} else if (info.includes('Downloading video thumbnail')) {
 					console.log('*otherinfo:', info);
+				} else {
 					this.setState((state, props) => ({
 						otherInfo: info
 					}))
@@ -254,13 +254,30 @@ export default class App extends React.Component<
 		const titleInfo = this.state.titleInfo
 
 		const percent = parseFloat(processInfo[1])
+		// const infomation = () =>
+		// 	<div className="thumbnail">
+		// 		<div className="text-success d-flex align-items-center" role="alert">
+		// 			<svg xmlns="http://www.w3.org/2000/svg" className="bi flex-shrink-0 me-3" width="14" height="14" role="img" fill="currentColor" viewBox="0 0 16 16">
+		// 				<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+		// 			</svg>
+		// 			<div>
+		// 				Thumbnail Downloaded
+		// 			</div>
+		// 		</div>
+		// 	</div>
 		const speed =
 			processInfo.length > 0
 				?
 				<ul className="btn-group btn-group-sm">
 					<li className="btn btn-outline-primary">{ processInfo[1] }</li>
-					<li className="btn btn-outline-primary">{ processInfo[3] }</li>
-					<li className="btn btn-outline-primary">{ processInfo[4] }</li>
+					{
+						processInfo[3] !== 'NA' &&
+						<li className="btn btn-outline-primary">{ processInfo[3] }</li>
+					}
+					{
+						processInfo[4] !== 'NA' &&
+						<li className="btn btn-outline-primary">{ processInfo[4] }</li>
+					}
 				</ul>
 				:
 				<>
@@ -285,20 +302,64 @@ export default class App extends React.Component<
 				<br />
 		// console.log('this.state.downloadingInfo:',this.state.downloadingInfo);
 		const downloading =
-			this.state.downloadingInfo /* || 1 */
+			percent === 100
+				?
+				<div className="downloading">
+					<div className="text-success d-flex align-items-center" role="alert">
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-check-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
+							<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+						</svg>
+						<div>
+							Downloading Finished: { titleInfo }
+						</div>
+					</div>
+				</div>
+				:
+				this.state.downloadingInfo /* || 1 */
+					?
+					<div className="downloading">
+						<div className="text-primary d-flex align-items-center" role="alert">
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-arrow-right-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
+								<path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
+							</svg>
+							<div>
+								Content Downloading: { titleInfo }
+							</div>
+						</div>
+					</div>
+					:
+					<br />
+		const notice =
+			otherInfo/*  || 1 */
 				?
 				<div className="downloading">
 					<div className="text-primary d-flex align-items-center" role="alert">
-						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-arrow-right-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
-							<path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-info-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
+							<path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
 						</svg>
 						<div>
-							Content Downloading: { titleInfo }
+							{ otherInfo }
 						</div>
 					</div>
 				</div>
 				:
 				<br />
+		const error =
+			errorInfo/*  || 1 */
+				?
+				<div className="downloading">
+					<div className="text-danger d-flex align-items-center" role="alert">
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
+							<path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+						</svg>
+						<div>
+							{ errorInfo }
+						</div>
+					</div>
+				</div>
+				:
+				<br />
+
 
 		const trafficLight =
 			<div className="btn-group overlay">
@@ -343,7 +404,8 @@ export default class App extends React.Component<
 					value={ this.state.url }
 					onChange={ this.handleInputChange }
 				/>
-				{ this.state.process/* ||1 */ &&
+				{
+					this.state.process/* ||1 */ &&
 					<div className='input-group-text bg-white loading'>
 						<div className="spinner-border spinner-border-sm text-info" />
 					</div>
@@ -375,7 +437,7 @@ export default class App extends React.Component<
 				name = name[0].toUpperCase() + name.slice(1)
 			}
 			return (
-				<div className="form-check form-switch">
+				<div className="form-check form-switch col-12 col-sm-6  col-xl-4">
 					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
 					<label className="form-check-label" htmlFor={ id }>{ name }</label>
 				</div>
@@ -391,7 +453,7 @@ export default class App extends React.Component<
 				placeholder = placeholder[0].toUpperCase() + placeholder.slice(1)
 			}
 			return (
-				<div className="form-check form-switch">
+				<div className="form-check form-switch col-12 col-sm-6  col-xl-4">
 					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
 					<div className="input-group input-group-sm">
 						<label className="form-check-label input-group-text bg-transparent" htmlFor={ id }>{ name }</label>
@@ -401,18 +463,20 @@ export default class App extends React.Component<
 			)
 		}
 		const options =
-			<div className="control-area">
-				{ optionWithInput('specifyDownloadPath', 'destPath',) }
-				{ optionWithInput('useProxy', 'proxyHost',) }
-				{ option('formatFilename',) }
-				{ option('saveThumbnail',) }
-				{ option('saveSubtitles',) }
-				{ optionWithInput('useCookie', 'cookieFile',) }
-				{ optionWithInput('useHistory', 'historyFile',) }
-				{ option('notDownloadVideo',) }
-				{ option('onlyDownloadAudio',) }
-				{ option('saveAutoSubtitle',) }
-				{ option('saveAllSubtitles',) }
+			<div className="control-area container">
+				<div className="row">
+					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
+					{ optionWithInput('useProxy', 'proxyHost',) }
+					{ option('formatFilename',) }
+					{ option('saveThumbnail',) }
+					{ option('saveSubtitles',) }
+					{ optionWithInput('useCookie', 'cookieFile',) }
+					{ optionWithInput('useHistory', 'historyFile',) }
+					{ option('notDownloadVideo',) }
+					{ option('onlyDownloadAudio',) }
+					{ option('saveAutoSubtitle',) }
+					{ option('saveAllSubtitles',) }
+				</div>
 			</div>
 		return (
 			<div className="container">
@@ -428,17 +492,19 @@ export default class App extends React.Component<
 						marginTop: -8,
 						zIndex: 100
 					} }>
-						<div className="progress-bar" role="progressbar" style={ { width: percent + "%" } } />
+						<div className="progress-bar" role="progressbar"
+							style={ { width: percent + "%" } }
+						/>
 					</div>
 					<br />
 					{ speed }
+					{ notice }
+					<br />
 					{ thumbnail }
 					<br />
 					{ downloading }
 					<br />
-					{ otherInfo }
-					<br />
-					{ errorInfo }
+					{ error }
 				</div>
 			</div>
 		);
