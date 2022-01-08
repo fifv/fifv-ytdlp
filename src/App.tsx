@@ -22,6 +22,7 @@ export default class App extends React.Component<
 		process: ChildProcess | null,
 		maximized: boolean,
 
+		specifyDownloadPath: boolean,
 		useProxy: boolean,
 		formatFilename: boolean,
 		saveThumbnail: boolean,
@@ -54,6 +55,7 @@ export default class App extends React.Component<
 			process: null,
 			maximized: false,
 
+			specifyDownloadPath: true,
 			useProxy: true,
 			formatFilename: true,
 			saveThumbnail: true,
@@ -115,12 +117,12 @@ export default class App extends React.Component<
 			}
 			let ytdlpOptions: string[] = [];
 			ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
-			ytdlpOptions.push('-P', this.state.destPath) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
 			// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
 			ytdlpOptions.push('-r', '50K') //調試用降速
 			// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
+			this.state.specifyDownloadPath && ytdlpOptions.push('-P', this.state.destPath) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
 			this.state.useProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
 			this.state.formatFilename && ytdlpOptions.push('-o', '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',)
 			this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
@@ -146,21 +148,20 @@ export default class App extends React.Component<
 			})
 			child.stdout.on('data', (data: Buffer) => {
 				let info = decode(data, 'gbk')
-				if (info.includes('[download process]')) {
-					if (info.includes('[download] Destination')) {
-						console.log('*downloadingInfo:', info);
-						this.setState((state, props) => ({
-							downloadingInfo: info,
-						}))
-					} else {
-						const processInfo = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
-						console.log('*processinfo:', info);
-						this.setState((state, props) => ({
-							processInfo: processInfo,
-							titleInfo: processInfo[5],
-						}))
+				if (info.includes('[download] Destination')) {
+					console.log('*downloadingInfo:', info);
+					this.setState((state, props) => ({
+						downloadingInfo: info,
+					}))
+				} else if (info.includes('[download process]')) {
+					const processInfo = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+					console.log('*processinfo:', info);
+					this.setState((state, props) => ({
+						processInfo: processInfo,
+						titleInfo: processInfo[5],
+					}))
 
-					}
+
 				} else if (info.includes('Writing video thumbnail')) {
 					console.log('*thumbnailInfo:', info);
 					this.setState((state, props) => ({
@@ -252,19 +253,23 @@ export default class App extends React.Component<
 		const errorInfo = this.state.errorInfo
 		const titleInfo = this.state.titleInfo
 
+		const percent = parseFloat(processInfo[1])
 		const speed =
-			this.state.process || 1
+			processInfo.length > 0
 				?
-				<div className="speed">
-					<div className="spinner-border spinner-border-sm text-info" />
-					<span>{ processInfo[1] }</span>
-					<span>{ processInfo[3] }</span>
-					<span>{ processInfo[4] }</span>
-				</div>
+				<ul className="btn-group btn-group-sm">
+					<li className="btn btn-outline-primary">{ processInfo[1] }</li>
+					<li className="btn btn-outline-primary">{ processInfo[3] }</li>
+					<li className="btn btn-outline-primary">{ processInfo[4] }</li>
+				</ul>
 				:
-				<br />
+				<>
+					<br />
+					<br />
+				</>
+
 		const thumbnail =
-			this.state.thumbnailInfo || 1
+			this.state.thumbnailInfo /* || 1 */
 				?
 				<div className="thumbnail">
 					<div className="text-success d-flex align-items-center" role="alert">
@@ -280,7 +285,7 @@ export default class App extends React.Component<
 				<br />
 		// console.log('this.state.downloadingInfo:',this.state.downloadingInfo);
 		const downloading =
-			this.state.downloadingInfo || 1
+			this.state.downloadingInfo /* || 1 */
 				?
 				<div className="downloading">
 					<div className="text-primary d-flex align-items-center" role="alert">
@@ -338,6 +343,11 @@ export default class App extends React.Component<
 					value={ this.state.url }
 					onChange={ this.handleInputChange }
 				/>
+				{ this.state.process/* ||1 */ &&
+					<div className='input-group-text bg-white loading'>
+						<div className="spinner-border spinner-border-sm text-info" />
+					</div>
+				}
 				{
 					this.state.process
 						?
@@ -345,6 +355,7 @@ export default class App extends React.Component<
 						:
 						<button className='btn btn-primary' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
 				}
+
 				<button className='btn btn-secondary' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>Paste</button>
 
 			</div>
@@ -358,64 +369,50 @@ export default class App extends React.Component<
 		// type A = {
 		// 	[key in keyof App['state']]: App['state'][key] extends boolean ? key : never
 		// }[keyof App['state']]
-		const option = (id: KeyofType<App['state'], boolean>, name: string) =>
-			<div className="form-check form-switch">
-				<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
-				<label className="form-check-label" htmlFor={ id }>{ name }</label>
-			</div>
+		const option = (id: KeyofType<App['state'], boolean>, name?: string) => {
+			if (!name) {
+				name = id.replace(/([A-Z])/g, ' $1')
+				name = name[0].toUpperCase() + name.slice(1)
+			}
+			return (
+				<div className="form-check form-switch">
+					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
+					<label className="form-check-label" htmlFor={ id }>{ name }</label>
+				</div>
+			)
+		}
+		const optionWithInput = (id: KeyofType<App['state'], boolean>, textInput: KeyofType<App['state'], string>, name?: string, placeholder?: string) => {
+			if (!name) {
+				name = id.replace(/([A-Z])/g, ' $1')
+				name = name[0].toUpperCase() + name.slice(1)
+			}
+			if (!placeholder) {
+				placeholder = textInput.replace(/([A-Z])/g, ' $1')
+				placeholder = placeholder[0].toUpperCase() + placeholder.slice(1)
+			}
+			return (
+				<div className="form-check form-switch">
+					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
+					<div className="input-group input-group-sm">
+						<label className="form-check-label input-group-text bg-transparent" htmlFor={ id }>{ name }</label>
+						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
+					</div>
+				</div>
+			)
+		}
 		const options =
 			<div className="control-area">
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="useProxy" checked={ this.state.useProxy } onChange={ this.handleInputChange } />
-					<div className="input-group input-group-sm">
-						<label className="form-check-label input-group-text bg-transparent" htmlFor="useProxy">Use Proxy</label>
-						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state.proxyHost } onChange={ this.handleInputChange } id="proxyHost" placeholder='Use Proxy' />
-					</div>
-				</div>
-				{ option('formatFilename', 'Format Filename') }
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="formatFilename" checked={ this.state.formatFilename } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="formatFilename">Format Filename</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="saveThumbnail" checked={ this.state.saveThumbnail } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="saveThumbnail">Save Thumbnail</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="saveSubtitles" checked={ this.state.saveSubtitles } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="saveSubtitles">Save Subtitles</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="useCookie" checked={ this.state.useCookie } onChange={ this.handleInputChange } />
-					<div className="input-group input-group-sm">
-						<label className="form-check-label input-group-text bg-transparent" htmlFor="useCookie">Use Cookie</label>
-						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state.cookieFile } onChange={ this.handleInputChange } id="cookieFile" placeholder='cookieFile' />
-					</div>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="useHistory" checked={ this.state.useHistory } onChange={ this.handleInputChange } />
-					<div className="input-group input-group-sm">
-
-						<label className="form-check-label input-group-text bg-transparent" htmlFor="useHistory">Use History</label>
-						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state.historyFile } onChange={ this.handleInputChange } id="historyFile" placeholder='historyFile' />
-					</div>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="notDownloadVideo" checked={ this.state.notDownloadVideo } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="notDownloadVideo">Not Download Video</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="onlyDownloadAudio" checked={ this.state.onlyDownloadAudio } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="onlyDownloadAudio">Only Download Audio</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id="saveAutoSubtitle" checked={ this.state.saveAutoSubtitle } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="saveAutoSubtitle">Save Auto Subtitle</label>
-				</div>
-				<div className="form-check form-switch">
-					<input tabIndex={ -1 } disabled className="form-check-input" type="checkbox" role="switch" id="saveAllSubtitles" checked={ this.state.saveAllSubtitles } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor="saveAllSubtitles">Save All Subtitles</label>
-				</div>
+				{ optionWithInput('specifyDownloadPath', 'destPath',) }
+				{ optionWithInput('useProxy', 'proxyHost',) }
+				{ option('formatFilename',) }
+				{ option('saveThumbnail',) }
+				{ option('saveSubtitles',) }
+				{ optionWithInput('useCookie', 'cookieFile',) }
+				{ optionWithInput('useHistory', 'historyFile',) }
+				{ option('notDownloadVideo',) }
+				{ option('onlyDownloadAudio',) }
+				{ option('saveAutoSubtitle',) }
+				{ option('saveAllSubtitles',) }
 			</div>
 		return (
 			<div className="container">
@@ -423,9 +420,18 @@ export default class App extends React.Component<
 				{ urlBar }
 				{ options }
 				<div className="display-area">
+					<div className="progress" style={ {
+						height: 10,
+						marginLeft: 2,
+						marginRight: 115.5,
+						borderRadius: 4,
+						marginTop: -8,
+						zIndex: 100
+					} }>
+						<div className="progress-bar" role="progressbar" style={ { width: percent + "%" } } />
+					</div>
 					<br />
 					{ speed }
-					<br />
 					{ thumbnail }
 					<br />
 					{ downloading }

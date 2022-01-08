@@ -1,9 +1,11 @@
-*{
+* {
 	font-family: futura, serif;
 }
+
 html {
 	min-height: 100vh;
 	-webkit-app-region: drag;
+
 	// opacity: 0;
 	body {
 		/**
@@ -18,12 +20,22 @@ html {
 			top: 32px;
 			-webkit-app-region: no-drag;
 			margin-top: 32px;
+			.input-url {
+				border-bottom: 0 ;
+				z-index: -100;
+			}
+			.loading {
+				border-left: 0;
+				border-bottom: 0;
+			}
 		}
+
 		.control-area {
 			position: fixed;
 			bottom: 32px;
 			-webkit-app-region: no-drag;
-user-select: none;
+			user-select: none;
+
 			input[type=text] {
 				// display: inline;
 				background-color: transparent;
@@ -39,11 +51,12 @@ user-select: none;
 			position: fixed;
 			top: 0;
 			right: 0;
+
 			button {
 				line-height: 0;
 			}
 		}
-		
+
 		// .input-url {
 		// 	width: 80%;
 		// }
