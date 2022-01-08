@@ -1,0 +1,6 @@
+/build
+*.webp
+*.webm
+*.webp.part
+*.webm.part
+*cookie*

@@ -1,0 +1,51 @@
+*{
+	font-family: futura, serif;
+}
+html {
+	min-height: 100vh;
+	-webkit-app-region: drag;
+	// opacity: 0;
+	body {
+		/**
+		 * 我迷幻了,為什麼100vh會出現一條奇怪的空白
+		 */
+		// max-height: 100vh;
+		// min-height: 100vh;
+		background-color: #a0b1ff00;
+
+		.url-area {
+			position: sticky;
+			top: 32px;
+			-webkit-app-region: no-drag;
+			margin-top: 32px;
+		}
+		.control-area {
+			position: fixed;
+			bottom: 32px;
+			-webkit-app-region: no-drag;
+user-select: none;
+			input[type=text] {
+				// display: inline;
+				background-color: transparent;
+			}
+		}
+
+		.display-area {
+			-webkit-app-region: no-drag;
+		}
+
+		.overlay {
+			-webkit-app-region: no-drag;
+			position: fixed;
+			top: 0;
+			right: 0;
+			button {
+				line-height: 0;
+			}
+		}
+		
+		// .input-url {
+		// 	width: 80%;
+		// }
+	}
+}
