@@ -159,13 +159,22 @@ export default class App extends React.Component<
 
 			console.log('*start download');
 			let url = this.state.url
-			if (url === '') {
+			if (url.trim() === '') {
 				url = clipboard.readText()
-				console.log('*url:', url);
 				this.setState((state, props) => ({
 					url: url,
 				}))
 			}
+			console.log('*url inputed:', url);
+			/**
+			 * 直接用是會有注入的風險啦
+			 * \\todo: 最好還是防注入做一下
+			 * 感覺好像本來就不支援url帶引號?
+			 * 空格連一下,開頭的--去掉,好像就差不多了齁
+			 * 根據doc裡的風格指導,state裡只存origin content,能從state算出來的值都不是state,
+			 * 所以不必把escaped好的值放state裡面啦
+			 */
+			url = url.replace(/( )|(^--?)/g, '')
 			const ytdlpOptions: string[] = [];
 			ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 			// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
@@ -333,17 +342,7 @@ export default class App extends React.Component<
 		const titleInfo = this.state.titleInfo
 
 		const percent = parseFloat(processInfo[1])
-		// const infomation = () =>
-		// 	<div className="thumbnail">
-		// 		<div className="text-success d-flex align-items-center" role="alert">
-		// 			<svg xmlns="http://www.w3.org/2000/svg" className="bi flex-shrink-0 me-3" width="14" height="14" role="img" fill="currentColor" viewBox="0 0 16 16">
-		// 				<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-		// 			</svg>
-		// 			<div>
-		// 				Thumbnail Downloaded
-		// 			</div>
-		// 		</div>
-		// 	</div>
+
 		const speed =
 			processInfo.length > 0
 				?

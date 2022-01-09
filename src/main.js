@@ -50,6 +50,7 @@ const createWindow = () => {
 			// preload: path.join(__dirname, 'preload.js'),
 			nodeIntegration: true,
 			contextIsolation: false,
+			// zoomFactor: 2.0,
 		}
 	})
 	setVibrancy(win, {
