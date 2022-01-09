@@ -1,13 +1,34 @@
-import { divide } from 'lodash-es';
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
 import { spawn, ChildProcess } from 'child_process'
 import { decode } from 'iconv-lite';
 import { ipcRenderer, clipboard } from 'electron';
-import { types } from 'sass';
+import ElectronStore from 'electron-store';
+import path from 'path';
 
+const store = new ElectronStore({
+	defaults: {
+		specifyDownloadPath: true,
+		useProxy: true,
+		formatFilename: true,
+		saveThumbnail: true,
+		saveSubtitles: false,
+		useCookie: true,
+		useHistory: false,
+		notDownloadVideo: false,
+		onlyDownloadAudio: false,
+		saveAutoSubtitle: false,
+		saveAllSubtitles: false,
 
+		proxyHost: 'http://127.0.0.1:1081',
+		cookieFile: 'cookiejar.txt',
+		historyFile: 'history.txt',
+
+		destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
+		tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
+	}
+})
 
 export default class App extends React.Component<
 	{},
@@ -55,24 +76,42 @@ export default class App extends React.Component<
 			process: null,
 			maximized: false,
 
-			specifyDownloadPath: true,
-			useProxy: true,
-			formatFilename: true,
-			saveThumbnail: true,
-			saveSubtitles: false,
-			useCookie: true,
-			useHistory: false,
-			notDownloadVideo: false,
-			onlyDownloadAudio: false,
-			saveAutoSubtitle: false,
-			saveAllSubtitles: false,
+			specifyDownloadPath: store.get('specifyDownloadPath'),
+			useProxy: store.get('useProxy'),
+			formatFilename: store.get('formatFilename'),
+			saveThumbnail: store.get('saveThumbnail'),
+			saveSubtitles: store.get('saveSubtitles'),
+			useCookie: store.get('useCookie'),
+			useHistory: store.get('useHistory'),
+			notDownloadVideo: store.get('notDownloadVideo'),
+			onlyDownloadAudio: store.get('onlyDownloadAudio'),
+			saveAutoSubtitle: store.get('saveAutoSubtitle'),
+			saveAllSubtitles: store.get('saveAllSubtitles'),
 
-			proxyHost: 'http://127.0.0.1:1081',
-			cookieFile: 'cookiejar.txt',
-			historyFile: 'history.txt',
+			proxyHost: store.get('proxyHost'),
+			cookieFile: store.get('cookieFile'),
+			historyFile: store.get('historyFile'),
 
-			destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
-			tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
+			destPath: store.get('destPath'),
+			tempPath: store.get('tempPath'),
+			// specifyDownloadPath: true,
+			// useProxy: true,
+			// formatFilename: true,
+			// saveThumbnail: true,
+			// saveSubtitles: false,
+			// useCookie: true,
+			// useHistory: false,
+			// notDownloadVideo: false,
+			// onlyDownloadAudio: false,
+			// saveAutoSubtitle: false,
+			// saveAllSubtitles: false,
+
+			// proxyHost: 'http://127.0.0.1:1081',
+			// cookieFile: 'cookiejar.txt',
+			// historyFile: 'history.txt',
+
+			// destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
+			// tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
 		}
 		ipcRenderer.on('moved-unmaximize', () => {
 			this.setState((state, props) => ({
@@ -138,8 +177,13 @@ export default class App extends React.Component<
 
 
 
-
+			// console.log(__dirname,'yt-dlp.exe');
 			const child = spawn(
+				/**
+				 * 太奇怪了,用yt-dlp.exe直接沒法停止...為什麼會這樣...?
+				 * 但是用yt-dlp_min.exe好像就正常
+				 */
+				// path.join(__dirname,'yt-dlp.exe'),
 				'yt-dlp',
 				ytdlpOptions,
 			)
@@ -232,6 +276,7 @@ export default class App extends React.Component<
 		this.setState<never>((state, props) => ({
 			[id]: value
 		}))
+		store.set(id, value)
 	}
 	handleClick = (e: React.MouseEvent) => {
 		const target = e.currentTarget
@@ -270,6 +315,7 @@ export default class App extends React.Component<
 				?
 				<ul className="btn-group btn-group-sm">
 					<li className="btn btn-outline-primary">{ processInfo[1] }</li>
+					<li className="btn btn-outline-primary">{ processInfo[2] }</li>
 					{
 						processInfo[3] !== 'NA' &&
 						<li className="btn btn-outline-primary">{ processInfo[3] }</li>
@@ -396,7 +442,9 @@ export default class App extends React.Component<
 			<div className="input-group url-area">
 				<input
 					autoFocus
-					onKeyPress={ (e) => { e.key === 'Enter' && this.startDownload() } }
+					onKeyPress={ (e) => {
+						e.key === 'Enter' && !this.state.process && this.startDownload()
+					} }
 					className='input-url form-control'
 					placeholder='Input a videopage url'
 					type='text'
@@ -475,7 +523,7 @@ export default class App extends React.Component<
 					{ option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) }
 					{ option('saveAutoSubtitle',) }
-					{ option('saveAllSubtitles',) }
+					{/* { option('saveAllSubtitles',) } */ }
 				</div>
 			</div>
 		return (

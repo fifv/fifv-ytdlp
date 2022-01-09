@@ -5,3 +5,5 @@
 *.webp.part
 *.webm.part
 *cookie*
+*.exe
+*.png

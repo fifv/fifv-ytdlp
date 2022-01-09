@@ -1,10 +1,16 @@
 /**
  * 刷新不會重新執行這個腳本(當然啦)
  */
-const { app, BrowserWindow, ipcMain, } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, } = require('electron');
 
 const path = require('path');
 const { spawn } = require("child_process");
+
+const ElectronStore = require('electron-store');
+ElectronStore.initRenderer()
+
+const { setVibrancy } = require('electron-acrylic-window')
+
 
 const electronReload = require('electron-reload')
 electronReload(path.join(__dirname, '..', 'build'), {})
@@ -13,7 +19,7 @@ electronReload(path.join(__dirname, '..', 'build'), {})
 
 const createWindow = () => {
 	const win = new BrowserWindow({
-		width: 600,
+		width: 601,
 		height: 690,
 		// titleBarStyle:'customButtonsOnHover',
 		// useContentSize:true,
@@ -33,6 +39,7 @@ const createWindow = () => {
 		darkTheme:true,
 		frame:false,
 		titleBarStyle: 'hidden',
+		icon:path.join(__dirname,'img','youtube-icon.png'),
 		// titleBarOverlay: {
 		// 	color: '#2f3241',
 		// 	symbolColor: '#74b1be'
@@ -50,20 +57,30 @@ const createWindow = () => {
 			contextIsolation: false,
 		}
 	})
+	setVibrancy(win,{
+		// theme:'#a0b1ffd9',
+		effect:'blur',
+		// useCustomWindowRefreshMethod:false,
+		maximumRefreshRate:1440,
+	})
 	/**
 	 * 這個相對的還是root,而不是本腳本
+	 * 而__dirname指向./build
 	 */
 	win.loadFile(path.join(__dirname, 'index.html'))
 	// console.log(win.webContents);
+win.once('ready-to-show', ()=>{
+	console.log('*Ready to show');
+})
 	ipcMain.handle('close', ()=>{
 		win.close()
 	})
 	ipcMain.handle('maximize', ()=>{
 		win.maximize()
 		win.once('moved',()=>{
-			console.log('moved');
 			win.unmaximize()
 			win.webContents.send('moved-unmaximize')
+			console.log('*moved-unmaximize');
 		})
 	})
 	ipcMain.handle('unmaximize', ()=>{
@@ -73,16 +90,17 @@ const createWindow = () => {
 		win.minimize()
 	})
 }
-console.log(path.join(__dirname, 'preload.js'));
-console.log('1');
+// console.log(path.join(__dirname, 'preload.js'));
+console.log('*App start');
 app.whenReady().then(() => {
-	console.log('2');
+	console.log('*App is ready');
 	createWindow()
+	console.log('*Window created');
 })
-console.log('3');
+// console.log('3');
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {
 		app.quit()
-		console.log('quit');
+		console.log('*App quit');
 	}
 })
