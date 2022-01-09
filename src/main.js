@@ -2,28 +2,23 @@
  * 刷新不會重新執行這個腳本(當然啦)
  */
 const { app, BrowserWindow, ipcMain, Tray, } = require('electron');
-
 const path = require('path');
 const { spawn } = require("child_process");
-
 const ElectronStore = require('electron-store');
-ElectronStore.initRenderer()
-
 const { setVibrancy } = require('electron-acrylic-window')
 
 
 const electronReload = require('electron-reload')
 electronReload(path.join(__dirname, '..', 'build'), {})
 
-
-
+ElectronStore.initRenderer()
 const createWindow = () => {
 	const win = new BrowserWindow({
 		width: 601,
 		height: 690,
 		// titleBarStyle:'customButtonsOnHover',
 		// useContentSize:true,
-		transparent:true,
+		transparent: true,
 		// opacity:0.85,
 		/**
 		 * 很奇怪的顏色設置
@@ -36,10 +31,10 @@ const createWindow = () => {
 		// 	x:100,
 		// 	y:100,
 		// },
-		darkTheme:true,
-		frame:false,
+		darkTheme: true,
+		frame: false,
 		titleBarStyle: 'hidden',
-		icon:path.join(__dirname,'img','youtube-icon.png'),
+		icon: path.join(__dirname, 'img', 'youtube-icon.png'),
 		// titleBarOverlay: {
 		// 	color: '#2f3241',
 		// 	symbolColor: '#74b1be'
@@ -57,11 +52,11 @@ const createWindow = () => {
 			contextIsolation: false,
 		}
 	})
-	setVibrancy(win,{
+	setVibrancy(win, {
 		// theme:'#a0b1ffd9',
-		effect:'blur',
+		effect: 'blur',
 		// useCustomWindowRefreshMethod:false,
-		maximumRefreshRate:1440,
+		maximumRefreshRate: 1440,
 	})
 	/**
 	 * 這個相對的還是root,而不是本腳本
@@ -69,26 +64,32 @@ const createWindow = () => {
 	 */
 	win.loadFile(path.join(__dirname, 'index.html'))
 	// console.log(win.webContents);
-win.once('ready-to-show', ()=>{
-	console.log('*Ready to show');
-})
-	ipcMain.handle('close', ()=>{
-		win.close()
+	/**
+	 * 雖然不明道理,但是這兩條都要加.即時那些隔離什麼的都關了也要
+	 * 不然會空白卡住
+	 */
+	require('@electron/remote/main').initialize()
+	require('@electron/remote/main').enable(win.webContents)
+	win.once('ready-to-show', () => {
+		console.log('*Ready to show');
 	})
-	ipcMain.handle('maximize', ()=>{
-		win.maximize()
-		win.once('moved',()=>{
-			win.unmaximize()
-			win.webContents.send('moved-unmaximize')
-			console.log('*moved-unmaximize');
-		})
-	})
-	ipcMain.handle('unmaximize', ()=>{
-		win.unmaximize()
-	})
-	ipcMain.handle('minimize', ()=>{
-		win.minimize()
-	})
+	// ipcMain.handle('close', () => {
+	// 	win.close()
+	// })
+	// ipcMain.handle('maximize', () => {
+	// 	win.maximize()
+	// 	win.once('moved', () => {
+	// 		win.unmaximize()
+	// 		win.webContents.send('moved-unmaximize')
+	// 		console.log('*moved-unmaximize');
+	// 	})
+	// })
+	// ipcMain.handle('unmaximize', () => {
+	// 	win.unmaximize()
+	// })
+	// ipcMain.handle('minimize', () => {
+	// 	win.minimize()
+	// })
 }
 // console.log(path.join(__dirname, 'preload.js'));
 console.log('*App start');

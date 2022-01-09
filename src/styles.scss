@@ -27,6 +27,11 @@ html {
 			.loading {
 				border-left: 0;
 				border-bottom: 0;
+				position: absolute;
+				top: 0;
+				right: 125px;
+				z-index: 100;
+				line-height: 42px;
 			}
 		}
 

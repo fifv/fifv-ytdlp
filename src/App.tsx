@@ -29,6 +29,18 @@ const store = new ElectronStore({
 		tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
 	}
 })
+import * as remote from '@electron/remote'
+const win = remote.getCurrentWindow()
+const main = {
+	console: remote.require('console')
+}
+window.onbeforeunload = (event) => {
+	/* If window is reloaded, remove win event listeners
+	(DOM element listeners get auto garbage collected but not
+	Electron win listeners as the win is not dereferenced unless closed) */
+	win.removeAllListeners();
+
+}
 
 export default class App extends React.Component<
 	{},
@@ -113,11 +125,11 @@ export default class App extends React.Component<
 			// destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
 			// tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
 		}
-		ipcRenderer.on('moved-unmaximize', () => {
-			this.setState((state, props) => ({
-				maximized: false,
-			}))
-		})
+		// ipcRenderer.on('moved-unmaximize', () => {
+		// 	this.setState((state, props) => ({
+		// 		maximized: false,
+		// 	}))
+		// })
 	}
 
 	startDownload = () => {
@@ -154,7 +166,7 @@ export default class App extends React.Component<
 					url: url,
 				}))
 			}
-			let ytdlpOptions: string[] = [];
+			const ytdlpOptions: string[] = [];
 			ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 			// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
 			// ytdlpOptions.push('-r', '50K') //調試用降速
@@ -176,7 +188,6 @@ export default class App extends React.Component<
 			ytdlpOptions.push(url)
 
 
-
 			// console.log(__dirname,'yt-dlp.exe');
 			const child = spawn(
 				/**
@@ -190,8 +201,9 @@ export default class App extends React.Component<
 			this.setState({
 				process: child,
 			})
+
 			child.stdout.on('data', (data: Buffer) => {
-				let info = decode(data, 'gbk')
+				const info = decode(data, 'gbk')
 				if (info.includes('[download] Destination')) {
 					console.log('*downloadingInfo:', info);
 					this.setState((state, props) => ({
@@ -218,6 +230,7 @@ export default class App extends React.Component<
 					// 	}))
 
 				} else if (info.includes('idk')) {
+					/* empty */
 				} else if (info.includes('Downloading video thumbnail')) {
 					console.log('*otherinfo:', info);
 				} else {
@@ -278,15 +291,36 @@ export default class App extends React.Component<
 		}))
 		store.set(id, value)
 	}
-	handleClick = (e: React.MouseEvent) => {
-		const target = e.currentTarget
-		const id = target.id
-		ipcRenderer.invoke(id)
-	}
+	/**
+	 * 讚哦,用了remote,直接在這裡操縱win,不用ipc傳來傳去了
+	 */
+	// handleClick = (e: React.MouseEvent) => {
+	// 	const target = e.currentTarget
+	// 	const id = target.id
+	// 	ipcRenderer.invoke(id)
+	// }
 	handleMax = (e: React.MouseEvent) => {
+		/**
+		 * 讚哦,所有的東西全移到這裡來了!
+		 * 目前這個腳本已經用不著任何ipc了!
+		 */
 		const target = e.currentTarget
 		const id = target.id
-		ipcRenderer.invoke(id)
+		// ipcRenderer.invoke(id)
+		if (id === 'maximize') {
+			win.maximize()
+			win.once('moved', () => {
+				win.unmaximize()
+				// win.webContents.send('moved-unmaximize')
+				this.setState((state, props) => ({
+					maximized: false,
+				}))
+				main.console.log('*moved-unmaximize');
+			})
+		} else if (id === 'unmaximize') {
+			win.unmaximize()
+		}
+
 		this.setState((state, props) => ({
 			maximized: !state.maximized
 		}))
@@ -409,29 +443,51 @@ export default class App extends React.Component<
 
 		const trafficLight =
 			<div className="btn-group overlay">
-				<button tabIndex={ -1 } className='btn btn-outline-secondary' id='minimize' onClick={ this.handleClick }>
-					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="1em" fill="currentColor" className="bi bi-dash-lg" viewBox="0 0 16 16">
+				<button
+					tabIndex={ -1 } className='btn btn-outline-secondary' id='minimize'
+					onClick={ () => { win.minimize() } }
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg" width="15" height="1em" fill="currentColor"
+						className="bi bi-dash-lg" viewBox="0 0 16 16"
+					>
 						<path fillRule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z" />
 					</svg>
 				</button>
 				{
 					this.state.maximized
 						?
-						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='unmaximize' onClick={ this.handleMax }>
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-layers" viewBox="0 0 16 16">
+						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='unmaximize'
+							onClick={ this.handleMax }
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+								className="bi bi-layers" viewBox="0 0 16 16"
+							>
 								<path d="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882l-7.5-4zm3.515 7.008L14.438 10 8 13.433 1.562 10 4.25 8.567l3.515 1.874a.5.5 0 0 0 .47 0l3.515-1.874zM8 9.433 1.562 6 8 2.567 14.438 6 8 9.433z" />
 							</svg>
 						</button>
 						:
-						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='maximize' onClick={ this.handleMax }>
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12px" fill="currentColor" className="bi bi-square" viewBox="0 0 16 16">
+						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='maximize'
+							onClick={ this.handleMax }
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg" width="16" height="12px" fill="currentColor"
+								className="bi bi-square" viewBox="0 0 16 16"
+							>
 								<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
 							</svg>
 						</button>
 
 				}
-				<button tabIndex={ -1 } className='btn rounded-0 btn-outline-secondary' id='close' onClick={ this.handleClick }>
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="1em" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
+				<button
+					tabIndex={ -1 } className='btn rounded-0 btn-outline-secondary' id='close'
+					onClick={ () => { win.close() } }
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg" width="16" height="1em" fill="currentColor"
+						className="bi bi-x-lg" viewBox="0 0 16 16"
+					>
 						<path fillRule="evenodd" d="M13.854 2.146a.5.5 0 0 1 0 .708l-11 11a.5.5 0 0 1-.708-.708l11-11a.5.5 0 0 1 .708 0Z" />
 						<path fillRule="evenodd" d="M2.146 2.146a.5.5 0 0 0 0 .708l11 11a.5.5 0 0 0 .708-.708l-11-11a.5.5 0 0 0-.708 0Z" />
 					</svg>
@@ -453,8 +509,18 @@ export default class App extends React.Component<
 					onChange={ this.handleInputChange }
 				/>
 				{
-					this.state.process/* ||1 */ &&
-					<div className='input-group-text bg-white loading'>
+					/**
+					 * 哈...邏輯短路真的短路了...
+					 * this.state.process || 1 && Element
+					 * &&優先級高於||
+					 * 所以相當於this.state.process || Element
+					 * 當前面的有內容的時候直接返回前面的...process...就報錯了...所以ts為啥不報錯?!
+					 * 然後eslint也不報錯...
+					 * 奇怪了
+					 * 
+					 */
+					(!!this.state.process/*  || 1 */) &&
+					<div className='loading'>
 						<div className="spinner-border spinner-border-sm text-info" />
 					</div>
 				}
