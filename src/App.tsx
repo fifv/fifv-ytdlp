@@ -631,7 +631,7 @@ class Task extends React.Component<
 				}
 			</div>
 		return (
-			{ task }
+			task
 		);
 	}
 }
