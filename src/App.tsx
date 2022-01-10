@@ -365,6 +365,9 @@ export default class App extends React.Component<
 					 * i can let it appear per task bar rather the url bar
 					 * it is only needed in the single mode
 					 */
+					/**
+					 * todo: make the spinner work well
+					 */
 					(this.state.processes.length > 0) &&
 					<div className='loading'>
 						<div className="spinner-border spinner-border-sm text-info" />
@@ -610,16 +613,14 @@ class Task extends React.Component<
 				break;
 		}
 		const task =
-			(processInfo.length > 0 || (otherInfo || errorInfo)) &&
 			<div className="multimode-task">
-				{ (otherInfo || errorInfo) &&
-					<div className="upperrow">
-						{ thumbnailInfo && <div className="info-thumbnail">{ svgSuccess } <span>Thumbnail</span> </div> }
-						{ otherInfo && <div className="info-other">{ svgInfo } <span>{ otherInfo }</span> </div> }
-						{ errorInfo && <div className="info-error">{ svgError } <span> { errorInfo }</span></div> }
-						{ status }
-					</div>
-				}
+				<div className="upperrow">
+					{ thumbnailInfo && <div className="info-thumbnail">{ svgSuccess } <span>Thumbnail</span> </div> }
+					{ otherInfo && <div className="info-other">{ svgInfo } <span>{ otherInfo }</span> </div> }
+					{ errorInfo && <div className="info-error">{ svgError } <span> { errorInfo }</span></div> }
+					{ status }
+				</div>
+
 				{ processInfo.length > 0 &&
 					<div className="lowerrow">
 						{ processInfo[1] && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
