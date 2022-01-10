@@ -68,7 +68,6 @@ export default class App extends React.Component<
 	{
 		url: string,
 		maximized: boolean,
-		multimode: boolean,
 		processes: {
 			timestamp: number,
 			process: ChildProcess,
@@ -100,7 +99,6 @@ export default class App extends React.Component<
 			url: '',
 			processes: [],
 			maximized: false,
-			multimode: true,
 
 			specifyDownloadPath: store.get('specifyDownloadPath'),
 			useProxy: store.get('useProxy'),
@@ -119,30 +117,7 @@ export default class App extends React.Component<
 			historyFile: store.get('historyFile'),
 			destPath: store.get('destPath'),
 			tempPath: store.get('tempPath'),
-			// specifyDownloadPath: true,
-			// useProxy: true,
-			// formatFilename: true,
-			// saveThumbnail: true,
-			// saveSubtitles: false,
-			// useCookie: true,
-			// useHistory: false,
-			// notDownloadVideo: false,
-			// onlyDownloadAudio: false,
-			// saveAutoSubtitle: false,
-			// saveAllSubtitles: false,
-
-			// proxyHost: 'http://127.0.0.1:1081',
-			// cookieFile: 'cookiejar.txt',
-			// historyFile: 'history.txt',
-
-			// destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
-			// tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
 		}
-		// ipcRenderer.on('moved-unmaximize', () => {
-		// 	this.setState((state, props) => ({
-		// 		maximized: false,
-		// 	}))
-		// })
 	}
 
 	startDownload = () => {
@@ -399,14 +374,7 @@ export default class App extends React.Component<
 					/**
 					 * 單個模式下要Stop好像有點麻煩
 					 */
-					this.state.processes.length > 0 && !this.state.multimode
-						?
-						<button className='btn btn-danger' tabIndex={ -1 } onClick={ () => {
-							this.state.processes[0].process.kill()
-							// this.stopDownload(this.state.processes[0].timestamp)
-						} }>Stop</button>
-						:
-						<button className='btn btn-primary' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
+					<button className='btn btn-primary' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
 				}
 
 				<button className='btn btn-secondary' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>Paste</button>
@@ -470,27 +438,16 @@ export default class App extends React.Component<
 		const display =
 			<div className="display-area">
 				{
-					this.state.multimode
-						?
-						this.state.processes.map(({ timestamp, process }) => {
-							return (
-								<Task
-									timestamp={ timestamp }
-									process={ process }
-									key={ timestamp }
-									handleStop={ (timestamp) => this.stopDownload(timestamp) }
-									multimode={ this.state.multimode }
-								/>
-							)
-						}).reverse()
-						:
-						!!this.state.processes[0] && <Task
-							timestamp={ this.state.processes[0].timestamp }
-							process={ this.state.processes[0].process }
-							key={ this.state.processes[0].timestamp }
-							handleStop={ (timestamp) => this.stopDownload(timestamp) }
-							multimode={ this.state.multimode }
-						/>
+					this.state.processes.map(({ timestamp, process }) => {
+						return (
+							<Task
+								timestamp={ timestamp }
+								process={ process }
+								key={ timestamp }
+								handleStop={ (timestamp) => this.stopDownload(timestamp) }
+							/>
+						)
+					}).reverse()
 				}
 			</div>
 		return (
@@ -498,10 +455,10 @@ export default class App extends React.Component<
 				{ trafficLight }
 				<div className="container">
 					<div className="main">
-						
-					{ urlBar }
-					{ display }
-					{ options }
+
+						{ urlBar }
+						{ display }
+						{ options }
 					</div>
 				</div>
 			</>
@@ -514,13 +471,11 @@ class Task extends React.Component<
 		timestamp: number,
 		process: ChildProcess,
 		handleStop: (timestamp: number) => void
-		multimode: boolean,
 	},
 	{
 		processInfo: string[],
 		thumbnailInfo: string,
 		downloadingInfo: string,
-		titleInfo: string,
 		otherInfo: string,
 		errorInfo: string,
 
@@ -535,7 +490,6 @@ class Task extends React.Component<
 			processInfo: [],
 			thumbnailInfo: '',
 			downloadingInfo: '',
-			titleInfo: '',
 			otherInfo: '',
 			errorInfo: '',
 
@@ -555,7 +509,6 @@ class Task extends React.Component<
 				console.log('*processinfo:', info);
 				this.setState((state, props) => ({
 					processInfo: processInfo,
-					titleInfo: processInfo[5],
 				}))
 
 
@@ -634,106 +587,13 @@ class Task extends React.Component<
 		const processInfo = this.state.processInfo
 		const otherInfo = this.state.otherInfo
 		const errorInfo = this.state.errorInfo
-		const titleInfo = this.state.titleInfo
 		const thumbnailInfo = this.state.thumbnailInfo
 
 		const percent = parseFloat(processInfo[1])
+		/**
+		 * todo: progress bar
+		 */
 
-		const speed =
-			processInfo.length > 0
-				?
-				<ul className="btn-group btn-group-sm">
-					<li className="btn btn-outline-primary">{ processInfo[1] }</li>
-					<li className="btn btn-outline-primary">{ processInfo[2] }</li>
-					{
-						processInfo[3] !== 'NA' &&
-						<li className="btn btn-outline-primary">{ processInfo[3] }</li>
-					}
-					{
-						processInfo[4] !== 'NA' &&
-						<li className="btn btn-outline-primary">{ processInfo[4] }</li>
-					}
-				</ul>
-				:
-				<>
-					<br />
-					<br />
-				</>
-
-		const thumbnail =
-			this.state.thumbnailInfo /* || 1 */
-				?
-				<div className="thumbnail">
-					<div className="text-success d-flex align-items-center" role="alert">
-						<svg xmlns="http://www.w3.org/2000/svg" className="bi flex-shrink-0 me-3" width="14" height="14" role="img" fill="currentColor" viewBox="0 0 16 16">
-							<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-						</svg>
-						<div>
-							Thumbnail Downloaded
-						</div>
-					</div>
-				</div>
-				:
-				<br />
-		// console.log('this.state.downloadingInfo:',this.state.downloadingInfo);
-		const downloading =
-			percent === 100
-				?
-				<div className="downloading">
-					<div className="text-success d-flex align-items-center" role="alert">
-						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-check-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
-							<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-						</svg>
-						<div>
-							Downloading Finished: { titleInfo }
-						</div>
-					</div>
-				</div>
-				:
-				this.state.downloadingInfo /* || 1 */
-					?
-					<div className="downloading">
-						<div className="text-primary d-flex align-items-center" role="alert">
-							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-arrow-right-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
-								<path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
-							</svg>
-							<div>
-								Content Downloading: { titleInfo }
-							</div>
-						</div>
-					</div>
-					:
-					<br />
-		const notice =
-			otherInfo/*  || 1 */
-				?
-				<div className="downloading">
-					<div className="text-primary d-flex align-items-center" role="alert">
-						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-info-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
-							<path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-						</svg>
-						<div>
-							{ otherInfo }
-						</div>
-					</div>
-				</div>
-				:
-				<br />
-		const error =
-			errorInfo/*  || 1 */
-				?
-				<div className="downloading">
-					<div className="text-danger d-flex align-items-center" role="alert">
-						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-3" viewBox="0 0 16 16">
-							<path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-						</svg>
-						<div>
-							{ errorInfo }
-						</div>
-					</div>
-				</div>
-				:
-				<br />
 		let status = <div className="click-stop" onClick={ this.handleStop }>Downloading</div>
 		switch (this.state.status) {
 			case 'stopped':
@@ -771,37 +631,7 @@ class Task extends React.Component<
 				}
 			</div>
 		return (
-			this.props.multimode
-				?
-				<>
-					{ task }
-				</>
-				:
-				<div className="singlemode-task">
-					<div className="progress" style={ {
-						height: 10,
-						marginLeft: 2,
-						marginRight: 115.5,
-						borderRadius: 4,
-						marginTop: -8,
-						zIndex: 100
-					} }>
-						<div className="progress-bar" role="progressbar"
-							style={ { width: percent + "%" } }
-						/>
-					</div>
-					{/* { <button className="btn btn-danger" onClick={ this.handleStop }>Stop</button> } */ }
-					<br />
-					{ speed }
-					{ notice }
-					<br />
-					{ thumbnail }
-					<br />
-					{ downloading }
-					<br />
-					{ error }
-
-				</div>
+			{ task }
 		);
 	}
 }
