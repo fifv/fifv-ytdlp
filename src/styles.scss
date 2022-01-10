@@ -70,23 +70,27 @@ html {
 
 				// position: fixed;
 				// bottom: 32px;
-				-webkit-app-region: no-drag;
 				user-select: none;
-
+				
 				input[type=text] {
 					// display: inline;
 					background-color: transparent;
 				}
+				
+				input,
+				label {
+					-webkit-app-region: no-drag;
+				}
 			}
 
 			.display-area {
-				-webkit-app-region: no-drag;
 				overflow-y: scroll;
 				width: 100%;
 				margin-bottom: 15px;
 				.multimode-task {
+					-webkit-app-region: no-drag;
 					margin-bottom: 20px;
-
+					
 					// background-color: #6d767e88;
 					display: flex;
 					flex-direction: column;
