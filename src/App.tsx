@@ -46,6 +46,8 @@ export default class App extends React.Component<
 	{},
 	{
 		url: string,
+		maximized: boolean,
+		
 		processInfo: string[],
 		thumbnailInfo: string,
 		downloadingInfo: string,
@@ -53,7 +55,7 @@ export default class App extends React.Component<
 		otherInfo: string,
 		errorInfo: string,
 		process: ChildProcess | null,
-		maximized: boolean,
+		
 
 		specifyDownloadPath: boolean,
 		useProxy: boolean,
@@ -70,7 +72,6 @@ export default class App extends React.Component<
 		proxyHost: string,
 		cookieFile: string,
 		historyFile: string,
-
 		destPath: string,
 		tempPath: string,
 	}
