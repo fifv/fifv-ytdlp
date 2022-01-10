@@ -159,7 +159,7 @@ export default class App extends React.Component<
 		const ytdlpOptions: string[] = [];
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-		ytdlpOptions.push('-r', '5K') //調試用降速
+		// ytdlpOptions.push('-r', '5K') //調試用降速
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
