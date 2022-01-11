@@ -1,7 +1,7 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "1.6.6",
+	"version": "1.6.7",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",

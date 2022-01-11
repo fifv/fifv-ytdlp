@@ -6,7 +6,13 @@ import { decode } from 'iconv-lite';
 import { ipcRenderer, clipboard } from 'electron';
 import ElectronStore from 'electron-store';
 import path from 'path';
-
+import * as remote from '@electron/remote'
+const win = remote.getCurrentWindow()
+const main = {
+	console: remote.require('console'),
+	app: remote.app,
+}
+// console.log(main.app.getPath('downloads'));
 type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
@@ -46,15 +52,12 @@ const store = new ElectronStore({
 		cookieFile: 'cookiejar.txt',
 		historyFile: 'history.txt',
 
-		destPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl',
-		tempPath: 'D:\\Downloads\\CRTubeGet Downloaded\\youtube-dl\\temp',
+		destPath: main.app.getPath('downloads'),
+		tempPath: path.join(main.app.getPath('downloads'), 'temp'),
 	}
 })
-import * as remote from '@electron/remote'
-const win = remote.getCurrentWindow()
-const main = {
-	console: remote.require('console')
-}
+
+
 window.onbeforeunload = (event) => {
 	/* If window is reloaded, remove win event listeners
 	(DOM element listeners get auto garbage collected but not
@@ -208,7 +211,7 @@ export default class App extends React.Component<
 		// }
 		console.log(`*child ${timestamp} report closed`);
 		this.setState((state, props) => ({
-			closedCount: state.closedCount+1,
+			closedCount: state.closedCount + 1,
 		}))
 		/**
 		 * seems like directly remove the process from state is probably not a good idea.
@@ -281,6 +284,28 @@ export default class App extends React.Component<
 		this.setState((state, props) => ({
 			maximized: !state.maximized
 		}))
+	}
+	handleClick = (e: React.MouseEvent) => {
+		const target = e.currentTarget
+		const id = target.id
+		if (id === 'destPath' && this.state.specifyDownloadPath) {
+			console.log('*open dir:', this.state.destPath);
+			spawn('start', ['""', `"${this.state.destPath}"`], { shell: true })
+		} else if (id === 'destPath' && !this.state.specifyDownloadPath) {
+			const appPath = main.app.getAppPath()
+			console.log('*open dir:', appPath);
+			spawn('start', ['""', `"${appPath}"`], { shell: true })
+		} else if (id === 'historyFile') {
+			// const appPath = main.app.getAppPath()
+			const historyFile = this.state.historyFile
+			console.log('*open historyFile:', historyFile);
+			spawn('start', ['""', `"${historyFile}"`], { shell: true })
+		} else if (id === 'cookieFile') {
+			// const appPath = main.app.getAppPath()
+			const cookieFile = this.state.cookieFile
+			console.log('*open cookieFile:', cookieFile);
+			spawn('start', ['""', `"${cookieFile}"`], { shell: true })
+		}
 	}
 	render() {
 
@@ -373,7 +398,7 @@ export default class App extends React.Component<
 					/**
 					 * TO\DO: make the spinner work well
 					 */
-					(this.state.processes.length - this.state.closedCount> 0) &&
+					(this.state.processes.length - this.state.closedCount > 0) &&
 					<div className='loading'>
 						<div className="spinner-border spinner-border-sm text-info" />
 					</div>
@@ -416,11 +441,19 @@ export default class App extends React.Component<
 				placeholder = textInput.replace(/([A-Z])/g, ' $1')
 				placeholder = placeholder[0].toUpperCase() + placeholder.slice(1)
 			}
+			/**
+			 * TODO: make options beautiful and functionable
+			 */
 			return (
 				<div className="form-check form-switch col-12 col-sm-6  col-xl-4">
 					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
 					<div className="input-group input-group-sm">
-						<label className="form-check-label input-group-text bg-transparent" htmlFor={ id }>{ name }</label>
+						<label
+							id={ textInput }
+							className="form-check-label input-group-text bg-transparent"
+							/* htmlFor={ id } */
+							onClick={ this.handleClick }
+						>{ name }</label>
 						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
 					</div>
 				</div>
