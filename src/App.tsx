@@ -72,6 +72,7 @@ export default class App extends React.Component<
 			timestamp: number,
 			process: ChildProcess,
 		}[],
+		closedCount: number,
 
 
 		specifyDownloadPath: boolean,
@@ -99,6 +100,7 @@ export default class App extends React.Component<
 			url: '',
 			processes: [],
 			maximized: false,
+			closedCount: 0,
 
 			specifyDownloadPath: store.get('specifyDownloadPath'),
 			useProxy: store.get('useProxy'),
@@ -149,7 +151,7 @@ export default class App extends React.Component<
 		console.log('*url inputed:', url);
 		/**
 		 * 直接用是會有注入的風險啦
-		 * \\todo: 最好還是防注入做一下
+		 * \\TO\DO: 最好還是防注入做一下
 		 * 感覺好像本來就不支援url帶引號?
 		 * 空格連一下,開頭的--去掉,好像就差不多了齁
 		 * 根據doc裡的風格指導,state裡只存origin content,能從state算出來的值都不是state,
@@ -197,14 +199,17 @@ export default class App extends React.Component<
 
 
 	}
-	stopDownload = (timestamp: number) => {
+	handleStop = (timestamp: number) => {
 		// const success = this.state.process?.kill()
 		// if (success) {
 		// 	this.setState({
 		// 		process: null,
 		// 	})
 		// }
-		console.log(`*child ${timestamp} removed from state`);
+		console.log(`*child ${timestamp} report closed`);
+		this.setState((state, props) => ({
+			closedCount: state.closedCount+1,
+		}))
 		/**
 		 * seems like directly remove the process from state is probably not a good idea.
 		 * if something downloaded finished, or failed, yes, the process is not running.
@@ -366,9 +371,9 @@ export default class App extends React.Component<
 					 * it is only needed in the single mode
 					 */
 					/**
-					 * todo: make the spinner work well
+					 * TO\DO: make the spinner work well
 					 */
-					(this.state.processes.length > 0) &&
+					(this.state.processes.length - this.state.closedCount> 0) &&
 					<div className='loading'>
 						<div className="spinner-border spinner-border-sm text-info" />
 					</div>
@@ -447,7 +452,7 @@ export default class App extends React.Component<
 								timestamp={ timestamp }
 								process={ process }
 								key={ timestamp }
-								handleStop={ (timestamp) => this.stopDownload(timestamp) }
+								handleStop={ (timestamp) => this.handleStop(timestamp) }
 							/>
 						)
 					}).reverse()
@@ -553,7 +558,7 @@ class Task extends React.Component<
 			// 	// infos: state.infos.concat('[Download Stopped]'),
 			// 	process: null,
 			// }))
-			// this.props.handleStop(this.props.timestamp)
+			this.props.handleStop(this.props.timestamp)
 			/**
 			 * seems that 0 === finished
 			 * null === kill()
@@ -594,7 +599,7 @@ class Task extends React.Component<
 
 		const percent = parseFloat(processInfo[1])
 		/**
-		 * todo: progress bar
+		 * TODO: progress bar
 		 */
 
 		let status = <div className="click-stop" onClick={ this.handleStop }>Downloading</div>
@@ -615,19 +620,19 @@ class Task extends React.Component<
 		const task =
 			<div className="multimode-task">
 				<div className="upperrow">
-					{ thumbnailInfo && <div className="info-thumbnail">{ svgSuccess } <span>Thumbnail</span> </div> }
-					{ otherInfo && <div className="info-other">{ svgInfo } <span>{ otherInfo }</span> </div> }
-					{ errorInfo && <div className="info-error">{ svgError } <span> { errorInfo }</span></div> }
+					{ !!thumbnailInfo && <div className="info-thumbnail">{ svgSuccess } <span>Thumbnail</span> </div> }
+					{ !!otherInfo && <div className="info-other">{ svgInfo } <span>{ otherInfo }</span> </div> }
+					{ !!errorInfo && <div className="info-error">{ svgError } <span> { errorInfo }</span></div> }
 					{ status }
 				</div>
 
 				{ processInfo.length > 0 &&
 					<div className="lowerrow">
-						{ processInfo[1] && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
-						{ processInfo[3] && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
-						{ processInfo[2] && <div className="info-size"><span>{ processInfo[2] }</span></div> }
-						{ processInfo[4] && <div className="info-eta"><span>{ processInfo[4] }</span></div> }
-						{ processInfo[5] && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
+						{ !!processInfo[1] && processInfo[1] !== 'NA' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
+						{ !!processInfo[3] && processInfo[3] !== 'NA' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
+						{ !!processInfo[2] && processInfo[2] !== 'NA' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
+						{ !!processInfo[4] && processInfo[4] !== 'NA' && <div className="info-eta"><span>{ processInfo[4] }</span></div> }
+						{ !!processInfo[5] && processInfo[5] !== 'NA' && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
 					</div>
 				}
 			</div>
