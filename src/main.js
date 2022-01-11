@@ -14,7 +14,7 @@ electronReload(path.join(__dirname, '..', 'build'), {})
 ElectronStore.initRenderer()
 const createWindow = () => {
 	const win = new BrowserWindow({
-		width: 1000,
+		width: 770,
 		height: 690,
 		// titleBarStyle:'customButtonsOnHover',
 		// useContentSize:true,

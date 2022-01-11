@@ -37,7 +37,7 @@ const svgSuccess =
 const store = new ElectronStore({
 	defaults: {
 		specifyDownloadPath: true,
-		useProxy: true,
+		useProxy: false,
 		formatFilename: true,
 		saveThumbnail: true,
 		saveSubtitles: false,
@@ -48,7 +48,7 @@ const store = new ElectronStore({
 		saveAutoSubtitle: false,
 		saveAllSubtitles: false,
 
-		proxyHost: 'http://127.0.0.1:1081',
+		proxyHost: 'http://127.0.0.1:1080',
 		cookieFile: 'cookiejar.txt',
 		historyFile: 'history.txt',
 
