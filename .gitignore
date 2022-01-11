@@ -1,5 +1,6 @@
 /build
 /out
+/dist
 *.webp
 *.webm
 *.webp.part

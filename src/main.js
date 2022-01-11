@@ -8,8 +8,8 @@ const ElectronStore = require('electron-store');
 const { setVibrancy } = require('electron-acrylic-window')
 
 
-const electronReload = require('electron-reload')
-electronReload(path.join(__dirname, '..', 'build'), {})
+// const electronReload = require('electron-reload')
+// electronReload(path.join(__dirname, '..', 'build'), {})
 
 ElectronStore.initRenderer()
 const createWindow = () => {

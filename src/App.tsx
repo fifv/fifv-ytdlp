@@ -12,7 +12,7 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-// console.log(main.app.getPath('downloads'));
+console.log('*ty-dlp bin path:',path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
@@ -47,6 +47,7 @@ const store = new ElectronStore({
 		onlyDownloadAudio: false,
 		saveAutoSubtitle: false,
 		saveAllSubtitles: false,
+		useLocalYtdlp: false,
 
 		proxyHost: 'http://127.0.0.1:1080',
 		cookieFile: 'cookiejar.txt',
@@ -89,6 +90,7 @@ export default class App extends React.Component<
 		onlyDownloadAudio: boolean,
 		saveAutoSubtitle: boolean,
 		saveAllSubtitles: boolean,
+		useLocalYtdlp: boolean,
 
 		proxyHost: string,
 		cookieFile: string,
@@ -116,6 +118,7 @@ export default class App extends React.Component<
 			onlyDownloadAudio: store.get('onlyDownloadAudio'),
 			saveAutoSubtitle: store.get('saveAutoSubtitle'),
 			saveAllSubtitles: store.get('saveAllSubtitles'),
+			useLocalYtdlp: store.get('useLocalYtdlp'),
 
 			proxyHost: store.get('proxyHost'),
 			cookieFile: store.get('cookieFile'),
@@ -181,16 +184,20 @@ export default class App extends React.Component<
 		// this.state.saveAllSubtitles && ytdlpOptions.push('')
 
 		ytdlpOptions.push(url)
-
+		const ytdlpCommand = this.state.useLocalYtdlp ?
+			'yt-dlp'
+			:
+			path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe')
 
 		// console.log(__dirname,'yt-dlp.exe');
 		const child = spawn(
 			/**
 			 * 太奇怪了,用yt-dlp.exe直接沒法停止...為什麼會這樣...?
 			 * 但是用yt-dlp_min.exe好像就正常
+			 * 
+			 * 用builder打包的話整個build目錄都被壓成了app.asar,此時getPath之類的操作好像就失效了淦
 			 */
-			// path.join(__dirname,'yt-dlp.exe'),
-			'yt-dlp',
+			ytdlpCommand,
 			ytdlpOptions,
 		)
 		this.setState((state, props) => ({
@@ -292,9 +299,9 @@ export default class App extends React.Component<
 			console.log('*open dir:', this.state.destPath);
 			spawn('start', ['""', `"${this.state.destPath}"`], { shell: true })
 		} else if (id === 'destPath' && !this.state.specifyDownloadPath) {
-			const appPath = main.app.getAppPath()
-			console.log('*open dir:', appPath);
-			spawn('start', ['""', `"${appPath}"`], { shell: true })
+			const cwd = remote.process.cwd()
+			console.log('*open dir:', cwd);
+			spawn('start', ['""', `"${cwd}"`], { shell: true })
 		} else if (id === 'historyFile') {
 			// const appPath = main.app.getAppPath()
 			const historyFile = this.state.historyFile
@@ -472,6 +479,7 @@ export default class App extends React.Component<
 					{ option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) }
 					{ option('saveAutoSubtitle',) }
+					{ option('useLocalYtdlp',) }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>
 			</div>
@@ -661,11 +669,11 @@ class Task extends React.Component<
 
 				{ processInfo.length > 0 &&
 					<div className="lowerrow">
-						{ !!processInfo[1] && processInfo[1] !== 'NA' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
-						{ !!processInfo[3] && processInfo[3] !== 'NA' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
-						{ !!processInfo[2] && processInfo[2] !== 'NA' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
-						{ !!processInfo[4] && processInfo[4] !== 'NA' && <div className="info-eta"><span>{ processInfo[4] }</span></div> }
-						{ !!processInfo[5] && processInfo[5] !== 'NA' && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
+						{ !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
+						{ !!processInfo[3] && processInfo[3] !== 'NA' && processInfo[3] !== 'Unknown' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
+						{ !!processInfo[2] && processInfo[2] !== 'NA' && processInfo[2] !== 'Unknown' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
+						{ !!processInfo[4] && processInfo[4] !== 'NA' && processInfo[4] !== 'Unknown' && <div className="info-eta"><span>{ processInfo[4] }</span></div> }
+						{ !!processInfo[5] && processInfo[5] !== 'NA' && processInfo[5] !== 'Unknown' && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
 					</div>
 				}
 			</div>
