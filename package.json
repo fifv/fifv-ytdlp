@@ -1,16 +1,17 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "1.7.0",
+	"version": "1.7.1",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",
 	"scripts": {
 		"start": "electron .",
 		"watch": "webpack --mode=development --watch --devtool=inline-source-map",
-		"build": "webpack --mode=production",
-		"forge make": "electron-forge make",
-		"builder make": "electron-builder"
+		"build": "webpack --mode=production && electron-builder",
+		"webpack build": "webpack --mode=production",
+		"electron-forge make": "electron-forge make",
+		"electron-builder": "electron-builder"
 	},
 	"config": {
 		"forge": {
@@ -35,8 +36,10 @@
 		}
 	},
 	"build": {
-		"appId": "wtf",
+		"appId": "ytdlp-gui",
+		"productName": "YT-dlp GUI",
 		"electronVersion": "16.0.5",
+		"icon": "./build/img/youtube-icon.png",
 		"files": [
 			"build/**",
 			"package.json"
