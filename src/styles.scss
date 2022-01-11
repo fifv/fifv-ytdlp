@@ -76,6 +76,9 @@ html {
 					// display: inline;
 					background-color: transparent;
 				}
+				input[type=checkbox] {
+					cursor: pointer;
+				}
 
 				input,
 				label {
