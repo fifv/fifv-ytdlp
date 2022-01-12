@@ -6,9 +6,14 @@ const path = require('path');
 const ElectronStore = require('electron-store');
 const { setVibrancy } = require('electron-acrylic-window')
 
-
-// const electronReload = require('electron-reload')
-// electronReload(path.join(__dirname, '..', 'build'), {})
+if (app.getPath('exe').includes('electron.exe')) {
+	/**
+	 * 我能想到的原始的判斷是不是dev環境的方法
+	 * 這個加在devDep裡面所以在打包後用的話或報錯
+	 */
+	const electronReload = require('electron-reload')
+	electronReload(path.join(__dirname, '..', 'build'), {})
+}
 
 ElectronStore.initRenderer()
 const createWindow = () => {

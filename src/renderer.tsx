@@ -6,7 +6,7 @@
 
 import ReactDOM from 'react-dom';
 import App from './App'
-console.log('react start render');
+console.log('*react start render');
 ReactDOM.render(
 
 	<App />,
@@ -14,4 +14,4 @@ ReactDOM.render(
 	document.getElementById('root')
 
 )
-console.log('react finish render');
+console.log('*react finish render');

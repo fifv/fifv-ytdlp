@@ -71,11 +71,22 @@ html {
 				// position: fixed;
 				// bottom: 32px;
 				user-select: none;
+				display: flex;
+				flex-direction: column;
+				flex-wrap: nowrap;
+				align-content: center;
+				align-items: center;
+				justify-content: center;
+
+				.contentSelector {
+					margin-bottom: 10px;
+				}
 
 				input[type=text] {
 					// display: inline;
 					background-color: transparent;
 				}
+
 				input[type=checkbox] {
 					cursor: pointer;
 				}

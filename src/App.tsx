@@ -12,7 +12,8 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-console.log('*ty-dlp bin path:',path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
+console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
+// console.log(main.app.getPath('exe'));
 type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
@@ -43,11 +44,10 @@ const store = new ElectronStore({
 		saveSubtitles: false,
 		useCookie: true,
 		useHistory: false,
-		notDownloadVideo: false,
-		onlyDownloadAudio: false,
 		saveAutoSubtitle: false,
 		saveAllSubtitles: false,
 		useLocalYtdlp: false,
+		contentSelector: 'video',
 
 		proxyHost: 'http://127.0.0.1:1080',
 		cookieFile: 'cookiejar.txt',
@@ -86,11 +86,11 @@ export default class App extends React.Component<
 		saveSubtitles: boolean,
 		useCookie: boolean,
 		useHistory: boolean,
-		notDownloadVideo: boolean,
-		onlyDownloadAudio: boolean,
 		saveAutoSubtitle: boolean,
 		saveAllSubtitles: boolean,
 		useLocalYtdlp: boolean,
+
+		contentSelector: 'video' | 'audio' | 'skip'
 
 		proxyHost: string,
 		cookieFile: string,
@@ -114,11 +114,10 @@ export default class App extends React.Component<
 			saveSubtitles: store.get('saveSubtitles'),
 			useCookie: store.get('useCookie'),
 			useHistory: store.get('useHistory'),
-			notDownloadVideo: store.get('notDownloadVideo'),
-			onlyDownloadAudio: store.get('onlyDownloadAudio'),
 			saveAutoSubtitle: store.get('saveAutoSubtitle'),
 			saveAllSubtitles: store.get('saveAllSubtitles'),
 			useLocalYtdlp: store.get('useLocalYtdlp'),
+			contentSelector: store.get('contentSelector', 'video') as 'video' | 'audio' | 'skip',
 
 			proxyHost: store.get('proxyHost'),
 			cookieFile: store.get('cookieFile'),
@@ -168,6 +167,7 @@ export default class App extends React.Component<
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
 		// ytdlpOptions.push('-r', '5K') //調試用降速
+		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
@@ -178,8 +178,8 @@ export default class App extends React.Component<
 		this.state.saveSubtitles && ytdlpOptions.push('--write-subs',)
 		this.state.useCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
 		this.state.useHistory && ytdlpOptions.push('--download-archive', this.state.historyFile)
-		this.state.notDownloadVideo && ytdlpOptions.push('--skip-download')
-		this.state.onlyDownloadAudio && ytdlpOptions.push('--format', 'bestaudio/best')
+		this.state.contentSelector === 'skip' && ytdlpOptions.push('--skip-download')
+		this.state.contentSelector === 'audio' && ytdlpOptions.push('--format', 'bestaudio/best')
 		this.state.saveAutoSubtitle && ytdlpOptions.push('--write-auto-subs')
 		// this.state.saveAllSubtitles && ytdlpOptions.push('')
 
@@ -257,6 +257,21 @@ export default class App extends React.Component<
 			[id]: value
 		}))
 		store.set(id, value)
+	}
+	handleRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
+		/**
+		 * 好像radio是由相同的name來決定一組
+		 * label的htmlFor好像是指向id的
+		 */
+		const target = e.currentTarget
+		const value = target.type === 'checkbox' ? target.checked : target.value
+		const name = target.name
+		const id = target.id
+		this.setState<never>((state, props) => ({
+			[name]: value
+		}))
+		store.set(name, value)
+		console.log('*contentSelector:', 'name:', name, 'id:', id, 'value:', value);
 	}
 	/**
 	 * 讚哦,用了remote,直接在這裡操縱win,不用ipc傳來傳去了
@@ -466,18 +481,37 @@ export default class App extends React.Component<
 				</div>
 			)
 		}
+		const contentSelectorOption = (id: 'video' | 'audio' | 'skip') => {
+
+			return <>
+				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } />
+				<label className='btn btn-outline-primary' htmlFor={ id }>{ id.toUpperCase() }</label>
+			</>
+
+		}
+		const contentSelector =
+			<div className="contentSelector">
+				<div className='btn-group btn-group-sm'>
+					{ contentSelectorOption('video') }
+					{ contentSelectorOption('audio') }
+					{ contentSelectorOption('skip') }
+				</div>
+			</div>
 		const options =
 			<div className="control-area container">
+				<div className="button-option">
+					{ contentSelector }
+				</div>
 				<div className="row">
 					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
 					{ optionWithInput('useProxy', 'proxyHost',) }
+					{ optionWithInput('useCookie', 'cookieFile',) }
+					{ optionWithInput('useHistory', 'historyFile',) }
 					{ option('formatFilename',) }
 					{ option('saveThumbnail',) }
 					{ option('saveSubtitles',) }
-					{ optionWithInput('useCookie', 'cookieFile',) }
-					{ optionWithInput('useHistory', 'historyFile',) }
-					{ option('notDownloadVideo',) }
-					{ option('onlyDownloadAudio',) }
+					{/* { option('notDownloadVideo',) }
+					{ option('onlyDownloadAudio',) } */}
 					{ option('saveAutoSubtitle',) }
 					{ option('useLocalYtdlp',) }
 					{/* { option('saveAllSubtitles',) } */ }
