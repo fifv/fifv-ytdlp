@@ -78,9 +78,21 @@ html {
 				align-items: center;
 				justify-content: center;
 
-				.contentSelector {
-					margin-bottom: 10px;
+				.button-option {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: wrap;
+					align-content: center;
+					justify-content: space-evenly;
+					align-items: center;
+					width: 100%;
+
+					.contentSelector,
+					.bonusSelector {
+						margin-bottom: 10px;
+					}
 				}
+
 
 				input[type=text] {
 					// display: inline;

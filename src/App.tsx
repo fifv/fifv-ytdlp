@@ -482,12 +482,20 @@ export default class App extends React.Component<
 			)
 		}
 		const contentSelectorOption = (id: 'video' | 'audio' | 'skip') => {
-
 			return <>
-				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } />
+				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={-1} />
 				<label className='btn btn-outline-primary' htmlFor={ id }>{ id.toUpperCase() }</label>
 			</>
-
+		}
+		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, name?: string) => {
+			if (!name) {
+				name = id.replace(/([A-Z])/g, ' $1')
+				name = name[0].toUpperCase() + name.slice(1)
+			}
+			return <>
+				<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={-1} />
+				<label className='btn btn-outline-primary' htmlFor={ id }>{ name }</label>
+			</>
 		}
 		const contentSelector =
 			<div className="contentSelector">
@@ -497,10 +505,22 @@ export default class App extends React.Component<
 					{ contentSelectorOption('skip') }
 				</div>
 			</div>
+		const bonusSelector = 
+			<div className="bonusSelector">
+				<div className='btn-group btn-group-sm'>
+					{ bonusSelectorOption('saveThumbnail', 'Thumbnail') }
+					{ bonusSelectorOption('saveSubtitles', 'Subtitle') }
+					{ bonusSelectorOption('saveAutoSubtitle', 'Auto Subtitle') }
+				</div>
+			</div>
+
 		const options =
 			<div className="control-area container">
 				<div className="button-option">
 					{ contentSelector }
+					{ bonusSelector }
+				</div>
+				<div className="button-option">
 				</div>
 				<div className="row">
 					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
@@ -508,11 +528,11 @@ export default class App extends React.Component<
 					{ optionWithInput('useCookie', 'cookieFile',) }
 					{ optionWithInput('useHistory', 'historyFile',) }
 					{ option('formatFilename',) }
-					{ option('saveThumbnail',) }
-					{ option('saveSubtitles',) }
+					{/* { option('saveThumbnail',) } */}
+					{/* { option('saveSubtitles',) } */}
 					{/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
-					{ option('saveAutoSubtitle',) }
+					{/* { option('saveAutoSubtitle',) } */}
 					{ option('useLocalYtdlp',) }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>
