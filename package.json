@@ -1,7 +1,7 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "1.7.1",
+	"version": "1.7.2",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",
@@ -46,7 +46,7 @@
 		],
 		"asar": true,
 		"asarUnpack": [
-			"./build/yt-dlp.exe"
+			"./build"
 		],
 		"win": {
 			"target": "zip"
@@ -61,31 +61,29 @@
 		"@types/react-dom": "^17.0.11",
 		"@typescript-eslint/eslint-plugin": "latest",
 		"@typescript-eslint/parser": "latest",
+		"bootstrap": "^5.1.3",
 		"copy-webpack-plugin": "^10.2.0",
 		"css-loader": "^6.5.1",
-		"electron": "^16.0.5",
+		"electron": "^16.0.7",
 		"electron-builder": "^22.14.5",
 		"electron-reload": "^2.0.0-alpha.1",
 		"eslint": "^8.6.0",
 		"eslint-plugin-react": "latest",
 		"html-webpack-plugin": "^5.5.0",
+		"iconv-lite": "^0.6.3",
+		"react": "^17.0.2",
+		"react-dom": "^17.0.2",
+		"sass": "^1.46.0",
 		"sass-loader": "^12.4.0",
 		"style-loader": "^3.3.1",
 		"ts-loader": "^9.2.6",
+		"typescript": "^4.5.4",
 		"webpack": "^5.65.0",
 		"webpack-cli": "^4.9.1"
 	},
 	"dependencies": {
 		"@electron/remote": "^2.0.1",
-		"bootstrap": "^5.1.3",
 		"electron-acrylic-window": "^0.5.11",
-		"electron-store": "^8.0.1",
-		"encoding": "^0.1.13",
-		"iconv-lite": "^0.6.3",
-		"json5": "^2.2.0",
-		"react": "^17.0.2",
-		"react-dom": "^17.0.2",
-		"sass": "^1.46.0",
-		"typescript": "^4.5.4"
+		"electron-store": "^8.0.1"
 	}
 }

@@ -1,9 +1,8 @@
 /**
  * 刷新不會重新執行這個腳本(當然啦)
  */
-const { app, BrowserWindow, ipcMain, Tray, } = require('electron');
+const { app, BrowserWindow, } = require('electron');
 const path = require('path');
-const { spawn } = require("child_process");
 const ElectronStore = require('electron-store');
 const { setVibrancy } = require('electron-acrylic-window')
 
