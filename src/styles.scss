@@ -308,19 +308,34 @@ html {
 
 					.progress {
 
-						width: 99.4%;
-						background-color: transparent;
+						width: 100%;
+						background-color: $secondary;
+						// border-left: 0;
+						// border-right: 0;
+						// border-bottom: 0;
+						// border-top: $darkBlue 1px solid;
 						border: 0;
-						height: 1px;
-						border-radius: 16px;
-						// margin-left: 18px;
-						// margin-right: 18px;
-						transform: translateY(1px);
+						height: 4px;
+						border-top-right-radius: 0px;
+						border-top-left-radius: 0px;
 
 						.progress-bar {
-							background-color: $success;
+							background-color: $darkBlue;
 						}
 					}
+					// .progress {
+
+					// 	width: 99.4%;
+					// 	background-color: transparent;
+					// 	border: 0;
+					// 	height: 1px;
+					// 	border-radius: 16px;
+					// 	transform: translateY(1px);
+
+					// 	.progress-bar {
+					// 		background-color: $success;
+					// 	}
+					// }
 				}
 			}
 		}
