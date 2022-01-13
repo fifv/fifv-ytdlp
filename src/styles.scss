@@ -306,6 +306,21 @@ html {
 						}
 					}
 
+					.progress {
+
+						width: 99.4%;
+						background-color: transparent;
+						border: 0;
+						height: 1px;
+						border-radius: 16px;
+						// margin-left: 18px;
+						// margin-right: 18px;
+						transform: translateY(1px);
+
+						.progress-bar {
+							background-color: $success;
+						}
+					}
 				}
 			}
 		}

@@ -705,6 +705,15 @@ class Task extends React.Component<
 		const thumbnailInfo = this.state.thumbnailInfo
 
 		const percent = parseFloat(processInfo[1])
+		const progress =
+			<div className="progress">
+				<div
+					className="progress-bar"
+					style={ {
+						width: percent + '%',
+					} }
+				/>
+			</div>
 		/**
 		 * TODO: progress bar
 		 */
@@ -742,6 +751,8 @@ class Task extends React.Component<
 						{ !!processInfo[5] && processInfo[5] !== 'NA' && processInfo[5] !== 'Unknown' && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
 					</div>
 				}
+
+				{ !!percent && progress }
 			</div>
 		return (
 			task
