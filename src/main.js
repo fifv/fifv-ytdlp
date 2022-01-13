@@ -22,6 +22,10 @@ const createWindow = () => {
 		height: 690,
 		// titleBarStyle:'customButtonsOnHover',
 		// useContentSize:true,
+		/**
+		 * 把transparent:false就會出現奇怪框框,在半透明狀態下非常難看
+		 * 但是此時拖動窗口最大化和最小化動畫都是有的
+		 */
 		transparent: true,
 		// opacity:0.85,
 		/**

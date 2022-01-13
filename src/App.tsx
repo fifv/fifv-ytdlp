@@ -34,7 +34,10 @@ const svgSuccess =
 	<svg xmlns="http://www.w3.org/2000/svg" className="bi flex-shrink-0 me-3" fill="currentColor" viewBox="0 0 16 16">
 		<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
 	</svg>
-
+const svgCheck =
+	<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-check-lg" viewBox="0 0 16 16">
+		<path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
+	</svg>
 const store = new ElectronStore({
 	defaults: {
 		specifyDownloadPath: true,
@@ -448,9 +451,14 @@ export default class App extends React.Component<
 				name = name[0].toUpperCase() + name.slice(1)
 			}
 			return (
-				<div className="form-check form-switch col-12 col-sm-6  col-xl-4">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
-					<label className="form-check-label" htmlFor={ id }>{ name }</label>
+				<div className="col-12 col-sm-6 col-xl-4">
+					<div className="input-group input-group-sm option">
+						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgCheck }</label>
+
+						<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
+					</div>
+
 				</div>
 			)
 		}
@@ -464,18 +472,24 @@ export default class App extends React.Component<
 				placeholder = placeholder[0].toUpperCase() + placeholder.slice(1)
 			}
 			/**
-			 * TODO: make options beautiful and functionable
+			 * TO\DO: make options functionable
+			 * TO\DO:make options beautiful
 			 */
 			return (
-				<div className="form-check form-switch col-12 col-sm-6  col-xl-4">
-					<input tabIndex={ -1 } className="form-check-input" type="checkbox" role="switch" id={ id } checked={ this.state[id] } onChange={ this.handleInputChange } />
-					<div className="input-group input-group-sm">
-						<label
+				<div className=" col-12 col-sm-6 col-xl-4">
+					<div className="input-group input-group-sm option">
+						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgCheck }</label>
+
+						<button
 							id={ textInput }
-							className="form-check-label input-group-text bg-transparent"
+							type='button'
+							className="btn btn-outline-primary bg-transparent"
 							/* htmlFor={ id } */
 							onClick={ this.handleClick }
-						>{ name }</label>
+							tabIndex={ -1 }
+						>{ name }</button>
+
 						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
 					</div>
 				</div>
@@ -483,7 +497,7 @@ export default class App extends React.Component<
 		}
 		const contentSelectorOption = (id: 'video' | 'audio' | 'skip') => {
 			return <>
-				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={-1} />
+				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={ -1 } />
 				<label className='btn btn-outline-primary' htmlFor={ id }>{ id.toUpperCase() }</label>
 			</>
 		}
@@ -493,7 +507,7 @@ export default class App extends React.Component<
 				name = name[0].toUpperCase() + name.slice(1)
 			}
 			return <>
-				<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={-1} />
+				<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
 				<label className='btn btn-outline-primary' htmlFor={ id }>{ name }</label>
 			</>
 		}
@@ -505,7 +519,7 @@ export default class App extends React.Component<
 					{ contentSelectorOption('skip') }
 				</div>
 			</div>
-		const bonusSelector = 
+		const bonusSelector =
 			<div className="bonusSelector">
 				<div className='btn-group btn-group-sm'>
 					{ bonusSelectorOption('saveThumbnail', 'Thumbnail') }
@@ -520,19 +534,17 @@ export default class App extends React.Component<
 					{ contentSelector }
 					{ bonusSelector }
 				</div>
-				<div className="button-option">
-				</div>
 				<div className="row">
 					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
 					{ optionWithInput('useProxy', 'proxyHost',) }
 					{ optionWithInput('useCookie', 'cookieFile',) }
 					{ optionWithInput('useHistory', 'historyFile',) }
 					{ option('formatFilename',) }
-					{/* { option('saveThumbnail',) } */}
-					{/* { option('saveSubtitles',) } */}
+					{/* { option('saveThumbnail',) } */ }
+					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
-					{/* { option('saveAutoSubtitle',) } */}
+					{/* { option('saveAutoSubtitle',) } */ }
 					{ option('useLocalYtdlp',) }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>

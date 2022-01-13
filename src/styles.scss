@@ -3,7 +3,8 @@
 }
 
 // @import "bootstrap/scss/bootstrap";
-$primary: #0019fb;
+$primary: #0d6efd;
+$darkBlue: #0019fb;
 $success: #00ff0d;
 $secondary:#6c757d;
 $danger: #dc3545;
@@ -11,6 +12,11 @@ $danger: #dc3545;
 html {
 	min-height: 100vh;
 	-webkit-app-region: drag;
+
+	button,
+	input {
+		-webkit-app-region: no-drag;
+	}
 
 	// opacity: 0;
 	body {
@@ -78,6 +84,53 @@ html {
 				align-items: center;
 				justify-content: center;
 
+				input,
+				label,
+				button {
+					-webkit-app-region: no-drag;
+				}
+
+				.option {
+					margin-bottom: 5px;
+
+					* {
+						border-color: $primary;
+						// color: $primary;
+					}
+
+					input[type=text] {
+						// display: inline;
+						background-color: transparent;
+					}
+
+					input[type=checkbox] {
+						cursor: pointer;
+					}
+
+					label#destPath,
+					label#historyFile,
+					label#cookieFile {
+						cursor: pointer;
+
+						&:hover {
+							// background-color: $danger;
+							text-shadow: 0px 0px 15px rgb(229, 255, 0);
+							// color: rgb(255, 208, 208);
+						}
+					}
+
+
+					.check-container {
+						border-bottom-left-radius: 4px !important;
+						border-top-left-radius: 4px !important;
+					}
+
+					svg {
+						width: 16px;
+						height: 16px;
+					}
+				}
+
 				.button-option {
 					display: flex;
 					flex-direction: row;
@@ -94,31 +147,7 @@ html {
 				}
 
 
-				input[type=text] {
-					// display: inline;
-					background-color: transparent;
-				}
 
-				input[type=checkbox] {
-					cursor: pointer;
-				}
-
-				input,
-				label {
-					-webkit-app-region: no-drag;
-				}
-
-				label#destPath,
-				label#historyFile,
-				label#cookieFile {
-					cursor: pointer;
-
-					&:hover {
-						// background-color: $danger;
-						text-shadow: 0px 0px 15px rgb(229, 255, 0);
-						// color: rgb(255, 208, 208);
-					}
-				}
 			}
 
 			.display-area {
@@ -138,10 +167,10 @@ html {
 					justify-content: space-between;
 					align-items: center;
 					border-radius: 4px;
-					border: 1px solid $primary;
+					border: 1px solid $darkBlue;
 
 					&>:nth-child(2) {
-						border-top: 1px solid $primary;
+						border-top: 1px solid $darkBlue;
 					}
 
 					svg {
@@ -159,7 +188,7 @@ html {
 						align-content: center;
 						justify-content: space-evenly;
 						align-items: stretch;
-						// border-top: 1px solid $primary;
+						// border-top: 1px solid $darkBlue;
 
 						/**
 					 * kanpeki!!perfectly add seperate line
@@ -167,7 +196,7 @@ html {
 						&>:nth-child(2),
 						&>:nth-child(3),
 						&>:nth-child(4) {
-							border-left: 1px solid $primary;
+							border-left: 1px solid $darkBlue;
 						}
 
 						&>* {
@@ -192,7 +221,7 @@ html {
 						}
 
 						.info-other {
-							color: $primary;
+							color: $darkBlue;
 						}
 
 						.info-error {
@@ -245,7 +274,7 @@ html {
 						.info-eta,
 						.info-speed {
 							min-width: 60px;
-							border-right: 1px solid $primary;
+							border-right: 1px solid $darkBlue;
 							text-align: center;
 							/**
 						 * kanpeki!!perfectly make these box won't shrink
@@ -263,7 +292,7 @@ html {
 						.info-eta,
 						.info-speed,
 						.info-title {
-							color: $primary;
+							color: $darkBlue;
 							padding-left: 5px;
 							padding-right: 5px;
 
