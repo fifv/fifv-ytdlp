@@ -90,6 +90,16 @@ html {
 					-webkit-app-region: no-drag;
 				}
 
+				label.btn-outline-primary:hover {
+					color: #fff;
+					background-color: inherit;
+				}
+
+				.btn-check:checked+label.btn-outline-primary {
+					color: #fff;
+					background-color: $primary;
+				}
+
 				.option {
 					margin-bottom: 5px;
 
@@ -129,6 +139,8 @@ html {
 						width: 16px;
 						height: 16px;
 					}
+
+
 				}
 
 				.button-option {
@@ -323,6 +335,7 @@ html {
 							background-color: $darkBlue;
 						}
 					}
+
 					// .progress {
 
 					// 	width: 99.4%;

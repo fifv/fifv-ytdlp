@@ -55,6 +55,7 @@ const store = new ElectronStore({
 		proxyHost: 'http://127.0.0.1:1080',
 		cookieFile: 'cookiejar.txt',
 		historyFile: 'history.txt',
+		fileNameTemplate: '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',
 
 		destPath: main.app.getPath('downloads'),
 		tempPath: path.join(main.app.getPath('downloads'), 'temp'),
@@ -95,6 +96,7 @@ export default class App extends React.Component<
 
 		contentSelector: 'video' | 'audio' | 'skip'
 
+		fileNameTemplate: string,
 		proxyHost: string,
 		cookieFile: string,
 		historyFile: string,
@@ -127,6 +129,7 @@ export default class App extends React.Component<
 			historyFile: store.get('historyFile'),
 			destPath: store.get('destPath'),
 			tempPath: store.get('tempPath'),
+			fileNameTemplate: store.get('fileNameTemplate')
 		}
 	}
 
@@ -176,7 +179,7 @@ export default class App extends React.Component<
 
 		this.state.specifyDownloadPath && ytdlpOptions.push('-P', this.state.destPath) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
 		this.state.useProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
-		this.state.formatFilename && ytdlpOptions.push('-o', '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',)
+		this.state.formatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
 		this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
 		this.state.saveSubtitles && ytdlpOptions.push('--write-subs',)
 		this.state.useCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
@@ -539,7 +542,7 @@ export default class App extends React.Component<
 					{ optionWithInput('useProxy', 'proxyHost',) }
 					{ optionWithInput('useCookie', 'cookieFile',) }
 					{ optionWithInput('useHistory', 'historyFile',) }
-					{ option('formatFilename',) }
+					{ optionWithInput('formatFilename','fileNameTemplate') }
 					{/* { option('saveThumbnail',) } */ }
 					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }
@@ -715,7 +718,7 @@ class Task extends React.Component<
 				/>
 			</div>
 		/**
-		 * TODO: progress bar
+		 * TO\DO: progress bar
 		 */
 
 		let status = <div className="click-stop" onClick={ this.handleStop }>Downloading</div>
