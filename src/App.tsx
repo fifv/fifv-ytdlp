@@ -755,7 +755,7 @@ class Task extends React.Component<
 					</div>
 				}
 
-				{ !!percent && progress }
+				{ isNaN(percent) && progress }
 			</div>
 		return (
 			task
