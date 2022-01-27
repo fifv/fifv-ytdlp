@@ -324,9 +324,10 @@ html {
 						background-color: $secondary;
 						// border-left: 0;
 						// border-right: 0;
-						// border-bottom: 0;
+						// border-bottom: $darkBlue 1px solid;
 						// border-top: $darkBlue 1px solid;
 						border: 0;
+						// outline: 1px $darkBlue solid;
 						height: 4px;
 						border-top-right-radius: 0px;
 						border-top-left-radius: 0px;
