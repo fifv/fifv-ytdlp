@@ -321,19 +321,21 @@ html {
 					.progress {
 
 						width: 100%;
-						background-color: $secondary;
+						// background-color: $secondary;
+						background-color: $darkBlue;
 						// border-left: 0;
 						// border-right: 0;
 						// border-bottom: $darkBlue 1px solid;
 						// border-top: $darkBlue 1px solid;
 						border: 0;
 						// outline: 1px $darkBlue solid;
-						height: 4px;
-						border-top-right-radius: 0px;
-						border-top-left-radius: 0px;
+						height: 1px;
+						// border-top-right-radius: 0px;
+						// border-top-left-radius: 0px;
+						border-radius: 0;
 
 						.progress-bar {
-							background-color: $darkBlue;
+							background-color: $success;
 						}
 					}
 

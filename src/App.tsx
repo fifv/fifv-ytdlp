@@ -12,7 +12,7 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-const isDebug = true
+const isDebug = false
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
 type KeyofType<OBJ, TYPE> = {
@@ -746,6 +746,7 @@ class Task extends React.Component<
 					{ status }
 				</div>
 
+				{ (!isNaN(percent) || isDebug ) && progress }
 				{ (processInfo.length > 0 || isDebug) &&
 					<div className="lowerrow">
 						{ !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
@@ -756,7 +757,6 @@ class Task extends React.Component<
 					</div>
 				}
 
-				{ (!isNaN(percent) || isDebug ) && progress }
 			</div>
 		return (
 			task
