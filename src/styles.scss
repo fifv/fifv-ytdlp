@@ -165,11 +165,11 @@ html {
 				.loading {
 					border-left: 0;
 					border-bottom: 0;
-					position: absolute;
-					top: 0;
-					right: 125px;
+					position: fixed;
+					top: 20px;
+					left: 20px;
 					z-index: 100;
-					line-height: 42px;
+					// line-height: 42px;
 				}
 			}
 
@@ -292,8 +292,9 @@ html {
 					align-content: center;
 
 					.leftcol {
-						padding: 5px;
-						width: 80px;
+						padding-top: 5px;
+						padding-bottom: 5px;
+						width: 30px;
 						flex-shrink: 0;
 
 						display: flex;
@@ -304,11 +305,11 @@ html {
 						align-items: center;
 
 						.statusIndicator {
-							height: 16px;
-							width: 30px;
+							height: 30px;
+							width: 16px;
 
 							display: flex;
-							flex-direction: row;
+							flex-direction: column;
 							flex-wrap: nowrap;
 							justify-content: space-around;
 							align-content: center;
@@ -320,6 +321,21 @@ html {
 							// 	margin-right: 5px;
 							// }
 						}
+					}
+
+					.midcol {
+						padding-top: 5px;
+						padding-bottom: 5px;
+						width: 80px;
+						flex-shrink: 0;
+
+						display: flex;
+						flex-direction: column;
+						flex-wrap: nowrap;
+						justify-content: center;
+						align-content: center;
+						align-items: center;
+
 					}
 
 					.rightcol {

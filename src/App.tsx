@@ -421,7 +421,7 @@ export default class App extends React.Component<
 					 */
 					(this.state.processes.length - this.state.closedCount > 0) &&
 					<div className='loading'>
-						<div className="spinner-border spinner-border-sm text-info" />
+						{svgLoader}
 					</div>
 				}
 				{
@@ -734,7 +734,7 @@ class Task extends React.Component<
 		}
 
 		const statusIndicator = <div className="statusIndicator">
-			{ !!thumbnailInfo &&  svgPhoto  }
+			{ !!thumbnailInfo && svgPhoto }
 			{ statusIcon }
 		</div>
 		const info = (index: number, classname: string) =>
@@ -751,16 +751,21 @@ class Task extends React.Component<
 			<div className="task">
 				<div className="leftcol">
 					{ statusIndicator }
-					{ info(1, 'infoPercent') }
-					{ info(2, 'infoSize') }
-					{ info(3, 'infoSpeed') }
-					{ info(4, 'infoEta') }
-					{/* { !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
+
+				</div>
+				{ processInfo.length > 0 &&
+					<div className="midcol">
+						{ info(1, 'infoPercent') }
+						{ info(2, 'infoSize') }
+						{ info(3, 'infoSpeed') }
+						{ info(4, 'infoEta') }
+						{/* { !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
 					{ !!processInfo[3] && processInfo[3] !== 'NA' && processInfo[3] !== 'Unknown' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
 					{ !!processInfo[2] && processInfo[2] !== 'NA' && processInfo[2] !== 'Unknown' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
 					{ !!processInfo[4] && processInfo[4] !== 'NA' && processInfo[4] !== 'Unknown' && <div className="info-eta"><span>{ processInfo[4] }</span></div> } */}
 
-				</div>
+					</div>
+				}
 
 				<div className="rightcol">
 					{ info(5, 'infoTitle') }
