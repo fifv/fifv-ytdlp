@@ -272,10 +272,10 @@ html {
 				width: 100%;
 				margin-bottom: 15px;
 				font-size: 0.8em;
+				-webkit-app-region: no-drag;
 
 				.task {
 					color: #fff;
-					-webkit-app-region: no-drag;
 					margin-top: 5px;
 					margin-bottom: 5px;
 					border-radius: 4px;
