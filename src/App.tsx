@@ -1,10 +1,13 @@
 import React from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css'
+// import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
 import { spawn, ChildProcess } from 'child_process'
 import { decode } from 'iconv-lite';
 import { ipcRenderer, clipboard } from 'electron';
 import ElectronStore from 'electron-store';
+import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto } from 'react-icons/md'
+import { IoPlayOutline } from 'react-icons/io5'
+import HashLoader from 'react-spinners/HashLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
 const win = remote.getCurrentWindow()
@@ -12,33 +15,22 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-const isDebug = false
+const isDebug = true
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
 type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
+const svgLoader = <HashLoader size={ 10 } color="white" />
 
-const svgInfo =
-	<svg xmlns="http://www.w3.org/2000/svg" className="bi bi-info-circle-fill flex-shrink-0 me-3" fill="currentColor" viewBox="0 0 16 16">
-		<path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
-	</svg>
-const svgError =
-	<svg xmlns="http://www.w3.org/2000/svg" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-3" fill="currentColor" viewBox="0 0 16 16">
-		<path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-	</svg>
-const svgContinue =
-	<svg xmlns="http://www.w3.org/2000/svg" className="bi bi-arrow-right-circle-fill flex-shrink-0 me-3" fill="currentColor" viewBox="0 0 16 16">
-		<path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
-	</svg>
-const svgSuccess =
-	<svg xmlns="http://www.w3.org/2000/svg" className="bi flex-shrink-0 me-3" fill="currentColor" viewBox="0 0 16 16">
-		<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-	</svg>
-const svgCheck =
-	<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-check-lg" viewBox="0 0 16 16">
-		<path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
-	</svg>
+const svgUp = <MdOutlineKeyboardArrowUp />
+const svgDown = <MdOutlineKeyboardArrowDown />
+const svgRemove = <MdOutlineRemove />
+const svgSuccess = <MdOutlineCheck />
+const svgClose = <MdClose />
+const svgPlay = <IoPlayOutline />
+const svgPhoto = <MdOutlineInsertPhoto />
+
 const store = new ElectronStore({
 	defaults: {
 		specifyDownloadPath: true,
@@ -173,7 +165,7 @@ export default class App extends React.Component<
 		const ytdlpOptions: string[] = [];
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-		// ytdlpOptions.push('-r', '5K') //調試用降速
+		ytdlpOptions.push('-r', '5K') //調試用降速
 		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
@@ -393,13 +385,13 @@ export default class App extends React.Component<
 			</div>
 
 		const urlBar =
-			<div className="input-group url-area">
+			<div className="input-group urlBar">
 				<input
 					autoFocus
 					onKeyPress={ (e) => {
 						e.key === 'Enter' /* && !this.state.process */ && this.startDownload()
 					} }
-					className='input-url form-control'
+					className='urlInput'
 					placeholder='Input a videopage url'
 					type='text'
 					id='url'
@@ -436,10 +428,9 @@ export default class App extends React.Component<
 					/**
 					 * 單個模式下要Stop好像有點麻煩
 					 */
-					<button className='btn btn-primary' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
 				}
-
-				<button className='btn btn-secondary' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>Paste</button>
+				<button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
+				<button className='btnPaste' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>Paste</button>
 
 			</div>
 		/**
@@ -458,7 +449,7 @@ export default class App extends React.Component<
 				<div className="col-12 col-sm-6 col-xl-4">
 					<div className="input-group input-group-sm option">
 						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgCheck }</label>
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
 
 						<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
 					</div>
@@ -483,7 +474,7 @@ export default class App extends React.Component<
 				<div className=" col-12 col-sm-6 col-xl-4">
 					<div className="input-group input-group-sm option">
 						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgCheck }</label>
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
 
 						<button
 							id={ textInput }
@@ -543,7 +534,7 @@ export default class App extends React.Component<
 					{ optionWithInput('useProxy', 'proxyHost',) }
 					{ optionWithInput('useCookie', 'cookieFile',) }
 					{ optionWithInput('useHistory', 'historyFile',) }
-					{ optionWithInput('formatFilename','fileNameTemplate') }
+					{ optionWithInput('formatFilename', 'fileNameTemplate') }
 					{/* { option('saveThumbnail',) } */ }
 					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }
@@ -568,13 +559,13 @@ export default class App extends React.Component<
 						)
 					}).reverse()
 				}
+
 			</div>
 		return (
 			<>
 				{ trafficLight }
 				<div className="container">
 					<div className="main">
-
 						{ urlBar }
 						{ display }
 						{ options }
@@ -708,6 +699,8 @@ class Task extends React.Component<
 		const errorInfo = this.state.errorInfo
 		const thumbnailInfo = this.state.thumbnailInfo
 
+		const status = this.state.status
+
 		const percent = parseFloat(processInfo[1])
 		const progress =
 			<div className="progress">
@@ -721,41 +714,61 @@ class Task extends React.Component<
 		/**
 		 * TO\DO: progress bar
 		 */
-
-		let status = <div className="click-stop" onClick={ this.handleStop }>Downloading</div>
-		switch (this.state.status) {
+		let statusIcon: JSX.Element = svgLoader
+		switch (status) {
+			case 'downloading':
+				statusIcon = svgLoader
+				break;
 			case 'stopped':
-				status = <div className="info-stopped">{ /* svgError */ } <span>Stopped</span> </div>
+				statusIcon = svgClose
 				break;
 			case 'finished':
-				status = <div className="info-finished">{ /* svgSuccess */ } <span>Finished</span> </div>
+				statusIcon = svgSuccess
 				break;
 			case 'error':
-				status = <div className="info-erroroccured">{ /* svgError */ } <span>Error</span> </div>
+				statusIcon = svgClose
 				break;
 
 			default:
 				break;
 		}
+
+		const statusIndicator = <div className="statusIndicator">
+			{ !!thumbnailInfo &&  svgPhoto  }
+			{ statusIcon }
+		</div>
+		const info = (index: number, classname: string) =>
+			(isDebug || (
+				!!processInfo[index] &&
+				processInfo[index] !== 'NA' &&
+				processInfo[index] !== 'Unknown'
+			)) &&
+			<div className={ classname }>
+				{ processInfo[index] }
+			</div>
+
 		const task =
-			<div className="multimode-task">
-				<div className="upperrow">
-					{ !!thumbnailInfo && <div className="info-thumbnail">{ svgSuccess } <span>Thumbnail</span> </div> }
-					{ !!otherInfo && <div className="info-other">{ svgInfo } <span>{ otherInfo }</span> </div> }
-					{ !!errorInfo && <div className="info-error">{ svgError } <span> { errorInfo }</span></div> }
-					{ status }
+			<div className="task">
+				<div className="leftcol">
+					{ statusIndicator }
+					{ info(1, 'infoPercent') }
+					{ info(2, 'infoSize') }
+					{ info(3, 'infoSpeed') }
+					{ info(4, 'infoEta') }
+					{/* { !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
+					{ !!processInfo[3] && processInfo[3] !== 'NA' && processInfo[3] !== 'Unknown' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
+					{ !!processInfo[2] && processInfo[2] !== 'NA' && processInfo[2] !== 'Unknown' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
+					{ !!processInfo[4] && processInfo[4] !== 'NA' && processInfo[4] !== 'Unknown' && <div className="info-eta"><span>{ processInfo[4] }</span></div> } */}
+
 				</div>
 
-				{ (!isNaN(percent) || isDebug ) && progress }
-				{ (processInfo.length > 0 || isDebug) &&
-					<div className="lowerrow">
-						{ !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
-						{ !!processInfo[3] && processInfo[3] !== 'NA' && processInfo[3] !== 'Unknown' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
-						{ !!processInfo[2] && processInfo[2] !== 'NA' && processInfo[2] !== 'Unknown' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
-						{ !!processInfo[4] && processInfo[4] !== 'NA' && processInfo[4] !== 'Unknown' && <div className="info-eta"><span>{ processInfo[4] }</span></div> }
-						{ !!processInfo[5] && processInfo[5] !== 'NA' && processInfo[5] !== 'Unknown' && <div className="info-title">{ svgContinue } <span> { processInfo[5] }</span></div> }
-					</div>
-				}
+				<div className="rightcol">
+					{ info(5, 'infoTitle') }
+					{ (!isNaN(percent) || isDebug) && progress }
+					{ !!otherInfo && <div className="info-other"><span>{ otherInfo }</span> </div> }
+					{ !!errorInfo && <div className="info-error"><span> { errorInfo }</span></div> }
+				</div>
+
 
 			</div>
 		return (

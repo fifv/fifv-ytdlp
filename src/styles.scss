@@ -1,13 +1,57 @@
 * {
 	font-family: futura, serif;
+	margin: 0;
+	padding: 0;
+}
+
+input {
+	outline: none;
+	border: 1px solid wheat;
 }
 
 // @import "bootstrap/scss/bootstrap";
-$primary: #0d6efd;
-$darkBlue: #0019fb;
-$success: #00ff0d;
+$primary: rgb(236, 236, 236);
+$primaryDark:rgb(185, 185, 185);
+$primaryDarkDark:rgb(156, 156, 156);
 $secondary:#6c757d;
+$secondaryDark:#494f55;
+$blue: #00c3ff;
+$blueDark: #00ade2;
+$success: #00ff0d;
 $danger: #dc3545;
+
+@mixin inputGroup {
+	&>:first-child {
+		border-top-left-radius: 4px;
+		border-bottom-left-radius: 4px;
+	}
+
+	&>:last-child {
+		border-top-right-radius: 4px;
+		border-bottom-right-radius: 4px;
+	}
+
+	&>:not(:first-child) {
+		border-left: 0px solid #00ff0d !important;
+	}
+
+	&>* {
+		border: 0;
+	}
+}
+
+@mixin btn {
+	// background: rgba(187, 187, 187, 0.267);
+	background: $secondary;
+	color: $primary;
+	border: 1px solid $secondary;
+	padding: 5px;
+
+	&:hover {
+		cursor: pointer;
+	}
+}
+
 
 html {
 	min-height: 100vh;
@@ -16,6 +60,7 @@ html {
 	button,
 	input {
 		-webkit-app-region: no-drag;
+		color: $primary;
 	}
 
 	// opacity: 0;
@@ -28,7 +73,7 @@ html {
 		// background-color: $danger;
 		// background-color: #a0b1ffb2;
 		// background-color: rgba(139, 195, 147, 0.76);
-		background-color: #a0b1ffb2;
+		background-color: rgba(24, 24, 24, 0.931);
 		height: 100vh;
 
 		#root,
@@ -37,25 +82,84 @@ html {
 			height: 100%;
 		}
 
+		.container {
+			padding-left: 5%;
+			padding-right: 5%;
+		}
+
 		.main {
 			display: flex;
 			flex-direction: column;
 			justify-content: space-between;
 			flex-wrap: nowrap;
-			align-content: flex-start;
+			align-content: center;
 			align-items: center;
 
-			.url-area {
+			.urlBar {
+				@include inputGroup();
+				height: 30px;
 				// position: sticky;
+				width: 100%;
 				flex-shrink: 0;
 				// top: 32px;
 				-webkit-app-region: no-drag;
 				margin-top: 32px;
 				margin-bottom: 15px;
 
-				.input-url {
-					border-bottom: 0;
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				justify-content: center;
+				align-content: center;
+				align-items: stretch;
+
+
+				.urlInput {
+					// border-bottom: 0;
+					padding-left: 10px;
+					flex-grow: 1;
+					background: transparent;
+					border: 1px solid $secondary;
+					color: $primary;
+
+					// width: 100%;
 					// z-index: -100;
+					&:focus-visible {
+						// outline: 1px solid $blue;
+						// outline: none;
+						box-shadow: 0px 0px 4px 0px rgb(136, 136, 136);
+						border-radius: 4px;
+
+
+					}
+
+
+				}
+
+
+
+				.btnStart {
+					@include btn();
+
+					&:hover {
+						color: $blue;
+					}
+
+					&:active {
+						color: $blueDark;
+					}
+				}
+
+				.btnPaste {
+					@include btn();
+
+					&:hover {
+						color: $primaryDark;
+					}
+
+					&:active {
+						color: $primaryDarkDark;
+					}
 				}
 
 				.loading {
@@ -163,166 +267,207 @@ html {
 			}
 
 			.display-area {
+				flex-grow: 1;
 				overflow-y: scroll;
 				width: 100%;
 				margin-bottom: 15px;
+				font-size: 0.8em;
 
-				.multimode-task {
+				.task {
+					color: #fff;
 					-webkit-app-region: no-drag;
-					margin-bottom: 20px;
+					margin-top: 5px;
+					margin-bottom: 5px;
+					border-radius: 4px;
+					border: 1px solid $primaryDark;
+					border-radius: 4px;
+					// padding: 5px;
 
 					// background-color: #6d767e88;
 					display: flex;
-					flex-direction: column;
+					flex-direction: row;
 					flex-wrap: nowrap;
-					align-content: stretch;
-					justify-content: space-between;
+					justify-content: flex-start;
 					align-items: center;
-					border-radius: 4px;
-					border: 1px solid $darkBlue;
+					align-content: center;
 
-					&>:nth-child(2) {
-						border-top: 1px solid $darkBlue;
-					}
+					.leftcol {
+						padding: 5px;
+						width: 80px;
+						flex-shrink: 0;
 
-					svg {
-						height: 16px;
-						width: 16px;
-					}
-
-					.upperrow {
-						min-height: 32px;
-						line-height: 32px;
-						width: 100%;
 						display: flex;
-						flex-direction: row;
+						flex-direction: column;
 						flex-wrap: nowrap;
+						justify-content: center;
 						align-content: center;
-						justify-content: space-evenly;
-						align-items: stretch;
-						// border-top: 1px solid $darkBlue;
+						align-items: center;
 
-						/**
-					 * kanpeki!!perfectly add seperate line
-					 */
-						&>:nth-child(2),
-						&>:nth-child(3),
-						&>:nth-child(4) {
-							border-left: 1px solid $darkBlue;
-						}
-
-						&>* {
-							padding-left: 5px;
-							padding-right: 5px;
+						.statusIndicator {
+							height: 16px;
+							width: 30px;
 
 							display: flex;
 							flex-direction: row;
 							flex-wrap: nowrap;
+							justify-content: space-around;
 							align-content: center;
-							justify-content: flex-start;
 							align-items: center;
-						}
 
-						.info-other,
-						.info-error {
-							width: 100%;
-						}
-
-						.info-thumbnail {
-							color: $success;
-						}
-
-						.info-other {
-							color: $darkBlue;
-						}
-
-						.info-error {
-							color: $danger;
-						}
-
-						.click-stop {
-							color: aqua;
-							cursor: pointer;
-							transition: 0.15s;
-							user-select: none;
-
-							&:hover {
-								// background-color: $danger;
-								text-shadow: 0px 0px 10px rgb(255, 0, 0);
-								// color: rgb(255, 208, 208);
-							}
-						}
-
-						.info-finished {
-							user-select: none;
-							color: $success;
-						}
-
-						.info-stopped {
-							user-select: none;
-							color: $secondary;
-						}
-
-						.info-erroroccured {
-							user-select: none;
-							color: $danger;
+							// padding: 5px;
+							// &>* {
+							// 	margin-left: 5px;
+							// 	margin-right: 5px;
+							// }
 						}
 					}
 
-					.lowerrow {
-						min-height: 32px;
-						line-height: 32px;
-						width: 100%;
-						display: flex;
-						flex-direction: row;
-						flex-wrap: nowrap;
-						align-content: center;
-						justify-content: flex-start;
-						align-items: stretch;
-
-						.info-percent,
-						.info-speed,
-						.info-size,
-						.info-eta,
-						.info-speed {
-							min-width: 60px;
-							border-right: 1px solid $darkBlue;
-							text-align: center;
-							/**
-						 * kanpeki!!perfectly make these box won't shrink
-						 */
-							flex-shrink: 0;
-						}
-
-						.info-title {
-							/* empty */
-						}
-
-						.info-percent,
-						.info-speed,
-						.info-size,
-						.info-eta,
-						.info-speed,
-						.info-title {
-							color: $darkBlue;
-							padding-left: 5px;
-							padding-right: 5px;
-
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							align-content: center;
-							justify-content: center;
-							align-items: center;
-
-						}
+					.rightcol {
+						padding: 5px;
 					}
+
+					// &>:nth-child(2) {
+					// 	border-top: 1px solid $primary;
+					// }
+
+					// svg {
+					// 	height: 16px;
+					// 	width: 16px;
+					// }
+
+					// .upperrow {
+					// 	min-height: 32px;
+					// 	line-height: 32px;
+					// 	width: 100%;
+					// 	display: flex;
+					// 	flex-direction: row;
+					// 	flex-wrap: nowrap;
+					// 	align-content: center;
+					// 	justify-content: space-evenly;
+					// 	align-items: stretch;
+					// 	// border-top: 1px solid $darkBlue;
+
+					// 	/**
+					//  * kanpeki!!perfectly add seperate line
+					//  */
+					// 	&>:nth-child(2),
+					// 	&>:nth-child(3),
+					// 	&>:nth-child(4) {
+					// 		border-left: 1px solid $blue;
+					// 	}
+
+					// 	&>* {
+					// 		padding-left: 5px;
+					// 		padding-right: 5px;
+
+					// 		display: flex;
+					// 		flex-direction: row;
+					// 		flex-wrap: nowrap;
+					// 		align-content: center;
+					// 		justify-content: flex-start;
+					// 		align-items: center;
+					// 	}
+
+					// 	.info-other,
+					// 	.info-error {
+					// 		width: 100%;
+					// 	}
+
+					// 	.info-thumbnail {
+					// 		color: $success;
+					// 	}
+
+					// 	.info-other {
+					// 		color: $blue;
+					// 	}
+
+					// 	.info-error {
+					// 		color: $danger;
+					// 	}
+
+					// 	.click-stop {
+					// 		color: aqua;
+					// 		cursor: pointer;
+					// 		transition: 0.15s;
+					// 		user-select: none;
+
+					// 		&:hover {
+					// 			// background-color: $danger;
+					// 			text-shadow: 0px 0px 10px rgb(255, 0, 0);
+					// 			// color: rgb(255, 208, 208);
+					// 		}
+					// 	}
+
+					// 	.info-finished {
+					// 		user-select: none;
+					// 		color: $success;
+					// 	}
+
+					// 	.info-stopped {
+					// 		user-select: none;
+					// 		color: $secondary;
+					// 	}
+
+					// 	.info-erroroccured {
+					// 		user-select: none;
+					// 		color: $danger;
+					// 	}
+					// }
+
+					// .lowerrow {
+					// 	min-height: 32px;
+					// 	line-height: 32px;
+					// 	width: 100%;
+					// 	display: flex;
+					// 	flex-direction: row;
+					// 	flex-wrap: nowrap;
+					// 	align-content: center;
+					// 	justify-content: flex-start;
+					// 	align-items: stretch;
+
+					// 	.info-percent,
+					// 	.info-speed,
+					// 	.info-size,
+					// 	.info-eta,
+					// 	.info-speed {
+					// 		min-width: 60px;
+					// 		border-right: 1px solid $blue;
+					// 		text-align: center;
+					// 		/**
+					// 	 * kanpeki!!perfectly make these box won't shrink
+					// 	 */
+					// 		flex-shrink: 0;
+					// 	}
+
+					// 	.info-title {
+					// 		/* empty */
+					// 	}
+
+					// 	.info-percent,
+					// 	.info-speed,
+					// 	.info-size,
+					// 	.info-eta,
+					// 	.info-speed,
+					// 	.info-title {
+					// 		color: $blue;
+					// 		padding-left: 5px;
+					// 		padding-right: 5px;
+
+					// 		display: flex;
+					// 		flex-direction: row;
+					// 		flex-wrap: nowrap;
+					// 		align-content: center;
+					// 		justify-content: center;
+					// 		align-items: center;
+
+					// 	}
+					// }
 
 					.progress {
 
 						width: 100%;
 						// background-color: $secondary;
-						background-color: $darkBlue;
+						background-color: $blue;
 						// border-left: 0;
 						// border-right: 0;
 						// border-bottom: $darkBlue 1px solid;
@@ -362,7 +507,10 @@ html {
 			top: 0;
 			right: 0;
 
+			@include inputGroup();
+
 			button {
+				@include btn();
 				line-height: 0;
 			}
 		}
