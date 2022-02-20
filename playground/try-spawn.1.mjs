@@ -33,7 +33,7 @@ const child = spawn(
 		/**
 		 * true了shell之後能殺的也殺不掉了
 		 */
-		// shell: true,
+		shell: true,
 		// detached: true,
 	},
 )

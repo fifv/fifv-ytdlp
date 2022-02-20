@@ -340,6 +340,7 @@ html {
 							.svgCloseError {
 								color: $danger;
 							}
+
 							.svgCloseStopped {
 								color: $secondary;
 							}
@@ -371,6 +372,13 @@ html {
 					}
 
 					.rightcol {
+						display: flex;
+						flex-direction: column;
+						flex-wrap: nowrap;
+						align-content: center;
+						justify-content: center;
+						align-items: flex-start;
+
 						// padding: 5px;
 						flex-grow: 1;
 						margin-right: 10px;
@@ -402,6 +410,30 @@ html {
 						.infoError {
 							@include info();
 							color: $danger;
+						}
+
+						// .progress {
+
+						// 	width: 100%;
+						// 	// background-color: $secondary;
+						// 	background-color: $blue;
+						// 	// border-left: 0;
+						// 	// border-right: 0;
+						// 	// border-bottom: $darkBlue 1px solid;
+						// 	// border-top: $darkBlue 1px solid;
+						// 	border: 0;
+						// 	// outline: 1px $darkBlue solid;
+						// 	height: 1px;
+						// 	// border-top-right-radius: 0px;
+						// 	// border-top-left-radius: 0px;
+						// 	border-radius: 0;
+	
+						// 	.progress-bar {
+						// 		background-color: $success;
+						// 	}
+						// }
+						.progressBar {
+							margin: 5px;
 						}
 					}
 
@@ -440,26 +472,7 @@ html {
 						}
 					}
 
-					.progress {
-
-						width: 100%;
-						// background-color: $secondary;
-						background-color: $blue;
-						// border-left: 0;
-						// border-right: 0;
-						// border-bottom: $darkBlue 1px solid;
-						// border-top: $darkBlue 1px solid;
-						border: 0;
-						// outline: 1px $darkBlue solid;
-						height: 1px;
-						// border-top-right-radius: 0px;
-						// border-top-left-radius: 0px;
-						border-radius: 0;
-
-						.progress-bar {
-							background-color: $success;
-						}
-					}
+					
 
 				}
 			}

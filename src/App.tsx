@@ -6,6 +6,7 @@ import { decode } from 'iconv-lite';
 import { ipcRenderer, clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
 import { IconContext } from 'react-icons'
+import { Line as ProgressLine } from 'rc-progress';
 import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo } from 'react-icons/md'
 import { BsArrowRightCircle, BsFillExclamationTriangleFill, BsFillArrowRightCircleFill } from 'react-icons/bs'
 import { IoPlayOutline } from 'react-icons/io5'
@@ -20,6 +21,8 @@ const main = {
 	app: remote.app,
 }
 const isDebug = false
+// const isDebug = true
+
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
 type KeyofType<OBJ, TYPE> = {
@@ -55,6 +58,14 @@ const svgDanger =
 		<BsFillExclamationTriangleFill />
 	</IconContext.Provider>
 const svgInfo = <MdInfo />
+
+const quotePath = (path: string) => {
+	if ((path[0] === `'` && path[path.length - 1] === `'`) || (path[0] === `"` && path[path.length - 1] === `"`)) {
+		return path
+	} else {
+		return '"' + path + '"'
+	}
+}
 
 const store = new ElectronStore({
 	defaults: {
@@ -191,12 +202,12 @@ export default class App extends React.Component<
 		const ytdlpOptions: string[] = [];
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-		ytdlpOptions.push('-r', '5K') //調試用降速
+		// ytdlpOptions.push('-r', '5K') //調試用降速
 		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
-		this.state.specifyDownloadPath && ytdlpOptions.push('-P', this.state.destPath) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
+		this.state.specifyDownloadPath && ytdlpOptions.push('-P', quotePath(this.state.destPath)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
 		this.state.useProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
 		this.state.formatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
 		this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
@@ -212,6 +223,7 @@ export default class App extends React.Component<
 		const ytdlpCommand = this.state.useLocalYtdlp ?
 			/**
 			 * 使用py要比用standalone快得多
+			 * 各種不同的py版本很奇怪.總之啟用shell:true以及taskkill應該就ok了
 			 */
 			'yt-dlp'
 			// 'D:/usr/bin/yt-dlp#.exe'
@@ -831,14 +843,20 @@ class Task extends React.Component<
 
 
 		const progressBar =
-			<div className="progress">
-				<div
-					className="progress-bar"
-					style={ {
-						width: info.percentValue + '%',
-					} }
-				/>
-			</div>
+			// <div className="progress">
+			// 	<div
+			// 		className="progress-bar"
+			// 		style={ {
+			// 			width: info.percentValue + '%',
+			// 		} }
+			// 	/>
+			// </div>
+			<ProgressLine
+				percent={ info.percentValue }
+				// strokeColor={ '#cc66ff' }
+				strokeWidth={ 0.4 }
+				className='progressBar'
+			/>
 		/**
 		 * TO\DO: progress bar
 		 */
