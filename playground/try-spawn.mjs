@@ -21,13 +21,14 @@ const child = spawn(
 	'yt-dlp',
 	[
 		// '-J',
+		'-r','5K',
 		'--progress-template', '"downloading-%(progress._percent_str)s-%(progress._total_bytes_str)s-%(progress._speed_str)s-%(progress._eta_str)s"',
 		'--proxy', '127.0.0.1:7890',
 		'https://www.youtube.com/watch?v=RMZNjFkJK7E'
 	]
 ,)
 child.stdout.on('data', (data) => {
-	if (data.includes('downloading')) {
+	if (data.includes('*downloading')) {
 		// for (const key in data) {
 		// 	console.log(key,data[key]);
 		// }
@@ -36,13 +37,13 @@ child.stdout.on('data', (data) => {
 		// console.log(typeof progressObj,progressObj._percent_str);
 		console.log(data.toString().replace(/(\r)|(')|(")/g, '').split('-').map((str) => str.trim()));
 	} else {
-		console.log('stdout:', data.toString());
+		console.log('*stdout:', data.toString());
 	}
 })
 child.stderr.on('data', (data) => {
-	console.log('stderr:', data.toString());
+	console.log('*stderr:', data.toString());
 })
 
 child.on('close', (code) => {
-	console.log('close:', code);
+	console.log('*close:', code);
 })

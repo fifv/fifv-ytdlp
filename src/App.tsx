@@ -1,13 +1,17 @@
 import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, spawnSync } from 'child_process'
 import { decode } from 'iconv-lite';
-import { ipcRenderer, clipboard } from 'electron';
+import { ipcRenderer, clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
-import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto } from 'react-icons/md'
+import { IconContext } from 'react-icons'
+import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo } from 'react-icons/md'
+import { BsArrowRightCircle, BsFillExclamationTriangleFill, BsFillArrowRightCircleFill } from 'react-icons/bs'
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
+import GridLoader from 'react-spinners/GridLoader';
+import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
 const win = remote.getCurrentWindow()
@@ -15,21 +19,42 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-const isDebug = true
+const isDebug = false
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
 type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
-const svgLoader = <HashLoader size={ 10 } color="white" />
+const svgLoaderHash = <HashLoader size={ 10 } color="white" />
+const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
+const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
+
 
 const svgUp = <MdOutlineKeyboardArrowUp />
 const svgDown = <MdOutlineKeyboardArrowDown />
-const svgRemove = <MdOutlineRemove />
-const svgSuccess = <MdOutlineCheck />
-const svgClose = <MdClose />
+const svgRemove =
+	<IconContext.Provider value={ { className: 'svgRemove' } }>
+		<MdOutlineRemove />
+	</IconContext.Provider>
+const svgSuccess =
+	<IconContext.Provider value={ { className: 'svgSuccess' } }>
+		<MdOutlineCheck />
+	</IconContext.Provider>
+const svgClose = (className = 'svgClose') =>
+	<IconContext.Provider value={ { className: className } }>
+		<MdClose />
+	</IconContext.Provider>
 const svgPlay = <IoPlayOutline />
-const svgPhoto = <MdOutlineInsertPhoto />
+const svgPhoto =
+	<IconContext.Provider value={ { className: 'svgPhoto' } }>
+		<MdOutlineInsertPhoto />
+	</IconContext.Provider>
+const svgRight = <BsFillArrowRightCircleFill />
+const svgDanger =
+	<IconContext.Provider value={ { className: 'svgDanger' } }>
+		<BsFillExclamationTriangleFill />
+	</IconContext.Provider>
+const svgInfo = <MdInfo />
 
 const store = new ElectronStore({
 	defaults: {
@@ -72,6 +97,7 @@ export default class App extends React.Component<
 		processes: {
 			timestamp: number,
 			process: ChildProcess,
+			url: string,
 		}[],
 		closedCount: number,
 
@@ -184,7 +210,8 @@ export default class App extends React.Component<
 
 		ytdlpOptions.push(url)
 		const ytdlpCommand = this.state.useLocalYtdlp ?
-			'yt-dlp'
+			// 'yt-dlp'
+			'D:/usr/bin/yt-dlp#.exe'
 			:
 			path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe')
 
@@ -203,6 +230,7 @@ export default class App extends React.Component<
 			processes: state.processes.concat({
 				timestamp: Date.now(),
 				process: child,
+				url: url,
 			})
 		}))
 
@@ -233,6 +261,20 @@ export default class App extends React.Component<
 		// 		return timestamp !== props.timestamp
 		// 	})
 		// }))
+	}
+	handleRemove = (timestamp: number) => {
+		console.log(`*child ${timestamp} removed`);
+
+		this.setState((state, props) => {
+			const processes = state.processes
+			const i = processes.findIndex(
+				(process) => process.timestamp === timestamp
+			)
+			processes.splice(i, 1)
+			return {
+				processes: processes
+			}
+		})
 	}
 	pasteUrl = (callback?: () => void) => {
 		// navigator.clipboard.readText().then((text) => {
@@ -384,6 +426,31 @@ export default class App extends React.Component<
 				</button>
 			</div>
 
+		const totalLoader =
+			/**
+			* 哈...邏輯短路真的短路了...
+			* this.state.process || 1 && Element
+			* &&優先級高於||
+			* 所以相當於this.state.process || Element
+			* 當前面的有內容的時候直接返回前面的...process...就報錯了...所以ts為啥不報錯?!
+			* 然後eslint也不報錯...
+			* 奇怪了
+			* 
+			* it's so confused to set the spinner...
+			* my original attemption is let it appear whenever any download process is running.
+			* but now process will keep in state even if they were closed
+			* so it's necessary to judge whether a process is running or closed
+			* oh wait, it seems unnecessary in multimode.
+			* i can let it appear per task bar rather the url bar
+			* it is only needed in the single mode
+			*/
+			/**
+			 * TO\DO: make the spinner work well
+			 */
+			(this.state.processes.length - this.state.closedCount > 0) &&
+			<div className='totalLoader'>
+				{ svgLoaderPuff }
+			</div>
 		const urlBar =
 			<div className="input-group urlBar">
 				<input
@@ -398,32 +465,6 @@ export default class App extends React.Component<
 					value={ this.state.url }
 					onChange={ this.handleInputChange }
 				/>
-				{
-					/**
-					 * 哈...邏輯短路真的短路了...
-					 * this.state.process || 1 && Element
-					 * &&優先級高於||
-					 * 所以相當於this.state.process || Element
-					 * 當前面的有內容的時候直接返回前面的...process...就報錯了...所以ts為啥不報錯?!
-					 * 然後eslint也不報錯...
-					 * 奇怪了
-					 * 
-					 * it's so confused to set the spinner...
-					 * my original attemption is let it appear whenever any download process is running.
-					 * but now process will keep in state even if they were closed
-					 * so it's necessary to judge whether a process is running or closed
-					 * oh wait, it seems unnecessary in multimode.
-					 * i can let it appear per task bar rather the url bar
-					 * it is only needed in the single mode
-					 */
-					/**
-					 * TO\DO: make the spinner work well
-					 */
-					(this.state.processes.length - this.state.closedCount > 0) &&
-					<div className='loading'>
-						{svgLoader}
-					</div>
-				}
 				{
 					/**
 					 * 單個模式下要Stop好像有點麻煩
@@ -548,13 +589,15 @@ export default class App extends React.Component<
 		const display =
 			<div className="display-area">
 				{
-					this.state.processes.map(({ timestamp, process }) => {
+					this.state.processes.map(({ timestamp, process, url }) => {
 						return (
 							<Task
 								timestamp={ timestamp }
 								process={ process }
 								key={ timestamp }
-								handleStop={ (timestamp) => this.handleStop(timestamp) }
+								url={ url }
+								handleStop={ () => this.handleStop(timestamp) }
+								handleRemove={ () => this.handleRemove(timestamp) }
 							/>
 						)
 					}).reverse()
@@ -566,6 +609,7 @@ export default class App extends React.Component<
 				{ trafficLight }
 				<div className="container">
 					<div className="main">
+						{ totalLoader }
 						{ urlBar }
 						{ display }
 						{ options }
@@ -580,14 +624,16 @@ class Task extends React.Component<
 	{
 		timestamp: number,
 		process: ChildProcess,
-		handleStop: (timestamp: number) => void
+		url: string,
+		handleStop: () => void
+		handleRemove: () => void
 	},
 	{
-		processInfo: string[],
-		thumbnailInfo: string,
-		downloadingInfo: string,
-		otherInfo: string,
-		errorInfo: string,
+		processingOutput?: string[],
+		thumbnailInfo?: string,
+		destPath?: string,
+		otherInfo?: string,
+		errorInfo?: string,
 
 		status: "finished" | "stopped" | "downloading" | "error",
 
@@ -597,11 +643,11 @@ class Task extends React.Component<
 	constructor(props: Task['props']) {
 		super(props);
 		this.state = {
-			processInfo: [],
-			thumbnailInfo: '',
-			downloadingInfo: '',
-			otherInfo: '',
-			errorInfo: '',
+			// processingOutput: [],
+			// thumbnailInfo: '',
+			// destPath: '',
+			// otherInfo: '',
+			// errorInfo: '',
 
 			status: 'downloading',
 		}
@@ -612,13 +658,14 @@ class Task extends React.Component<
 			if (info.includes('[download] Destination')) {
 				console.log('*downloadingInfo:', info);
 				this.setState((state, props) => ({
-					downloadingInfo: info,
+					otherInfo: info,
+					destPath: info.replace('[download] Destination: ', '').trim(),
 				}))
 			} else if (info.includes('[download process]')) {
-				const processInfo = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
-				console.log('*processinfo:', info);
+				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+				console.log('*processingOutput:', info);
 				this.setState((state, props) => ({
-					processInfo: processInfo,
+					processingOutput: processingOutput,
 				}))
 
 
@@ -633,11 +680,19 @@ class Task extends React.Component<
 				// 		downloadingInfo: info,
 				// 	}))
 
+			} else if (info.includes('has already been downloaded')) {
+				console.log('*otherinfo:', info);
+				// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
+				this.setState((state, props) => ({
+					otherInfo: info,
+					destPath: info.replace('[download] ', '').replace(' has already been downloaded', ''),
+				}))
 			} else if (info.includes('idk')) {
 				/* empty */
 			} else if (info.includes('Downloading video thumbnail')) {
 				console.log('*otherinfo:', info);
 			} else {
+				console.log('*other info:', info);
 				this.setState((state, props) => ({
 					otherInfo: info
 				}))
@@ -660,73 +715,142 @@ class Task extends React.Component<
 			// 	// infos: state.infos.concat('[Download Stopped]'),
 			// 	process: null,
 			// }))
-			this.props.handleStop(this.props.timestamp)
+			this.props.handleStop()
 			/**
 			 * seems that 0 === finished
 			 * null === kill()
 			 * 1 === error
+			 * 
+			 * if i use takkkill,force kill will be 1 not null
 			 */
 			switch (code) {
 				case 0:
 					this.setState((state, props) => ({
-						status: "finished"
+						status: "finished",
+						otherInfo: 'Finished',
 					}))
 					break;
-				case 1:
-					this.setState((state, props) => ({
-						status: "error"
-					}))
-					break;
-				case null:
-					this.setState((state, props) => ({
-						status: "stopped"
-					}))
-					break;
+				// case 1:
+				// 	if (this.state.status !== 'stopped') {
+				// 		this.setState((state, props) => ({
+				// 			status: "error"
+				// 		}))
+				// 	}
+				// 	break;
+				// case null:
+				// 	this.setState((state, props) => ({
+				// 		status: "stopped"
+				// 	}))
+				// 	break;
 
 				default:
+					if (this.state.status !== 'stopped') {
+						this.setState((state, props) => ({
+							status: "error",
+						}))
+					}
 					break;
 			}
 		})
 
 	}
 	handleStop = () => {
-		this.child.kill()
+		/**
+		 * 這個不一定成功.
+		 * 如果process還有生subprocess,kill只會殺死process,而不會殺死subprocess
+		 * 這個yt-dlp用2022.2新版本的standalone的時候就會出現這種問題
+		 * 只能用上神奇的taskkill.默認的kill太遜了
+		 * 
+		 * 如果先kill,再用taskkill,taskkill會失敗
+		 */
+		// this.child.kill()
+		const kill = spawn('taskkill', ['/pid', this.child.pid?.toString() ?? '', '/f', '/t',])
+		kill.on('close', () => {
+			this.setState((state, props) => ({
+				status: "stopped",
+				otherInfo: 'Cancelled',
+			}))
+		})
+	}
+
+	handleOpenFolder = () => {
+		const destPath = this.state.destPath
+		if (destPath) {
+			// spawn('start', ['""', '"' + path.dirname(destPath) + '"'], { shell: true, })
+			// spawn('explorer', ['/select,', '"' + destPath + '"'], { shell: true, })
+			if (this.state.status === 'downloading') {
+				shell.openPath(path.dirname(destPath))
+			} else {
+				shell.showItemInFolder(destPath)
+			}
+		}
 	}
 	render() {
 		'"downloading-%(progress._percent_str)s-%(progress._total_bytes_str)s-%(progress._speed_str)s-%(progress._eta_str)s"'
-		const processInfo = this.state.processInfo
-		const otherInfo = this.state.otherInfo
-		const errorInfo = this.state.errorInfo
-		const thumbnailInfo = this.state.thumbnailInfo
+		interface info {
+			status: string,
+			processingOutput?: string[],
+			other?: string,
+			error?: string,
+			thumbnail?: string,
+			percent?: string,
+			size?: string,
+			speed?: string,
+			eta?: string,
+			title?: string,
+			percentValue?: number,
 
-		const status = this.state.status
+		}
+		const info: info = {
+			status: this.state.status,
 
-		const percent = parseFloat(processInfo[1])
-		const progress =
+			processingOutput: this.state.processingOutput,
+			other: this.state.otherInfo?.trim(),
+			error: this.state.errorInfo?.trim(),
+			thumbnail: this.state.thumbnailInfo?.trim(),
+			title: this.props.url
+		}
+		if (info.processingOutput) {
+			info.percent = info.processingOutput[1]?.trim()
+			info.size = info.processingOutput[2]?.trim()
+			info.speed = info.processingOutput[3]?.trim()
+			info.eta = info.processingOutput[4]?.trim()
+			info.title = info.processingOutput[5]?.trim()
+			info.percentValue = parseFloat(info.percent)
+		}
+		if (info.percentValue && info.percentValue < 100) {
+			info.other = 'Downloading...'
+		}
+		if (info.status === 'error' && info.other){
+			info.other = 'Failed'
+		}
+
+
+		const progressBar =
 			<div className="progress">
 				<div
 					className="progress-bar"
 					style={ {
-						width: percent + '%',
+						width: info.percentValue + '%',
 					} }
 				/>
 			</div>
 		/**
 		 * TO\DO: progress bar
 		 */
-		let statusIcon: JSX.Element = svgLoader
-		switch (status) {
+		let statusIcon: JSX.Element = svgLoaderHash
+		switch (info.status) {
 			case 'downloading':
-				statusIcon = svgLoader
+				statusIcon = svgLoaderHash
 				break;
 			case 'stopped':
-				statusIcon = svgClose
+				statusIcon = svgClose('svgCloseStopped')
 				break;
 			case 'finished':
 				statusIcon = svgSuccess
 				break;
 			case 'error':
-				statusIcon = svgClose
+				statusIcon = svgClose('svgCloseError')
 				break;
 
 			default:
@@ -734,50 +858,64 @@ class Task extends React.Component<
 		}
 
 		const statusIndicator = <div className="statusIndicator">
-			{ !!thumbnailInfo && svgPhoto }
+			{ !!info.thumbnail && svgPhoto }
 			{ statusIcon }
 		</div>
-		const info = (index: number, classname: string) =>
+		const infoDiv = (info: string | undefined, classname: string, svg?: JSX.Element) =>
 			(isDebug || (
-				!!processInfo[index] &&
-				processInfo[index] !== 'NA' &&
-				processInfo[index] !== 'Unknown'
+				!!info &&
+				info !== 'NA' &&
+				info !== 'Unknown'
 			)) &&
 			<div className={ classname }>
-				{ processInfo[index] }
+				{ svg }
+				<span>
+					{ info }
+				</span>
 			</div>
 
-		const task =
-			<div className="task">
-				<div className="leftcol">
-					{ statusIndicator }
-
-				</div>
-				{ processInfo.length > 0 &&
-					<div className="midcol">
-						{ info(1, 'infoPercent') }
-						{ info(2, 'infoSize') }
-						{ info(3, 'infoSpeed') }
-						{ info(4, 'infoEta') }
-						{/* { !!processInfo[1] && processInfo[1] !== 'NA' && processInfo[1] !== 'Unknown' && <div className="info-percent"><span>{ processInfo[1] }</span></div> }
-					{ !!processInfo[3] && processInfo[3] !== 'NA' && processInfo[3] !== 'Unknown' && <div className="info-speed"><span>{ processInfo[3] }</span></div> }
-					{ !!processInfo[2] && processInfo[2] !== 'NA' && processInfo[2] !== 'Unknown' && <div className="info-size"><span>{ processInfo[2] }</span></div> }
-					{ !!processInfo[4] && processInfo[4] !== 'NA' && processInfo[4] !== 'Unknown' && <div className="info-eta"><span>{ processInfo[4] }</span></div> } */}
-
+		const leftCol =
+			<div className="leftcol">
+				{ statusIndicator }
+			</div>
+		const midCol =
+			info.processingOutput &&
+			<div className="midcol">
+				{ infoDiv(info.percent, 'infoPercent') }
+				{ infoDiv(info.size, 'infoSize') }
+				{ infoDiv(info.speed, 'infoSpeed') }
+				{ infoDiv(info.eta, 'infoEta') }
+			</div>
+		const rightCol =
+			<div className="rightcol" onDoubleClick={ this.handleOpenFolder }>
+				{ infoDiv(info.title, 'infoTitle', svgRight) }
+				{ ((info.percentValue && !isNaN(info.percentValue)) || isDebug) && progressBar }
+				{ !!info.other &&
+					<div className="infoOther">
+						{ svgInfo }
+						<span>{ info.other }</span>
 					</div>
 				}
-
-				<div className="rightcol">
-					{ info(5, 'infoTitle') }
-					{ (!isNaN(percent) || isDebug) && progress }
-					{ !!otherInfo && <div className="info-other"><span>{ otherInfo }</span> </div> }
-					{ !!errorInfo && <div className="info-error"><span> { errorInfo }</span></div> }
-				</div>
-
-
+				{ !!info.error &&
+					<div className="infoError">
+						{ svgDanger }
+						<span> { info.error }</span>
+					</div>
+				}
 			</div>
+
+		const rightMostCol =
+			<div className="rightMostCol" onClick={ info.status === 'downloading' ? this.handleStop : () => this.props.handleRemove() }>
+				{ info.status === 'downloading' ? svgClose() : svgRemove }
+			</div>
+
 		return (
-			task
+			<div className="task">
+				{ leftCol }
+				{ midCol }
+				{ rightCol }
+				{ rightMostCol }
+			</div>
 		);
 	}
 }

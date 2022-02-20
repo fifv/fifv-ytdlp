@@ -4,6 +4,10 @@
 	padding: 0;
 }
 
+svg {
+	flex-shrink: 0;
+}
+
 input {
 	outline: none;
 	border: 1px solid wheat;
@@ -14,11 +18,13 @@ $primary: rgb(236, 236, 236);
 $primaryDark:rgb(185, 185, 185);
 $primaryDarkDark:rgb(156, 156, 156);
 $secondary:#6c757d;
-$secondaryDark:#494f55;
+$secondaryDark:#636b72;
+$secondaryDarkDark:#5d656d;
 $blue: #00c3ff;
 $blueDark: #00ade2;
 $success: #00ff0d;
 $danger: #dc3545;
+
 
 @mixin inputGroup {
 	&>:first-child {
@@ -44,11 +50,16 @@ $danger: #dc3545;
 	// background: rgba(187, 187, 187, 0.267);
 	background: $secondary;
 	color: $primary;
-	border: 1px solid $secondary;
+	// border: 1px solid $secondary;
 	padding: 5px;
 
 	&:hover {
 		cursor: pointer;
+		background: $secondaryDark;
+	}
+
+	&:active {
+		background: $secondaryDarkDark;
 	}
 }
 
@@ -95,6 +106,22 @@ html {
 			align-content: center;
 			align-items: center;
 
+			.totalLoader {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				justify-content: center;
+				align-content: center;
+				align-items: center;
+				// border-left: 0;
+				// border-bottom: 0;
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				z-index: 100;
+				// line-height: 42px;
+			}
+
 			.urlBar {
 				@include inputGroup();
 				height: 30px;
@@ -129,11 +156,7 @@ html {
 						// outline: none;
 						box-shadow: 0px 0px 4px 0px rgb(136, 136, 136);
 						border-radius: 4px;
-
-
 					}
-
-
 				}
 
 
@@ -162,15 +185,7 @@ html {
 					}
 				}
 
-				.loading {
-					border-left: 0;
-					border-bottom: 0;
-					position: fixed;
-					top: 20px;
-					left: 20px;
-					z-index: 100;
-					// line-height: 42px;
-				}
+
 			}
 
 			.control-area {
@@ -271,7 +286,8 @@ html {
 				overflow-y: scroll;
 				width: 100%;
 				margin-bottom: 15px;
-				font-size: 0.8em;
+				// font-size: 0.8em;
+				font-size: 15px;
 				-webkit-app-region: no-drag;
 
 				.task {
@@ -292,6 +308,7 @@ html {
 					align-content: center;
 
 					.leftcol {
+						user-select: none;
 						padding-top: 5px;
 						padding-bottom: 5px;
 						width: 30px;
@@ -320,13 +337,28 @@ html {
 							// 	margin-left: 5px;
 							// 	margin-right: 5px;
 							// }
+							.svgCloseError {
+								color: $danger;
+							}
+							.svgCloseStopped {
+								color: $secondary;
+							}
+
+							.svgPhoto {
+								color: $success;
+							}
+
+							.svgSuccess {
+								color: $success;
+							}
 						}
 					}
 
 					.midcol {
+						user-select: none;
 						padding-top: 5px;
 						padding-bottom: 5px;
-						width: 80px;
+						width: 90px;
 						flex-shrink: 0;
 
 						display: flex;
@@ -339,145 +371,74 @@ html {
 					}
 
 					.rightcol {
-						padding: 5px;
+						// padding: 5px;
+						flex-grow: 1;
+						margin-right: 10px;
+
+						@mixin info {
+							display: flex;
+							flex-direction: row;
+							flex-wrap: nowrap;
+							justify-content: flex-start;
+							align-content: center;
+							align-items: center;
+
+							margin: 5px;
+
+							svg {
+								margin-right: 5px;
+							}
+						}
+
+						.infoTitle {
+							@include info();
+						}
+
+						.infoOther {
+							@include info();
+							color: $blue;
+						}
+
+						.infoError {
+							@include info();
+							color: $danger;
+						}
 					}
 
-					// &>:nth-child(2) {
-					// 	border-top: 1px solid $primary;
-					// }
+					.rightMostCol {
+						user-select: none;
+						display: flex;
+						flex-direction: row;
+						flex-wrap: nowrap;
+						justify-content: center;
+						align-content: center;
+						align-items: center;
 
-					// svg {
-					// 	height: 16px;
-					// 	width: 16px;
-					// }
+						// height: 100%;
+						/**
+						 * %用不了,可以用align-self
+						 */
+						align-self: stretch;
+						width: 30px;
+						/**
+						 * 這個多加加,不然坍縮會很怪
+						 */
+						flex-shrink: 0;
 
-					// .upperrow {
-					// 	min-height: 32px;
-					// 	line-height: 32px;
-					// 	width: 100%;
-					// 	display: flex;
-					// 	flex-direction: row;
-					// 	flex-wrap: nowrap;
-					// 	align-content: center;
-					// 	justify-content: space-evenly;
-					// 	align-items: stretch;
-					// 	// border-top: 1px solid $darkBlue;
+						&:hover {
+							cursor: pointer;
 
-					// 	/**
-					//  * kanpeki!!perfectly add seperate line
-					//  */
-					// 	&>:nth-child(2),
-					// 	&>:nth-child(3),
-					// 	&>:nth-child(4) {
-					// 		border-left: 1px solid $blue;
-					// 	}
+							.svgClose {
+								color: $danger;
+								// &:
+							}
 
-					// 	&>* {
-					// 		padding-left: 5px;
-					// 		padding-right: 5px;
-
-					// 		display: flex;
-					// 		flex-direction: row;
-					// 		flex-wrap: nowrap;
-					// 		align-content: center;
-					// 		justify-content: flex-start;
-					// 		align-items: center;
-					// 	}
-
-					// 	.info-other,
-					// 	.info-error {
-					// 		width: 100%;
-					// 	}
-
-					// 	.info-thumbnail {
-					// 		color: $success;
-					// 	}
-
-					// 	.info-other {
-					// 		color: $blue;
-					// 	}
-
-					// 	.info-error {
-					// 		color: $danger;
-					// 	}
-
-					// 	.click-stop {
-					// 		color: aqua;
-					// 		cursor: pointer;
-					// 		transition: 0.15s;
-					// 		user-select: none;
-
-					// 		&:hover {
-					// 			// background-color: $danger;
-					// 			text-shadow: 0px 0px 10px rgb(255, 0, 0);
-					// 			// color: rgb(255, 208, 208);
-					// 		}
-					// 	}
-
-					// 	.info-finished {
-					// 		user-select: none;
-					// 		color: $success;
-					// 	}
-
-					// 	.info-stopped {
-					// 		user-select: none;
-					// 		color: $secondary;
-					// 	}
-
-					// 	.info-erroroccured {
-					// 		user-select: none;
-					// 		color: $danger;
-					// 	}
-					// }
-
-					// .lowerrow {
-					// 	min-height: 32px;
-					// 	line-height: 32px;
-					// 	width: 100%;
-					// 	display: flex;
-					// 	flex-direction: row;
-					// 	flex-wrap: nowrap;
-					// 	align-content: center;
-					// 	justify-content: flex-start;
-					// 	align-items: stretch;
-
-					// 	.info-percent,
-					// 	.info-speed,
-					// 	.info-size,
-					// 	.info-eta,
-					// 	.info-speed {
-					// 		min-width: 60px;
-					// 		border-right: 1px solid $blue;
-					// 		text-align: center;
-					// 		/**
-					// 	 * kanpeki!!perfectly make these box won't shrink
-					// 	 */
-					// 		flex-shrink: 0;
-					// 	}
-
-					// 	.info-title {
-					// 		/* empty */
-					// 	}
-
-					// 	.info-percent,
-					// 	.info-speed,
-					// 	.info-size,
-					// 	.info-eta,
-					// 	.info-speed,
-					// 	.info-title {
-					// 		color: $blue;
-					// 		padding-left: 5px;
-					// 		padding-right: 5px;
-
-					// 		display: flex;
-					// 		flex-direction: row;
-					// 		flex-wrap: nowrap;
-					// 		align-content: center;
-					// 		justify-content: center;
-					// 		align-items: center;
-
-					// 	}
-					// }
+							.svgRemove {
+								color: $danger;
+								;
+							}
+						}
+					}
 
 					.progress {
 
@@ -500,19 +461,6 @@ html {
 						}
 					}
 
-					// .progress {
-
-					// 	width: 99.4%;
-					// 	background-color: transparent;
-					// 	border: 0;
-					// 	height: 1px;
-					// 	border-radius: 16px;
-					// 	transform: translateY(1px);
-
-					// 	.progress-bar {
-					// 		background-color: $success;
-					// 	}
-					// }
 				}
 			}
 		}
