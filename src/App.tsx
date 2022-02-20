@@ -210,8 +210,11 @@ export default class App extends React.Component<
 
 		ytdlpOptions.push(url)
 		const ytdlpCommand = this.state.useLocalYtdlp ?
-			// 'yt-dlp'
-			'D:/usr/bin/yt-dlp#.exe'
+			/**
+			 * 使用py要比用standalone快得多
+			 */
+			'yt-dlp'
+			// 'D:/usr/bin/yt-dlp#.exe'
 			:
 			path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe')
 
@@ -225,6 +228,7 @@ export default class App extends React.Component<
 			 */
 			ytdlpCommand,
 			ytdlpOptions,
+			{ shell: true },
 		)
 		this.setState((state, props) => ({
 			processes: state.processes.concat({
@@ -821,7 +825,7 @@ class Task extends React.Component<
 		if (info.percentValue && info.percentValue < 100) {
 			info.other = 'Downloading...'
 		}
-		if (info.status === 'error' && info.other){
+		if (info.status === 'error' && info.other) {
 			info.other = 'Failed'
 		}
 
