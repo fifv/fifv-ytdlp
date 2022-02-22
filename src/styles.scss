@@ -27,12 +27,16 @@ $danger: #dc3545;
 
 
 @mixin inputGroup {
-	&>:first-child {
+	border-radius: 4px;
+
+	&>:first-child,
+	&>label:first-of-type {
 		border-top-left-radius: 4px;
 		border-bottom-left-radius: 4px;
 	}
 
-	&>:last-child {
+	&>:last-child,
+	&>label:last-of-type {
 		border-top-right-radius: 4px;
 		border-bottom-right-radius: 4px;
 	}
@@ -46,7 +50,7 @@ $danger: #dc3545;
 	}
 }
 
-@mixin btn {
+@mixin btn() {
 	// background: rgba(187, 187, 187, 0.267);
 	background: $secondary;
 	color: $primary;
@@ -63,6 +67,16 @@ $danger: #dc3545;
 	}
 }
 
+@mixin textInput {
+	flex-grow: 1;
+	background: transparent;
+	border: 1px solid $secondary;
+	color: $primary;
+
+	&:focus-visible {
+		box-shadow: 0px 0px 4px 0px rgb(136, 136, 136);
+	}
+}
 
 html {
 	min-height: 100vh;
@@ -103,8 +117,8 @@ html {
 			flex-direction: column;
 			justify-content: space-between;
 			flex-wrap: nowrap;
-			align-content: center;
-			align-items: center;
+			align-content: stretch;
+			align-items: stretch;
 
 			.totalLoader {
 				display: flex;
@@ -141,22 +155,11 @@ html {
 				align-items: stretch;
 
 
+
 				.urlInput {
 					// border-bottom: 0;
 					padding-left: 10px;
-					flex-grow: 1;
-					background: transparent;
-					border: 1px solid $secondary;
-					color: $primary;
-
-					// width: 100%;
-					// z-index: -100;
-					&:focus-visible {
-						// outline: 1px solid $blue;
-						// outline: none;
-						box-shadow: 0px 0px 4px 0px rgb(136, 136, 136);
-						border-radius: 4px;
-					}
+					@include textInput();
 				}
 
 
@@ -188,7 +191,7 @@ html {
 
 			}
 
-			.control-area {
+			.optionsArea {
 				flex-shrink: 0;
 				margin-bottom: 20px;
 				// margin-top: 20px;
@@ -199,70 +202,21 @@ html {
 				display: flex;
 				flex-direction: column;
 				flex-wrap: nowrap;
-				align-content: center;
-				align-items: center;
+				align-content: stretch;
+				align-items: stretch;
 				justify-content: center;
 
 				input,
 				label,
-				button {
+				button,
+				div {
 					-webkit-app-region: no-drag;
 				}
 
-				label.btn-outline-primary:hover {
-					color: #fff;
-					background-color: inherit;
-				}
 
-				.btn-check:checked+label.btn-outline-primary {
-					color: #fff;
-					background-color: $primary;
-				}
+				.selectors {
+					color: $secondary;
 
-				.option {
-					margin-bottom: 5px;
-
-					* {
-						border-color: $primary;
-						// color: $primary;
-					}
-
-					input[type=text] {
-						// display: inline;
-						background-color: transparent;
-					}
-
-					input[type=checkbox] {
-						cursor: pointer;
-					}
-
-					label#destPath,
-					label#historyFile,
-					label#cookieFile {
-						cursor: pointer;
-
-						&:hover {
-							// background-color: $danger;
-							text-shadow: 0px 0px 15px rgb(229, 255, 0);
-							// color: rgb(255, 208, 208);
-						}
-					}
-
-
-					.check-container {
-						border-bottom-left-radius: 4px !important;
-						border-top-left-radius: 4px !important;
-					}
-
-					svg {
-						width: 16px;
-						height: 16px;
-					}
-
-
-				}
-
-				.button-option {
 					display: flex;
 					flex-direction: row;
 					flex-wrap: wrap;
@@ -271,12 +225,174 @@ html {
 					align-items: center;
 					width: 100%;
 
+					input {
+						display: none;
+					}
+
 					.contentSelector,
 					.bonusSelector {
-						margin-bottom: 10px;
+						display: flex;
+						flex-direction: row;
+						flex-wrap: nowrap;
+						justify-content: center;
+						align-content: center;
+						align-items: center;
+						// margin-top: 5px;
+						// margin-bottom: 5px;
+						margin: 5px;
+
+						// border: 1px solid $secondary;
+						@include inputGroup();
+
+						.selectorOption {
+							cursor: pointer;
+							border: 1px solid $secondary;
+							padding: 4px;
+
+							// &:hover {
+							// 	color: $primary;
+							// 	background-color: inherit;
+							// }
+
+							&.checked {
+
+								color: $primary;
+								background-color: $secondary;
+								// border: 0;
+							}
+						}
+
+						.btn-check:checked+.selectorOption {
+							color: $primary;
+							background-color: $secondary;
+						}
 					}
 				}
 
+				// .option {
+				// 	margin-bottom: 5px;
+
+				// 	* {
+				// 		border-color: $primary;
+				// 		// color: $primary;
+				// 	}
+
+				// 	input[type=text] {
+				// 		// display: inline;
+				// 		background-color: transparent;
+				// 	}
+
+				// 	input[type=checkbox] {
+				// 		cursor: pointer;
+				// 	}
+
+				// 	label#destPath,
+				// 	label#historyFile,
+				// 	label#cookieFile {
+				// 		cursor: pointer;
+
+				// 		&:hover {
+				// 			// background-color: $danger;
+				// 			text-shadow: 0px 0px 15px rgb(229, 255, 0);
+				// 			// color: rgb(255, 208, 208);
+				// 		}
+				// 	}
+
+
+				// 	.check-container {
+				// 		border-bottom-left-radius: 4px !important;
+				// 		border-top-left-radius: 4px !important;
+				// 	}
+
+				// 	svg {
+				// 		width: 16px;
+				// 		height: 16px;
+				// 	}
+
+
+				// }
+
+				.options {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: wrap;
+					justify-content: center;
+					align-content: stretch;
+					align-items: stretch;
+
+					.optionWithInput {
+						@media only screen and (max-width: 650px) {
+							width: calc(100% - 10px);
+						}
+
+						width: calc(50% - 10px);
+						// width: 310px;
+						// margin-top: 5px;
+						// margin-bottom: 5px;
+						// margin: 5px;
+						padding: 5px;
+						color: $primary;
+						display: flex;
+						flex-direction: row;
+						flex-wrap: nowrap;
+						justify-content: flex-start;
+						align-content: stretch;
+						align-items: stretch;
+
+						@include inputGroup();
+
+						.checkButton {
+							// @include btn();
+							display: flex;
+							flex-direction: row;
+							flex-wrap: nowrap;
+							justify-content: center;
+							align-content: center;
+							align-items: center;
+
+							padding: 8px;
+							border: 1px solid $secondary;
+
+							cursor: pointer;
+							&.checked {
+								background-color: $secondary;
+							}
+						}
+
+						.promptButton {
+							display: flex;
+							flex-direction: row;
+							flex-wrap: nowrap;
+							justify-content: center;
+							align-content: center;
+							align-items: center;
+
+							padding: 3px 8px;
+							// border: 1px solid $secondary;
+							background: $secondary;
+
+							&:hover {
+								background: $secondaryDark;
+							}
+
+							&:active {
+								background: $secondaryDarkDark;
+							}
+
+						}
+
+						.input {
+							display: flex;
+							flex-direction: row;
+							flex-wrap: nowrap;
+							justify-content: center;
+							align-content: center;
+							align-items: center;
+							@include textInput();
+							padding: 0px 5px;
+						}
+					}
+				}
 
 
 			}
@@ -291,6 +407,11 @@ html {
 				-webkit-app-region: no-drag;
 
 				.task {
+					/**
+					 * 不能在這裡禁止拖動,滾到上面去會導致頂條也拖不了
+					 */
+					// -webkit-app-region: no-drag;
+					z-index: -999;
 					color: #fff;
 					margin-top: 5px;
 					margin-bottom: 5px;
@@ -382,6 +503,8 @@ html {
 						// padding: 5px;
 						flex-grow: 1;
 						margin-right: 10px;
+						margin-top: 5px;
+						margin-bottom: 5px;
 
 						@mixin info {
 							display: flex;
@@ -427,7 +550,7 @@ html {
 						// 	// border-top-right-radius: 0px;
 						// 	// border-top-left-radius: 0px;
 						// 	border-radius: 0;
-	
+
 						// 	.progress-bar {
 						// 		background-color: $success;
 						// 	}
@@ -472,22 +595,29 @@ html {
 						}
 					}
 
-					
+
 
 				}
 			}
 		}
 
-		.overlay {
+		.trafficLight {
 			-webkit-app-region: no-drag;
 			position: fixed;
 			top: 0;
 			right: 0;
+			// border-radius: 0;
+			// border: 0;
 
-			@include inputGroup();
+			// @include inputGroup();
 
 			button {
 				@include btn();
+				border: 0;
+				// height: 25px;
+				// width: 25px;
+				// border-radius: 0 !important;
+				background: transparent;
 				line-height: 0;
 			}
 		}

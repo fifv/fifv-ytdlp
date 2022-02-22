@@ -2,12 +2,15 @@ import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
 import { spawn, ChildProcess, spawnSync } from 'child_process'
+import classNames from 'classnames';
 import { decode } from 'iconv-lite';
 import { ipcRenderer, clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
-import { IconContext } from 'react-icons'
 import { Line as ProgressLine } from 'rc-progress';
+import { IconContext } from 'react-icons'
 import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo } from 'react-icons/md'
+import { VscChromeMaximize } from 'react-icons/vsc'
+import { CgMinimize } from 'react-icons/cg'
 import { BsArrowRightCircle, BsFillExclamationTriangleFill, BsFillArrowRightCircleFill } from 'react-icons/bs'
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
@@ -33,6 +36,8 @@ const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
 const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
 
 
+const svgUnmaximize = <CgMinimize />
+const svgMaximize = <VscChromeMaximize />
 const svgUp = <MdOutlineKeyboardArrowUp />
 const svgDown = <MdOutlineKeyboardArrowDown />
 const svgRemove =
@@ -366,6 +371,7 @@ export default class App extends React.Component<
 	}
 	handleClick = (e: React.MouseEvent) => {
 		const target = e.currentTarget
+		const className = e.currentTarget.className
 		const id = target.id
 		if (id === 'destPath' && this.state.specifyDownloadPath) {
 			console.log('*open dir:', this.state.destPath);
@@ -384,23 +390,26 @@ export default class App extends React.Component<
 			const cookieFile = this.state.cookieFile
 			console.log('*open cookieFile:', cookieFile);
 			spawn('start', ['""', `"${cookieFile}"`], { shell: true })
+		} else if (className.includes('contentSelectorOption')) {
+			this.setState<never>((state, props) => ({
+				contentSelector: id
+			}))
+		} else if (id in this.state) {
+			this.setState<never>((state, props) => ({
+				[id]: !state[id as keyof App['state']],
+			}))
 		}
 	}
 	render() {
 
 
 		const trafficLight =
-			<div className="btn-group overlay">
+			<div className="btn-group trafficLight">
 				<button
 					tabIndex={ -1 } className='btn btn-outline-secondary' id='minimize'
 					onClick={ () => { win.minimize() } }
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg" width="15" height="1em" fill="currentColor"
-						className="bi bi-dash-lg" viewBox="0 0 16 16"
-					>
-						<path fillRule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z" />
-					</svg>
+					{ svgRemove }
 				</button>
 				{
 					this.state.maximized
@@ -408,23 +417,13 @@ export default class App extends React.Component<
 						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='unmaximize'
 							onClick={ this.handleMax }
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-								className="bi bi-layers" viewBox="0 0 16 16"
-							>
-								<path d="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882l-7.5-4zm3.515 7.008L14.438 10 8 13.433 1.562 10 4.25 8.567l3.515 1.874a.5.5 0 0 0 .47 0l3.515-1.874zM8 9.433 1.562 6 8 2.567 14.438 6 8 9.433z" />
-							</svg>
+							{ svgUnmaximize }
 						</button>
 						:
 						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='maximize'
 							onClick={ this.handleMax }
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg" width="16" height="12px" fill="currentColor"
-								className="bi bi-square" viewBox="0 0 16 16"
-							>
-								<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
-							</svg>
+							{ svgMaximize }
 						</button>
 
 				}
@@ -432,13 +431,7 @@ export default class App extends React.Component<
 					tabIndex={ -1 } className='btn rounded-0 btn-outline-secondary' id='close'
 					onClick={ () => { win.close() } }
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg" width="16" height="1em" fill="currentColor"
-						className="bi bi-x-lg" viewBox="0 0 16 16"
-					>
-						<path fillRule="evenodd" d="M13.854 2.146a.5.5 0 0 1 0 .708l-11 11a.5.5 0 0 1-.708-.708l11-11a.5.5 0 0 1 .708 0Z" />
-						<path fillRule="evenodd" d="M2.146 2.146a.5.5 0 0 0 0 .708l11 11a.5.5 0 0 0 .708-.708l-11-11a.5.5 0 0 0-.708 0Z" />
-					</svg>
+					{ svgClose() }
 				</button>
 			</div>
 
@@ -503,15 +496,32 @@ export default class App extends React.Component<
 				name = name[0].toUpperCase() + name.slice(1)
 			}
 			return (
-				<div className="col-12 col-sm-6 col-xl-4">
-					<div className="input-group input-group-sm option">
-						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
+				// <div className="col-12 col-sm-6 col-xl-4">
+				// 	<div className="input-group input-group-sm option">
+				// 		<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+				// 		<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
 
-						<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
-					</div>
+				// 		<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
+				// 	</div>
 
+				// </div>
+				<div className="input-group input-group-sm optionWithInput">
+					{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
+					<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
+
+					<div
+						id={ id }
+						// type='button'
+						className="btn btn-outline-primary bg-transparent promptButton"
+						/* htmlFor={ id } */
+						onClick={ this.handleClick }
+						tabIndex={ -1 }
+					>{ name }</div>
+
+					{/* <input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } /> */ }
 				</div>
+
 			)
 		}
 		const optionWithInput = (id: KeyofType<App['state'], boolean>, textInput: KeyofType<App['state'], string>, name?: string, placeholder?: string) => {
@@ -528,29 +538,31 @@ export default class App extends React.Component<
 			 * TO\DO:make options beautiful
 			 */
 			return (
-				<div className=" col-12 col-sm-6 col-xl-4">
-					<div className="input-group input-group-sm option">
-						<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
+				// <div className=" col-12 col-sm-6 col-xl-4">
+				<div className="input-group input-group-sm optionWithInput">
+					{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
+					<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
 
-						<button
-							id={ textInput }
-							type='button'
-							className="btn btn-outline-primary bg-transparent"
-							/* htmlFor={ id } */
-							onClick={ this.handleClick }
-							tabIndex={ -1 }
-						>{ name }</button>
+					<div
+						id={ textInput }
+						// type='button'
+						className="btn btn-outline-primary bg-transparent promptButton"
+						/* htmlFor={ id } */
+						onClick={ this.handleClick }
+						tabIndex={ -1 }
+					>{ name }</div>
 
-						<input tabIndex={ -1 } type="text" className="form-control form-control-sm" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
-					</div>
+					<input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
 				</div>
+				// </div>
 			)
 		}
 		const contentSelectorOption = (id: 'video' | 'audio' | 'skip') => {
 			return <>
-				<input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={ -1 } />
-				<label className='btn btn-outline-primary' htmlFor={ id }>{ id.toUpperCase() }</label>
+				{/* <input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={ -1 } />
+				<label className='selectorOption' htmlFor={ id }>{ id.toUpperCase() }</label> */}
+				<div className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) } id={ id } onClick={ this.handleClick }>{ id.toUpperCase() }</div>
 			</>
 		}
 		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, name?: string) => {
@@ -559,34 +571,31 @@ export default class App extends React.Component<
 				name = name[0].toUpperCase() + name.slice(1)
 			}
 			return <>
-				<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-				<label className='btn btn-outline-primary' htmlFor={ id }>{ name }</label>
+				{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } /> */ }
+				{/* <label className='selectorOption' htmlFor={ id }>{ name }</label> */ }
+				<div className={ classNames("selectorOption", { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ name }</div>
 			</>
 		}
 		const contentSelector =
 			<div className="contentSelector">
-				<div className='btn-group btn-group-sm'>
-					{ contentSelectorOption('video') }
-					{ contentSelectorOption('audio') }
-					{ contentSelectorOption('skip') }
-				</div>
+				{ contentSelectorOption('video') }
+				{ contentSelectorOption('audio') }
+				{ contentSelectorOption('skip') }
 			</div>
 		const bonusSelector =
 			<div className="bonusSelector">
-				<div className='btn-group btn-group-sm'>
-					{ bonusSelectorOption('saveThumbnail', 'Thumbnail') }
-					{ bonusSelectorOption('saveSubtitles', 'Subtitle') }
-					{ bonusSelectorOption('saveAutoSubtitle', 'Auto Subtitle') }
-				</div>
+				{ bonusSelectorOption('saveThumbnail', 'Thumbnail') }
+				{ bonusSelectorOption('saveSubtitles', 'Subtitle') }
+				{ bonusSelectorOption('saveAutoSubtitle', 'Auto Subtitle') }
 			</div>
 
-		const options =
-			<div className="control-area container">
-				<div className="button-option">
+		const optionsArea =
+			<div className="optionsArea">
+				<div className="selectors">
 					{ contentSelector }
 					{ bonusSelector }
 				</div>
-				<div className="row">
+				<div className="options">
 					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
 					{ optionWithInput('useProxy', 'proxyHost',) }
 					{ optionWithInput('useCookie', 'cookieFile',) }
@@ -602,7 +611,7 @@ export default class App extends React.Component<
 				</div>
 			</div>
 
-		const display =
+		const tasksArea =
 			<div className="display-area">
 				{
 					this.state.processes.map(({ timestamp, process, url }) => {
@@ -627,8 +636,8 @@ export default class App extends React.Component<
 					<div className="main">
 						{ totalLoader }
 						{ urlBar }
-						{ display }
-						{ options }
+						{ tasksArea }
+						{ optionsArea }
 					</div>
 				</div>
 			</>
