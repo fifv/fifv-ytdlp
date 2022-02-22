@@ -366,13 +366,18 @@ html {
 							justify-content: center;
 							align-content: center;
 							align-items: center;
-							padding: 8px !important;
+							padding: 0px 8px !important;
 
 							// border: 1px solid $secondary;
 							background: $secondary;
 							
 							&.clickAble {
 								@include btn();
+							}
+
+							&.noTextInput {
+								flex-grow: 1;
+								justify-content: flex-start;
 							}
 							// &:hover {
 							// 	background: $secondaryDark;

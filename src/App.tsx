@@ -566,6 +566,7 @@ export default class App extends React.Component<
 						className={ classNames(
 							"promptButton",
 							{ 'clickAble': buttonId },
+							{ 'noTextInput': !textInputId },
 						) }
 						/* htmlFor={ id } */
 						onClick={ buttonId ? this.handleClick : undefined }
