@@ -366,18 +366,21 @@ html {
 							justify-content: center;
 							align-content: center;
 							align-items: center;
+							padding: 8px !important;
 
-							padding: 3px 8px;
 							// border: 1px solid $secondary;
 							background: $secondary;
-
-							&:hover {
-								background: $secondaryDark;
+							
+							&.clickAble {
+								@include btn();
 							}
+							// &:hover {
+							// 	background: $secondaryDark;
+							// }
 
-							&:active {
-								background: $secondaryDarkDark;
-							}
+							// &:active {
+							// 	background: $secondaryDarkDark;
+							// }
 
 						}
 

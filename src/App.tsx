@@ -74,16 +74,16 @@ const quotePath = (path: string) => {
 
 const store = new ElectronStore({
 	defaults: {
-		specifyDownloadPath: true,
-		useProxy: false,
-		formatFilename: true,
+		isSpecifyDownloadPath: true,
+		isProxy: false,
+		isFormatFilename: true,
 		saveThumbnail: true,
 		saveSubtitles: false,
-		useCookie: true,
-		useHistory: false,
+		isUseCookie: true,
+		isUseHistory: false,
 		saveAutoSubtitle: false,
 		saveAllSubtitles: false,
-		useLocalYtdlp: false,
+		isUseLocalYtdlp: false,
 		contentSelector: 'video',
 
 		proxyHost: 'http://127.0.0.1:1080',
@@ -118,16 +118,16 @@ export default class App extends React.Component<
 		closedCount: number,
 
 
-		specifyDownloadPath: boolean,
-		useProxy: boolean,
-		formatFilename: boolean,
+		isSpecifyDownloadPath: boolean,
+		isProxy: boolean,
+		isFormatFilename: boolean,
 		saveThumbnail: boolean,
 		saveSubtitles: boolean,
-		useCookie: boolean,
-		useHistory: boolean,
+		isUseCookie: boolean,
+		isUseHistory: boolean,
 		saveAutoSubtitle: boolean,
 		saveAllSubtitles: boolean,
-		useLocalYtdlp: boolean,
+		isUseLocalYtdlp: boolean,
 
 		contentSelector: 'video' | 'audio' | 'skip'
 
@@ -147,16 +147,16 @@ export default class App extends React.Component<
 			maximized: false,
 			closedCount: 0,
 
-			specifyDownloadPath: store.get('specifyDownloadPath'),
-			useProxy: store.get('useProxy'),
-			formatFilename: store.get('formatFilename'),
+			isSpecifyDownloadPath: store.get('isSpecifyDownloadPath'),
+			isProxy: store.get('isProxy'),
+			isFormatFilename: store.get('isFormatFilename'),
 			saveThumbnail: store.get('saveThumbnail'),
 			saveSubtitles: store.get('saveSubtitles'),
-			useCookie: store.get('useCookie'),
-			useHistory: store.get('useHistory'),
+			isUseCookie: store.get('isUseCookie'),
+			isUseHistory: store.get('isUseHistory'),
 			saveAutoSubtitle: store.get('saveAutoSubtitle'),
 			saveAllSubtitles: store.get('saveAllSubtitles'),
-			useLocalYtdlp: store.get('useLocalYtdlp'),
+			isUseLocalYtdlp: store.get('isUseLocalYtdlp'),
 			contentSelector: store.get('contentSelector', 'video') as 'video' | 'audio' | 'skip',
 
 			proxyHost: store.get('proxyHost'),
@@ -212,20 +212,20 @@ export default class App extends React.Component<
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
 
-		this.state.specifyDownloadPath && ytdlpOptions.push('-P', quotePath(this.state.destPath)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
-		this.state.useProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
-		this.state.formatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
+		this.state.isSpecifyDownloadPath && ytdlpOptions.push('-P', quotePath(this.state.destPath)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
+		this.state.isProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
+		this.state.isFormatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
 		this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
 		this.state.saveSubtitles && ytdlpOptions.push('--write-subs',)
-		this.state.useCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
-		this.state.useHistory && ytdlpOptions.push('--download-archive', this.state.historyFile)
+		this.state.isUseCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
+		this.state.isUseHistory && ytdlpOptions.push('--download-archive', this.state.historyFile)
 		this.state.contentSelector === 'skip' && ytdlpOptions.push('--skip-download')
 		this.state.contentSelector === 'audio' && ytdlpOptions.push('--format', 'bestaudio/best')
 		this.state.saveAutoSubtitle && ytdlpOptions.push('--write-auto-subs')
 		// this.state.saveAllSubtitles && ytdlpOptions.push('')
 
 		ytdlpOptions.push(url)
-		const ytdlpCommand = this.state.useLocalYtdlp ?
+		const ytdlpCommand = this.state.isUseLocalYtdlp ?
 			/**
 			 * 使用py要比用standalone快得多
 			 * 各種不同的py版本很奇怪.總之啟用shell:true以及taskkill應該就ok了
@@ -373,31 +373,42 @@ export default class App extends React.Component<
 		const target = e.currentTarget
 		const className = e.currentTarget.className
 		const id = target.id
-		if (id === 'destPath' && this.state.specifyDownloadPath) {
+		if (id === 'openDir' && this.state.isSpecifyDownloadPath) {
 			console.log('*open dir:', this.state.destPath);
 			spawn('start', ['""', `"${this.state.destPath}"`], { shell: true })
-		} else if (id === 'destPath' && !this.state.specifyDownloadPath) {
+			// shell.openPath(this.state.destPath)
+		} else if (id === 'openDir' && !this.state.isSpecifyDownloadPath) {
 			const cwd = remote.process.cwd()
 			console.log('*open dir:', cwd);
 			spawn('start', ['""', `"${cwd}"`], { shell: true })
-		} else if (id === 'historyFile') {
+			// shell.openPath(cwd)
+		} else if (id === 'openHistory') {
 			// const appPath = main.app.getAppPath()
 			const historyFile = this.state.historyFile
 			console.log('*open historyFile:', historyFile);
 			spawn('start', ['""', `"${historyFile}"`], { shell: true })
-		} else if (id === 'cookieFile') {
+		} else if (id === 'openCookie') {
 			// const appPath = main.app.getAppPath()
 			const cookieFile = this.state.cookieFile
 			console.log('*open cookieFile:', cookieFile);
 			spawn('start', ['""', `"${cookieFile}"`], { shell: true })
 		} else if (className.includes('contentSelectorOption')) {
+			/**
+			 * 處理radio
+			 */
 			this.setState<never>((state, props) => ({
 				contentSelector: id
 			}))
+			store.set('contentSelector', id)
 		} else if (id in this.state) {
+			/**
+			 * 處理checkbox
+			 */
+			const value = !this.state[id as keyof App['state']]
 			this.setState<never>((state, props) => ({
-				[id]: !state[id as keyof App['state']],
+				[id]: value,
 			}))
+			store.set(id, value)
 		}
 	}
 	render() {
@@ -490,47 +501,52 @@ export default class App extends React.Component<
 		// type A = {
 		// 	[key in keyof App['state']]: App['state'][key] extends boolean ? key : never
 		// }[keyof App['state']]
-		const option = (id: KeyofType<App['state'], boolean>, name?: string) => {
-			if (!name) {
-				name = id.replace(/([A-Z])/g, ' $1')
-				name = name[0].toUpperCase() + name.slice(1)
+		// const option = (id: KeyofType<App['state'], boolean>, name?: string) => {
+		// 	if (!name) {
+		// 		name = id.replace(/([A-Z])/g, ' $1')
+		// 		name = name[0].toUpperCase() + name.slice(1)
+		// 	}
+		// 	return (
+		// 		// <div className="col-12 col-sm-6 col-xl-4">
+		// 		// 	<div className="input-group input-group-sm option">
+		// 		// 		<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+		// 		// 		<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
+
+		// 		// 		<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
+		// 		// 	</div>
+
+		// 		// </div>
+		// 		<div className="input-group input-group-sm optionWithInput">
+		// 			{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
+		// 				<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
+		// 			<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
+
+		// 			<div
+		// 				id={ id }
+		// 				// type='button'
+		// 				className="btn btn-outline-primary bg-transparent promptButton"
+		// 				/* htmlFor={ id } */
+		// 				onClick={ this.handleClick }
+		// 				tabIndex={ -1 }
+		// 			>{ name }</div>
+
+		// 			{/* <input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } /> */ }
+		// 		</div>
+
+		// 	)
+		// }
+		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, buttonName?: string, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
+			/**
+			 * if no buttonName provided, checkboxId will be used
+			 * if no placeholder provided, textInputId will be used
+			 * these ids are used as the html id and state name
+			 */
+			if (!buttonName) {
+				buttonName = checkboxId.replace(/([A-Z])/g, ' $1')
+				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
 			}
-			return (
-				// <div className="col-12 col-sm-6 col-xl-4">
-				// 	<div className="input-group input-group-sm option">
-				// 		<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-				// 		<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
-
-				// 		<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
-				// 	</div>
-
-				// </div>
-				<div className="input-group input-group-sm optionWithInput">
-					{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
-					<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
-
-					<div
-						id={ id }
-						// type='button'
-						className="btn btn-outline-primary bg-transparent promptButton"
-						/* htmlFor={ id } */
-						onClick={ this.handleClick }
-						tabIndex={ -1 }
-					>{ name }</div>
-
-					{/* <input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } /> */ }
-				</div>
-
-			)
-		}
-		const optionWithInput = (id: KeyofType<App['state'], boolean>, textInput: KeyofType<App['state'], string>, name?: string, placeholder?: string) => {
-			if (!name) {
-				name = id.replace(/([A-Z])/g, ' $1')
-				name = name[0].toUpperCase() + name.slice(1)
-			}
-			if (!placeholder) {
-				placeholder = textInput.replace(/([A-Z])/g, ' $1')
+			if (!placeholder && textInputId) {
+				placeholder = textInputId.replace(/([A-Z])/g, ' $1')
 				placeholder = placeholder[0].toUpperCase() + placeholder.slice(1)
 			}
 			/**
@@ -539,21 +555,26 @@ export default class App extends React.Component<
 			 */
 			return (
 				// <div className=" col-12 col-sm-6 col-xl-4">
-				<div className="input-group input-group-sm optionWithInput">
+				<div className="optionWithInput">
 					{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
 						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
-					<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
+					<div className={ classNames('checkButton', { 'checked': this.state[checkboxId] }) } id={ checkboxId } onClick={ this.handleClick } >{ svgSuccess }</div>
 
 					<div
-						id={ textInput }
+						id={ buttonId }
 						// type='button'
-						className="btn btn-outline-primary bg-transparent promptButton"
+						className={ classNames(
+							"promptButton",
+							{ 'clickAble': buttonId },
+						) }
 						/* htmlFor={ id } */
-						onClick={ this.handleClick }
+						onClick={ buttonId ? this.handleClick : undefined }
 						tabIndex={ -1 }
-					>{ name }</div>
+					>{ buttonName }</div>
 
-					<input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } />
+					{ textInputId &&
+						<input tabIndex={ -1 } type="text" className="input" value={ this.state[textInputId] } onChange={ this.handleInputChange } id={ textInputId } placeholder={ placeholder } />
+					}
 				</div>
 				// </div>
 			)
@@ -596,17 +617,17 @@ export default class App extends React.Component<
 					{ bonusSelector }
 				</div>
 				<div className="options">
-					{ optionWithInput('specifyDownloadPath', 'destPath', 'Dir',) }
-					{ optionWithInput('useProxy', 'proxyHost',) }
-					{ optionWithInput('useCookie', 'cookieFile',) }
-					{ optionWithInput('useHistory', 'historyFile',) }
-					{ optionWithInput('formatFilename', 'fileNameTemplate') }
+					{ optionWithInput('isSpecifyDownloadPath', 'Dir', 'destPath', 'openDir',) }
+					{ optionWithInput('isProxy', 'Proxy', 'proxyHost',) }
+					{ optionWithInput('isUseCookie', 'Cookie', 'cookieFile', 'openCookie',) }
+					{ optionWithInput('isUseHistory', 'History', 'historyFile', 'openHistory',) }
+					{ optionWithInput('isFormatFilename', 'NameFormat', 'fileNameTemplate',) }
 					{/* { option('saveThumbnail',) } */ }
 					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
 					{/* { option('saveAutoSubtitle',) } */ }
-					{ option('useLocalYtdlp',) }
+					{ optionWithInput('isUseLocalYtdlp', 'Local Ytdlp') }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>
 			</div>
