@@ -90,7 +90,13 @@ const quotePath = (path: string) => {
 		return '"' + path + '"'
 	}
 }
-
+interface taskHistory {
+	timestamp: number,
+	url: string,
+	status: "finished" | "stopped" | "downloading" | "error",
+	processingOutput: string[],
+	destPath: string | undefined,
+}
 const store = new ElectronStore({
 	defaults: {
 		isSpecifyDownloadPath: true,
@@ -112,6 +118,8 @@ const store = new ElectronStore({
 
 		destPath: main.app.getPath('downloads'),
 		tempPath: path.join(main.app.getPath('downloads'), 'temp'),
+
+		taskHistories: [],
 	}
 })
 
@@ -131,7 +139,7 @@ export default class App extends React.Component<
 		maximized: boolean,
 		processes: {
 			timestamp: number,
-			process: ChildProcess,
+			process?: ChildProcess,
 			url: string,
 		}[],
 		closedCount: number,
@@ -162,7 +170,7 @@ export default class App extends React.Component<
 		super(props);
 		this.state = {
 			url: '',
-			processes: [],
+			processes: store.get('taskHistories').sort((a: taskHistory, b: taskHistory) => a.timestamp - b.timestamp),
 			maximized: false,
 			closedCount: 0,
 
@@ -315,6 +323,9 @@ export default class App extends React.Component<
 				processes: processes
 			}
 		})
+		const taskHistories = store.get('taskHistories')
+		taskHistories.splice(taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === timestamp))
+		store.set('taskHistories', taskHistories)
 	}
 	pasteUrl = (callback?: () => void) => {
 		// navigator.clipboard.readText().then((text) => {
@@ -371,6 +382,7 @@ export default class App extends React.Component<
 		const id = target.id
 		// ipcRenderer.invoke(id)
 		if (id === 'maximize') {
+			console.log('*maximize');
 			win.maximize()
 			win.once('moved', () => {
 				win.unmaximize()
@@ -381,6 +393,7 @@ export default class App extends React.Component<
 				main.console.log('*moved-unmaximize');
 			})
 		} else if (id === 'unmaximize') {
+			console.log('*unmaximize');
 			win.unmaximize()
 		}
 
@@ -434,9 +447,9 @@ export default class App extends React.Component<
 
 
 		const trafficLight =
-			<div className="btn-group trafficLight">
+			<div className="trafficLight">
 				<button
-					tabIndex={ -1 } className='btn btn-outline-secondary' id='minimize'
+					tabIndex={ -1 } id='minimize'
 					onClick={ () => { win.minimize() } }
 				>
 					{ svgRemove }
@@ -444,13 +457,13 @@ export default class App extends React.Component<
 				{
 					this.state.maximized
 						?
-						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='unmaximize'
+						<button tabIndex={ -1 } id='unmaximize'
 							onClick={ this.handleMax }
 						>
 							{ svgUnmaximize }
 						</button>
 						:
-						<button tabIndex={ -1 } className='btn btn-outline-secondary' id='maximize'
+						<button tabIndex={ -1 } id='maximize'
 							onClick={ this.handleMax }
 						>
 							{ svgMaximize }
@@ -458,7 +471,7 @@ export default class App extends React.Component<
 
 				}
 				<button
-					tabIndex={ -1 } className='btn rounded-0 btn-outline-secondary' id='close'
+					tabIndex={ -1 } id='close'
 					onClick={ () => { win.close() } }
 				>
 					{ svgClose() }
@@ -491,7 +504,7 @@ export default class App extends React.Component<
 				{ svgLoaderPuff }
 			</div>
 		const urlBar =
-			<div className="input-group urlBar">
+			<div className="urlBar">
 				<input
 					autoFocus
 					onKeyPress={ (e) => {
@@ -689,7 +702,7 @@ export default class App extends React.Component<
 class Task extends React.Component<
 	{
 		timestamp: number,
-		process: ChildProcess,
+		process?: ChildProcess,
 		url: string,
 		handleStop: () => void
 		handleRemove: () => void
@@ -705,27 +718,31 @@ class Task extends React.Component<
 
 	}
 > {
-	child: ChildProcess
+	child?: ChildProcess
 	constructor(props: Task['props']) {
 		super(props);
+		const taskHistory = store.get('taskHistories').find(
+			(taskHistory: taskHistory) =>
+				taskHistory.timestamp === this.props.timestamp
+		) as taskHistory | undefined
 		this.state = {
-			// processingOutput: [],
+			processingOutput: taskHistory?.processingOutput,
 			// thumbnailInfo: '',
-			// destPath: '',
+			destPath: taskHistory?.destPath,
 			// otherInfo: '',
 			// errorInfo: '',
 
-			status: 'downloading',
+			status: taskHistory ? taskHistory.status : 'downloading',
 		}
 
 		this.child = this.props.process
-		this.child.stdout?.on('data', (data: Buffer) => {
+		this.child?.stdout?.on('data', (data: Buffer) => {
 			const info = decode(data, 'gbk')
 			if (info.includes('[download] Destination')) {
 				console.log('*downloadingInfo:', info);
 				this.setState((state, props) => ({
 					otherInfo: info,
-					destPath: info.replace('[download] Destination: ', '').trim(),
+					destPath: info.replace('[download] Destination: ', '').trim().replace('\n', ''),
 				}))
 			} else if (info.includes('[download process]')) {
 				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
@@ -751,7 +768,7 @@ class Task extends React.Component<
 				// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
 				this.setState((state, props) => ({
 					otherInfo: info,
-					destPath: info.replace('[download] ', '').replace(' has already been downloaded', ''),
+					destPath: info.replace('[download] ', '').replace(' has already been downloaded', '').replace('\n', ''),
 				}))
 			} else if (info.includes('idk')) {
 				/* empty */
@@ -764,7 +781,7 @@ class Task extends React.Component<
 				}))
 			}
 		})
-		this.child.stderr?.on('data', (data) => {
+		this.child?.stderr?.on('data', (data) => {
 			let info = decode(data, 'gbk')
 			console.log('*stderr:', info);
 			if (info.includes('is not a valid URL') || info.includes('You must provide at least one URL')) {
@@ -775,7 +792,7 @@ class Task extends React.Component<
 			}))
 		})
 
-		this.child.on('close', (code) => {
+		this.child?.on('close', (code) => {
 			console.log('*process close:', code);
 			// this.setState((state, props) => ({
 			// 	// infos: state.infos.concat('[Download Stopped]'),
@@ -820,6 +837,11 @@ class Task extends React.Component<
 		})
 
 	}
+
+	// componentDidUpdate(){
+	// 	// console.log('*update');
+
+	// }
 	handleStop = () => {
 		/**
 		 * 這個不一定成功.
@@ -830,7 +852,7 @@ class Task extends React.Component<
 		 * 如果先kill,再用taskkill,taskkill會失敗
 		 */
 		// this.child.kill()
-		const kill = spawn('taskkill', ['/pid', this.child.pid?.toString() ?? '', '/f', '/t',])
+		const kill = spawn('taskkill', ['/pid', this.child?.pid?.toString() ?? '', '/f', '/t',])
 		kill.on('close', () => {
 			this.setState((state, props) => ({
 				status: "stopped",
@@ -845,9 +867,12 @@ class Task extends React.Component<
 			// spawn('start', ['""', '"' + path.dirname(destPath) + '"'], { shell: true, })
 			// spawn('explorer', ['/select,', '"' + destPath + '"'], { shell: true, })
 			if (this.state.status === 'downloading') {
+				console.log('*openPath:', destPath);
 				shell.openPath(path.dirname(destPath))
 			} else {
+				console.log('*showItemInFolder:', destPath);
 				shell.showItemInFolder(destPath)
+				// shell.openPath(path.dirname(destPath))
 			}
 		}
 	}
@@ -865,6 +890,7 @@ class Task extends React.Component<
 			eta?: string,
 			title?: string,
 			percentValue?: number,
+			destPath?: string,
 
 		}
 		const info: info = {
@@ -874,7 +900,8 @@ class Task extends React.Component<
 			other: this.state.otherInfo?.trim(),
 			error: this.state.errorInfo?.trim(),
 			thumbnail: this.state.thumbnailInfo?.trim(),
-			title: this.props.url
+			title: this.props.url,
+			destPath: this.state.destPath,
 		}
 		if (info.processingOutput) {
 			info.percent = info.processingOutput[1]?.trim()
@@ -891,6 +918,25 @@ class Task extends React.Component<
 			info.other = 'Failed'
 		}
 
+		const taskHistory = {
+			timestamp: this.props.timestamp,
+			url: this.props.url,
+			status: info.status === 'downloading' ? 'stopped' : info.status,
+			processingOutput: info.processingOutput,
+			destPath: info.destPath,
+		}
+		const taskHistories = store.get('taskHistories')
+		const historyIndex = taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === this.props.timestamp)
+		if (historyIndex !== -1) {
+			taskHistories.splice(
+				historyIndex,
+				1,
+			)
+		}
+		store.set('taskHistories', [
+			...taskHistories,
+			taskHistory,
+		])
 
 		const progressBar =
 			// <div className="progress">
