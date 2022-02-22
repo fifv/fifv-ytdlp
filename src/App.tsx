@@ -8,10 +8,20 @@ import { ipcRenderer, clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
 import { Line as ProgressLine } from 'rc-progress';
 import { IconContext } from 'react-icons'
-import { MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove, MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo } from 'react-icons/md'
+import {
+	MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove,
+	MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo,
+	MdOutlineSubtitles, MdSubtitles, MdOutlineFolder, MdFormatPaint,
+	MdHistory, MdOutlineContentPaste,
+
+} from 'react-icons/md'
 import { VscChromeMaximize } from 'react-icons/vsc'
 import { CgMinimize } from 'react-icons/cg'
-import { BsArrowRightCircle, BsFillExclamationTriangleFill, BsFillArrowRightCircleFill } from 'react-icons/bs'
+import {
+	BsArrowRightCircle, BsFillExclamationTriangleFill,
+	BsFillArrowRightCircleFill, BsMusicNoteBeamed, BsCameraVideo, BsHddNetwork,
+} from 'react-icons/bs'
+import { BiCookie } from 'react-icons/bi';
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
 import GridLoader from 'react-spinners/GridLoader';
@@ -35,7 +45,16 @@ const svgLoaderHash = <HashLoader size={ 10 } color="white" />
 const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
 const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
 
-
+const svgPaste = <MdOutlineContentPaste />
+const svgNetwork = <BsHddNetwork />
+const svgHistory = <MdHistory />
+const svgCookie = <BiCookie />
+const svgFormat = <MdFormatPaint />
+const svgFolder = <MdOutlineFolder />
+const svgSubtitleFill = <MdSubtitles />
+const svgSubtitle = <MdOutlineSubtitles />
+const svgVideo = <BsCameraVideo />
+const svgMusic = <BsMusicNoteBeamed />
 const svgUnmaximize = <CgMinimize />
 const svgMaximize = <VscChromeMaximize />
 const svgUp = <MdOutlineKeyboardArrowUp />
@@ -490,8 +509,8 @@ export default class App extends React.Component<
 					 * 單個模式下要Stop好像有點麻煩
 					 */
 				}
-				<button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>Start</button>
-				<button className='btnPaste' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>Paste</button>
+				<button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>{ svgPlay }</button>
+				<button className='btnPaste' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>{ svgPaste }</button>
 
 			</div>
 		/**
@@ -535,7 +554,7 @@ export default class App extends React.Component<
 
 		// 	)
 		// }
-		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, buttonName?: string, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
+		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
 			/**
 			 * if no buttonName provided, checkboxId will be used
 			 * if no placeholder provided, textInputId will be used
@@ -580,35 +599,35 @@ export default class App extends React.Component<
 				// </div>
 			)
 		}
-		const contentSelectorOption = (id: 'video' | 'audio' | 'skip') => {
+		const contentSelectorOption = (id: 'video' | 'audio' | 'skip', buttonName?: string | JSX.Element) => {
 			return <>
 				{/* <input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={ -1 } />
 				<label className='selectorOption' htmlFor={ id }>{ id.toUpperCase() }</label> */}
-				<div className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) } id={ id } onClick={ this.handleClick }>{ id.toUpperCase() }</div>
+				<div className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) } id={ id } onClick={ this.handleClick }>{ buttonName || id.toUpperCase() }</div>
 			</>
 		}
-		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, name?: string) => {
-			if (!name) {
-				name = id.replace(/([A-Z])/g, ' $1')
-				name = name[0].toUpperCase() + name.slice(1)
+		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element) => {
+			if (!buttonName) {
+				buttonName = id.replace(/([A-Z])/g, ' $1')
+				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
 			}
 			return <>
 				{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } /> */ }
 				{/* <label className='selectorOption' htmlFor={ id }>{ name }</label> */ }
-				<div className={ classNames("selectorOption", { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ name }</div>
+				<div className={ classNames("selectorOption", { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ buttonName }</div>
 			</>
 		}
 		const contentSelector =
 			<div className="contentSelector">
-				{ contentSelectorOption('video') }
-				{ contentSelectorOption('audio') }
-				{ contentSelectorOption('skip') }
+				{ contentSelectorOption('video', svgVideo) }
+				{ contentSelectorOption('audio', svgMusic) }
+				{ contentSelectorOption('skip', svgClose()) }
 			</div>
 		const bonusSelector =
 			<div className="bonusSelector">
-				{ bonusSelectorOption('saveThumbnail', 'Thumbnail') }
-				{ bonusSelectorOption('saveSubtitles', 'Subtitle') }
-				{ bonusSelectorOption('saveAutoSubtitle', 'Auto Subtitle') }
+				{ bonusSelectorOption('saveThumbnail', svgPhoto) }
+				{ bonusSelectorOption('saveSubtitles', svgSubtitle) }
+				{ bonusSelectorOption('saveAutoSubtitle', svgSubtitleFill) }
 			</div>
 
 		const optionsArea =
@@ -618,11 +637,11 @@ export default class App extends React.Component<
 					{ bonusSelector }
 				</div>
 				<div className="options">
-					{ optionWithInput('isSpecifyDownloadPath', 'Dir', 'destPath', 'openDir',) }
-					{ optionWithInput('isProxy', 'Proxy', 'proxyHost',) }
-					{ optionWithInput('isUseCookie', 'Cookie', 'cookieFile', 'openCookie',) }
-					{ optionWithInput('isUseHistory', 'History', 'historyFile', 'openHistory',) }
-					{ optionWithInput('isFormatFilename', 'NameFormat', 'fileNameTemplate',) }
+					{ optionWithInput('isSpecifyDownloadPath', svgFolder, 'destPath', 'openDir',) }
+					{ optionWithInput('isProxy', svgNetwork, 'proxyHost',) }
+					{ optionWithInput('isUseCookie', svgCookie, 'cookieFile', 'openCookie',) }
+					{ optionWithInput('isUseHistory', svgHistory, 'historyFile', 'openHistory',) }
+					{ optionWithInput('isFormatFilename', svgFormat, 'fileNameTemplate',) }
 					{/* { option('saveThumbnail',) } */ }
 					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }

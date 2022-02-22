@@ -163,9 +163,19 @@ html {
 				}
 
 
+				.btnStart,
+				.btnPaste {
+					@include btn();
+					padding: 8px;
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+				}
 
 				.btnStart {
-					@include btn();
 
 					&:hover {
 						color: $blue;
@@ -177,7 +187,6 @@ html {
 				}
 
 				.btnPaste {
-					@include btn();
 
 					&:hover {
 						color: $primaryDark;
@@ -245,9 +254,16 @@ html {
 						@include inputGroup();
 
 						.selectorOption {
+							display: flex;
+							flex-direction: row;
+							flex-wrap: nowrap;
+							justify-content: center;
+							align-content: center;
+							align-items: center;
+
 							cursor: pointer;
 							border: 1px solid $secondary;
-							padding: 4px;
+							padding: 8px;
 
 							// &:hover {
 							// 	color: $primary;
@@ -354,6 +370,7 @@ html {
 							border: 1px solid $secondary;
 
 							cursor: pointer;
+
 							&.checked {
 								background-color: $secondary;
 							}
@@ -370,7 +387,7 @@ html {
 
 							// border: 1px solid $secondary;
 							background: $secondary;
-							
+
 							&.clickAble {
 								@include btn();
 							}
@@ -379,6 +396,7 @@ html {
 								flex-grow: 1;
 								justify-content: flex-start;
 							}
+
 							// &:hover {
 							// 	background: $secondaryDark;
 							// }
