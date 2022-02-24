@@ -24,6 +24,8 @@ $blue: #00c3ff;
 $blueDark: #00ade2;
 $success: #00ff0d;
 $danger: #dc3545;
+// $darkTrans: rgba(24, 24, 24, 0.931);
+$darkTrans: rgba(40, 44, 52, 0.931);
 
 
 @mixin inputGroup {
@@ -98,7 +100,7 @@ html {
 		// background-color: $danger;
 		// background-color: #a0b1ffb2;
 		// background-color: rgba(139, 195, 147, 0.76);
-		background-color: rgba(24, 24, 24, 0.931);
+		background-color: $darkTrans;
 		height: 100vh;
 
 		#root,
@@ -608,6 +610,8 @@ html {
 
 						&:hover {
 							cursor: pointer;
+
+							// background: rgb(42, 42, 42);
 
 							.svgClose {
 								color: $danger;

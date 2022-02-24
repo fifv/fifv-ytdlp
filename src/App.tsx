@@ -1,3 +1,14 @@
+/**
+ * 目前問題:
+ * * 如果下的是影片,雙擊打不開
+ * 		* 因為讀到的是.251.webm之類的中間檔案,而不是最終檔
+ * * 歷史記錄又卡又慢,尤其是同時量大以及記錄多的時候
+ * 		* 每次都要完整從檔案裡讀出,修改,完整的寫入檔案
+ * * tooltip沒有
+ * * 無限的totalLoader
+ * 		* 因為原本用的是加一減一的方法算出有多少在運行的
+ * 		* 用queuer裡的方法,好像不行,因為App的state裡面沒有儲存status
+ */
 import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
@@ -382,8 +393,8 @@ export default class App extends React.Component<
 		const id = target.id
 		// ipcRenderer.invoke(id)
 		if (id === 'maximize') {
-			console.log('*maximize');
 			win.maximize()
+			console.log('*maximize', 'isMaximized:', win.isMaximized());
 			win.once('moved', () => {
 				win.unmaximize()
 				// win.webContents.send('moved-unmaximize')
@@ -393,8 +404,8 @@ export default class App extends React.Component<
 				main.console.log('*moved-unmaximize');
 			})
 		} else if (id === 'unmaximize') {
-			console.log('*unmaximize');
 			win.unmaximize()
+			console.log('*unmaximize','isMaximized:', win.isMaximized());
 		}
 
 		this.setState((state, props) => ({
@@ -455,19 +466,19 @@ export default class App extends React.Component<
 					{ svgRemove }
 				</button>
 				{
-					this.state.maximized
-						?
-						<button tabIndex={ -1 } id='unmaximize'
-							onClick={ this.handleMax }
-						>
-							{ svgUnmaximize }
-						</button>
-						:
-						<button tabIndex={ -1 } id='maximize'
-							onClick={ this.handleMax }
-						>
-							{ svgMaximize }
-						</button>
+					// this.state.maximized
+					// 	?
+					// 	<button tabIndex={ -1 } id='unmaximize'
+					// 		onClick={ this.handleMax }
+					// 	>
+					// 		{ svgUnmaximize }
+					// 	</button>
+					// 	:
+					// 	<button tabIndex={ -1 } id='maximize'
+					// 		onClick={ this.handleMax }
+					// 	>
+					// 		{ svgMaximize }
+					// 	</button>
 
 				}
 				<button
@@ -950,6 +961,7 @@ class Task extends React.Component<
 			<ProgressLine
 				percent={ info.percentValue }
 				// strokeColor={ '#cc66ff' }
+				strokeLinecap='square'
 				strokeWidth={ 0.4 }
 				className='progressBar'
 			/>
