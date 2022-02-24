@@ -8,6 +8,9 @@
  * * 無限的totalLoader
  * 		* 因為原本用的是加一減一的方法算出有多少在運行的
  * 		* 用queuer裡的方法,好像不行,因為App的state裡面沒有儲存status
+ * * 無法最大化復原.
+ * 		* 其實是無法最大化,窗口變了,但是實際state沒動,導致unmaximize失敗
+ * 		* 所以直接去除了按鈕,眼不見為淨
  */
 import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
