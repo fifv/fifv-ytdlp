@@ -802,7 +802,7 @@ class Task extends React.Component<
 				const title = infoJson['fulltitle']
 				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
 				const fileSizeValue = infoJson['requested_downloads'][0]['filesize_approx'] as number
-				const fileSizeString = fileSizeValue / 1024 / 1024 + ' MiB'
+				const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
 
