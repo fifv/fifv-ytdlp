@@ -54,13 +54,13 @@ const isDebug = false
 interface Data {
 	histories: {
 		timestamp: number,
-		url: string,
+		urlInput: string,
 		status: string,
 		destPath?: string,
 		percentValue?: number,
-		size?: string,
+		fileSizeValue?: number,
+		fileSizeString?: string,
 		title?: string,
-
 	}[]
 }
 const db = new Low<Data>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
@@ -69,6 +69,9 @@ db.data ||= {
 	histories: []
 }
 const { histories } = db.data
+setInterval(() => {
+	db.write()
+}, 1000)
 // db.write()
 
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
@@ -125,13 +128,7 @@ const quotePath = (path: string) => {
 		return '"' + path + '"'
 	}
 }
-interface TaskHistory {
-	timestamp: number,
-	url: string,
-	status: "finished" | "stopped" | "downloading" | "error",
-	processingOutput: string[],
-	destPath: string | undefined,
-}
+
 const store = new ElectronStore({
 	defaults: {
 		isSpecifyDownloadPath: true,
@@ -250,14 +247,14 @@ export default class App extends React.Component<
 		 */
 
 
-		let url = this.state.urlInput
-		if (url.trim() === '') {
-			url = clipboard.readText()
+		let urlInput = this.state.urlInput
+		if (urlInput.trim() === '') {
+			urlInput = clipboard.readText()
 			this.setState((state, props) => ({
-				urlInput: url,
+				urlInput: urlInput,
 			}))
 		}
-		console.log('*url inputed:', url);
+		console.log('*url inputed:', urlInput);
 		console.log('*start download');
 		/**
 		 * 直接用是會有注入的風險啦
@@ -267,7 +264,7 @@ export default class App extends React.Component<
 		 * 根據doc裡的風格指導,state裡只存origin content,能從state算出來的值都不是state,
 		 * 所以不必把escaped好的值放state裡面啦
 		 */
-		url = url.replace(/( )|(^--?)/g, '')
+		urlInput = urlInput.replace(/( )|(^--?)/g, '')
 		const ytdlpOptions: string[] = [];
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
@@ -288,7 +285,7 @@ export default class App extends React.Component<
 		this.state.saveAutoSubtitle && ytdlpOptions.push('--write-auto-subs')
 		// this.state.saveAllSubtitles && ytdlpOptions.push('')
 
-		ytdlpOptions.push(url)
+		ytdlpOptions.push(urlInput)
 		const ytdlpCommand = this.state.isUseLocalYtdlp ?
 			/**
 			 * 使用py要比用standalone快得多
@@ -328,7 +325,7 @@ export default class App extends React.Component<
 				timestamp: Date.now(),
 				process: child,
 				processJson: childJson,
-				urlInput: url,
+				urlInput: urlInput,
 			})
 		}))
 
@@ -563,7 +560,7 @@ export default class App extends React.Component<
 					className='urlInput'
 					placeholder='Input a videopage url'
 					type='text'
-					id='url'
+					id='urlInput'
 					value={ this.state.urlInput }
 					onChange={ this.handleInputChange }
 				/>
@@ -918,6 +915,8 @@ class Task extends React.Component<
 					}
 					break;
 			}
+
+
 		})
 
 	}
@@ -953,6 +952,10 @@ class Task extends React.Component<
 			if (this.state.status === 'downloading') {
 				console.log('*openPath:', destPath);
 				shell.openPath(path.dirname(destPath))
+				/**
+				 * part不行,因為有.f248.webm.part
+				 */
+				// shell.showItemInFolder(destPath + '.part')
 			} else {
 				console.log('*showItemInFolder:', destPath);
 				shell.showItemInFolder(destPath)
@@ -962,6 +965,8 @@ class Task extends React.Component<
 	}
 	render() {
 		const info = {
+			timestamp: this.props.taskData.timestamp,
+
 			thumbnailFinished: this.state.thumbnailFinished,
 			otherInfo: this.state.otherInfo,
 			errorInfo: this.state.errorInfo,
@@ -978,6 +983,23 @@ class Task extends React.Component<
 			percentValue: this.state.percentValue,
 
 			status: this.state.status,
+		}
+		const taskHistory = {
+			timestamp: this.props.taskData.timestamp,
+			status: this.state.status,
+			urlInput: this.props.taskData.urlInput,
+			destPath: this.state.destPath,
+			percentValue: this.state.percentValue,
+			fileSizeValue: this.state.fileSizeValue,
+			fileSizeString: this.state.fileSizeString,
+			title: this.state.title,
+		}
+		// console.log(histories);
+		const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
+		if (historyIndex === -1) {
+			histories.push(taskHistory)
+		} else {
+			histories[historyIndex] = taskHistory
 		}
 		// interface info {
 		// 	status: string,
