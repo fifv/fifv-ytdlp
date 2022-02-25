@@ -51,16 +51,19 @@ const main = {
 
 const isDebug = false
 // const isDebug = true
-interface Data {
+type Status = "finished" | "stopped" | "downloading" | "error"
+type Data = {
 	histories: {
 		timestamp: number,
 		urlInput: string,
-		status: string,
+		status: Status,
+		thumbnailFinished?: boolean,
 		destPath?: string,
 		percentValue?: number,
 		fileSizeValue?: number,
 		fileSizeString?: string,
 		title?: string,
+		durationString?: string,
 	}[]
 }
 const db = new Low<Data>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
@@ -163,11 +166,12 @@ window.onbeforeunload = (event) => {
 	win.removeAllListeners();
 
 }
-interface TaskData {
+type TaskData = Data['histories'][number] & {
 	timestamp: number,
 	process?: ChildProcess,
 	processJson?: ChildProcess,
 	urlInput: string,
+
 }
 export default class App extends React.Component<
 	{},
@@ -204,7 +208,7 @@ export default class App extends React.Component<
 		this.state = {
 			urlInput: '',
 			// processes: store.get('taskHistories').sort((a: TaskHistory, b: TaskHistory) => a.timestamp - b.timestamp),
-			datas: [],
+			datas: histories ?? [],
 			maximized: false,
 			closedCount: 0,
 
@@ -326,6 +330,7 @@ export default class App extends React.Component<
 				process: child,
 				processJson: childJson,
 				urlInput: urlInput,
+				status: 'downloading',
 			})
 		}))
 
@@ -767,7 +772,7 @@ class Task extends React.Component<
 		etaString?: string,
 		percentValue?: number,
 
-		status: "finished" | "stopped" | "downloading" | "error",
+		status: Status,
 
 	}
 > {
@@ -775,17 +780,26 @@ class Task extends React.Component<
 	childJson?: ChildProcess
 	constructor(props: Task['props']) {
 		super(props);
-		const taskHistory: any = null
+		const taskHistory = this.props.taskData
 		// const taskHistory = store.get('taskHistories').find(
 		// 	(taskHistory: taskHistory) =>
 		// 		taskHistory.timestamp === this.props.timestamp
 		// ) as taskHistory | undefined
 		this.state = {
-			// processingOutput: taskHistory?.processingOutput,
-			// thumbnailInfo: '',
-			// destPath: taskHistory?.destPath,
-			// otherInfo: '',
-			// errorInfo: '',
+			thumbnailFinished: taskHistory?.thumbnailFinished,
+			// otherInfo: taskHistory?.otherInfo,
+			// errorInfo: taskHistory?.errorInfo,
+
+			destPath: taskHistory?.destPath,
+			title: taskHistory?.title,
+			fileSizeValue: taskHistory?.fileSizeValue,
+			fileSizeString: taskHistory?.fileSizeString,
+			durationString: taskHistory?.durationString,
+			// webpageUrl: taskHistory?.webpageUrl,
+
+			// speed: taskHistory?.speed,
+			// etaString: taskHistory?.etaString,
+			percentValue: taskHistory?.percentValue,
 
 			status: taskHistory ? taskHistory.status : 'downloading',
 		}
@@ -943,29 +957,37 @@ class Task extends React.Component<
 			}))
 		})
 	}
+	handleRemove = () => {
+		const historyIndex = histories.findIndex((history) => {
+			return history.timestamp === this.props.taskData.timestamp
+		})
+		histories.splice(historyIndex, 1)
+		this.props.handleRemove()
+	}
 
 	handleOpenFolder = () => {
 		const destPath = this.state.destPath
 		if (destPath) {
 			// spawn('start', ['""', '"' + path.dirname(destPath) + '"'], { shell: true, })
 			// spawn('explorer', ['/select,', '"' + destPath + '"'], { shell: true, })
-			if (this.state.status === 'downloading') {
+			if (this.state.status === 'finished') {
+				console.log('*showItemInFolder:', destPath);
+				shell.showItemInFolder(destPath)
+				// shell.openPath(path.dirname(destPath))
+			} else {
 				console.log('*openPath:', destPath);
 				shell.openPath(path.dirname(destPath))
 				/**
 				 * part不行,因為有.f248.webm.part
 				 */
 				// shell.showItemInFolder(destPath + '.part')
-			} else {
-				console.log('*showItemInFolder:', destPath);
-				shell.showItemInFolder(destPath)
-				// shell.openPath(path.dirname(destPath))
 			}
 		}
 	}
 	render() {
 		const info = {
 			timestamp: this.props.taskData.timestamp,
+			urlInput: this.props.taskData.urlInput,
 
 			thumbnailFinished: this.state.thumbnailFinished,
 			otherInfo: this.state.otherInfo,
@@ -984,15 +1006,17 @@ class Task extends React.Component<
 
 			status: this.state.status,
 		}
-		const taskHistory = {
-			timestamp: this.props.taskData.timestamp,
-			status: this.state.status,
-			urlInput: this.props.taskData.urlInput,
-			destPath: this.state.destPath,
-			percentValue: this.state.percentValue,
-			fileSizeValue: this.state.fileSizeValue,
-			fileSizeString: this.state.fileSizeString,
-			title: this.state.title,
+		const taskHistory: Data['histories'][number] = {
+			timestamp: info.timestamp,
+			status: info.status === 'downloading' ? 'stopped' : info.status,
+			urlInput: info.urlInput,
+			destPath: info.destPath,
+			percentValue: info.percentValue,
+			fileSizeValue: info.fileSizeValue,
+			fileSizeString: info.fileSizeString,
+			title: info.title,
+			durationString: info.durationString,
+			thumbnailFinished: info.thumbnailFinished,
 		}
 		// console.log(histories);
 		const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
