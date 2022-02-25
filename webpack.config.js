@@ -59,6 +59,9 @@ const rendererConfig = {
 			options: {},
 		}),
 	],
+	experiments: {
+		topLevelAwait: true,
+	},
 }
 const mainConfig = {
 	entry: {
@@ -93,6 +96,6 @@ const mainConfig = {
 	},
 	resolve: {
 		extensions: [".ts", ".tsx", ".js",],
-	},	
+	},
 }
 module.exports = [rendererConfig]

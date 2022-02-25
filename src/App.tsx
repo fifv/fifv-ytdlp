@@ -35,6 +35,7 @@ import {
 	BsArrowRightCircle, BsFillExclamationTriangleFill,
 	BsFillArrowRightCircleFill, BsMusicNoteBeamed, BsCameraVideo, BsHddNetwork,
 } from 'react-icons/bs'
+import { Low, JSONFile } from 'lowdb'
 import { BiCookie } from 'react-icons/bi';
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
@@ -47,8 +48,28 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
+
 const isDebug = false
 // const isDebug = true
+interface Data {
+	histories: {
+		timestamp: number,
+		url: string,
+		status: string,
+		destPath?: string,
+		percentValue?: number,
+		size?: string,
+		title?: string,
+
+	}[]
+}
+const db = new Low<Data>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
+await db.read()
+db.data ||= {
+	histories: []
+}
+const { histories } = db.data
+// db.write()
 
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
@@ -408,7 +429,7 @@ export default class App extends React.Component<
 			})
 		} else if (id === 'unmaximize') {
 			win.unmaximize()
-			console.log('*unmaximize','isMaximized:', win.isMaximized());
+			console.log('*unmaximize', 'isMaximized:', win.isMaximized());
 		}
 
 		this.setState((state, props) => ({

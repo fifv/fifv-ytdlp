@@ -1,22 +1,25 @@
 {
+	/**
+	 * 這個只是給vscode看的,ts-node應該吃不到這個
+	 */
 	"include": [
-		"src",
+		"*",
 	],
 	"compilerOptions": {
 		"strict": true,
-		// "module": "CommonJS",
 		"target": "ES2021",
 		/**
-		 * "module": "ESNext" 可以用上新特性.
-		 * "moduleResolution":"Node" 不改的話會resolve不到modules
-		 * 其實我沒有懂這是什麼意思
-		 * 查node.green可得node16(electron的版本,本機的目前也是)完全支援es2021,es2022沒有百分百
-		 */
+		* "module": "ESNext" 可以用上新特性.
+		* "moduleResolution":"Node" 不改的話會resolve不到modules
+		* 其實我沒有懂這是什麼意思
+		* 查node.green可得node16(electron的版本,本機的目前也是)完全支援es2021,es2022沒有百分百
+		*/
+		// "module": "CommonJS",
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"esModuleInterop": true,
 		"sourceMap": false,
-		"rootDir": "src",
+		"rootDir": ".",
 		"outDir": "build/js",
 		"noEmitOnError": true,
 		/**
@@ -27,8 +30,7 @@
 	"ts-node": {
 		"swc": true,
 		// "compilerOptions": {
-			// "module": "CommonJS"
-		// },
-
+		// 	"module": "CommonJS"
+		// }
 	},
 }
