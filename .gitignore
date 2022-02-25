@@ -8,3 +8,5 @@
 *cookie*
 *.exe
 *.png
+
+-j*.json

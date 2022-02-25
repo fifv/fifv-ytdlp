@@ -125,7 +125,7 @@ const quotePath = (path: string) => {
 		return '"' + path + '"'
 	}
 }
-interface taskHistory {
+interface TaskHistory {
 	timestamp: number,
 	url: string,
 	status: "finished" | "stopped" | "downloading" | "error",
@@ -166,17 +166,18 @@ window.onbeforeunload = (event) => {
 	win.removeAllListeners();
 
 }
-
+interface TaskData {
+	timestamp: number,
+	process?: ChildProcess,
+	processJson?: ChildProcess,
+	urlInput: string,
+}
 export default class App extends React.Component<
 	{},
 	{
-		url: string,
+		urlInput: string,
 		maximized: boolean,
-		processes: {
-			timestamp: number,
-			process?: ChildProcess,
-			url: string,
-		}[],
+		datas: TaskData[],
 		closedCount: number,
 
 
@@ -204,8 +205,9 @@ export default class App extends React.Component<
 	constructor(props: App['props']) {
 		super(props);
 		this.state = {
-			url: '',
-			processes: store.get('taskHistories').sort((a: taskHistory, b: taskHistory) => a.timestamp - b.timestamp),
+			urlInput: '',
+			// processes: store.get('taskHistories').sort((a: TaskHistory, b: TaskHistory) => a.timestamp - b.timestamp),
+			datas: [],
 			maximized: false,
 			closedCount: 0,
 
@@ -248,15 +250,15 @@ export default class App extends React.Component<
 		 */
 
 
-		console.log('*start download');
-		let url = this.state.url
+		let url = this.state.urlInput
 		if (url.trim() === '') {
 			url = clipboard.readText()
 			this.setState((state, props) => ({
-				url: url,
+				urlInput: url,
 			}))
 		}
 		console.log('*url inputed:', url);
+		console.log('*start download');
 		/**
 		 * 直接用是會有注入的風險啦
 		 * \\TO\DO: 最好還是防注入做一下
@@ -267,9 +269,9 @@ export default class App extends React.Component<
 		 */
 		url = url.replace(/( )|(^--?)/g, '')
 		const ytdlpOptions: string[] = [];
-		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._total_bytes_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(info.title)s|"',)
+		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-		// ytdlpOptions.push('-r', '5K') //調試用降速
+		ytdlpOptions.push('-r', '5K') //調試用降速
 		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
@@ -309,11 +311,24 @@ export default class App extends React.Component<
 			ytdlpOptions,
 			{ shell: true },
 		)
+		ytdlpOptions.push('-J',)
+		const childJson = spawn(
+			/**
+			 * 太奇怪了,用yt-dlp.exe直接沒法停止...為什麼會這樣...?
+			 * 但是用yt-dlp_min.exe好像就正常
+			 * 
+			 * 用builder打包的話整個build目錄都被壓成了app.asar,此時getPath之類的操作好像就失效了淦
+			 */
+			ytdlpCommand,
+			ytdlpOptions,
+			{ shell: true },
+		)
 		this.setState((state, props) => ({
-			processes: state.processes.concat({
+			datas: state.datas.concat({
 				timestamp: Date.now(),
 				process: child,
-				url: url,
+				processJson: childJson,
+				urlInput: url,
 			})
 		}))
 
@@ -349,18 +364,18 @@ export default class App extends React.Component<
 		console.log(`*child ${timestamp} removed`);
 
 		this.setState((state, props) => {
-			const processes = state.processes
+			const processes = state.datas
 			const i = processes.findIndex(
 				(process) => process.timestamp === timestamp
 			)
 			processes.splice(i, 1)
 			return {
-				processes: processes
+				datas: processes
 			}
 		})
-		const taskHistories = store.get('taskHistories')
-		taskHistories.splice(taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === timestamp))
-		store.set('taskHistories', taskHistories)
+		// const taskHistories = store.get('taskHistories')
+		// taskHistories.splice(taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === timestamp))
+		// store.set('taskHistories', taskHistories)
 	}
 	pasteUrl = (callback?: () => void) => {
 		// navigator.clipboard.readText().then((text) => {
@@ -371,7 +386,7 @@ export default class App extends React.Component<
 		// })
 		const text = clipboard.readText()
 		this.setState((state, props) => ({
-			url: text
+			urlInput: text
 		}), callback
 		)
 		console.log('*paste:', text);
@@ -534,7 +549,7 @@ export default class App extends React.Component<
 			/**
 			 * TO\DO: make the spinner work well
 			 */
-			(this.state.processes.length - this.state.closedCount > 0) &&
+			(this.state.datas.length - this.state.closedCount > 0) &&
 			<div className='totalLoader'>
 				{ svgLoaderPuff }
 			</div>
@@ -549,7 +564,7 @@ export default class App extends React.Component<
 					placeholder='Input a videopage url'
 					type='text'
 					id='url'
-					value={ this.state.url }
+					value={ this.state.urlInput }
 					onChange={ this.handleInputChange }
 				/>
 				{
@@ -703,15 +718,13 @@ export default class App extends React.Component<
 		const tasksArea =
 			<div className="display-area">
 				{
-					this.state.processes.map(({ timestamp, process, url }) => {
+					this.state.datas.map((taskData) => {
 						return (
 							<Task
-								timestamp={ timestamp }
-								process={ process }
-								key={ timestamp }
-								url={ url }
-								handleStop={ () => this.handleStop(timestamp) }
-								handleRemove={ () => this.handleRemove(timestamp) }
+								key={ taskData.timestamp }
+								taskData={ taskData }
+								handleStop={ () => this.handleStop(taskData.timestamp) }
+								handleRemove={ () => this.handleRemove(taskData.timestamp) }
 							/>
 						)
 					}).reverse()
@@ -736,79 +749,115 @@ export default class App extends React.Component<
 
 class Task extends React.Component<
 	{
-		timestamp: number,
-		process?: ChildProcess,
-		url: string,
+		taskData: TaskData
 		handleStop: () => void
 		handleRemove: () => void
 	},
 	{
-		processingOutput?: string[],
-		thumbnailInfo?: string,
-		destPath?: string,
+		// processingOutput?: string[],
+		thumbnailFinished?: boolean,
 		otherInfo?: string,
 		errorInfo?: string,
+
+		destPath?: string,
+		title?: string,
+		fileSizeValue?: number,
+		fileSizeString?: string,
+		durationString?: string,
+		webpageUrl?: string,
+
+		speed?: string,
+		etaString?: string,
+		percentValue?: number,
 
 		status: "finished" | "stopped" | "downloading" | "error",
 
 	}
 > {
 	child?: ChildProcess
+	childJson?: ChildProcess
 	constructor(props: Task['props']) {
 		super(props);
-		const taskHistory = store.get('taskHistories').find(
-			(taskHistory: taskHistory) =>
-				taskHistory.timestamp === this.props.timestamp
-		) as taskHistory | undefined
+		const taskHistory: any = null
+		// const taskHistory = store.get('taskHistories').find(
+		// 	(taskHistory: taskHistory) =>
+		// 		taskHistory.timestamp === this.props.timestamp
+		// ) as taskHistory | undefined
 		this.state = {
-			processingOutput: taskHistory?.processingOutput,
+			// processingOutput: taskHistory?.processingOutput,
 			// thumbnailInfo: '',
-			destPath: taskHistory?.destPath,
+			// destPath: taskHistory?.destPath,
 			// otherInfo: '',
 			// errorInfo: '',
 
 			status: taskHistory ? taskHistory.status : 'downloading',
 		}
 
-		this.child = this.props.process
+		this.childJson = this.props.taskData.processJson
+		this.childJson?.stdout?.on('data', (data: Buffer) => {
+			const infoJson = JSON.parse(decode(data, 'gbk'))
+			if (infoJson) {
+
+				// console.log('*json:',infoJson.title);
+				const title = infoJson['fulltitle']
+				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
+				const fileSizeValue = infoJson['requested_downloads'][0]['filesize_approx'] as number
+				const fileSizeString = fileSizeValue / 1024 / 1024 + ' MiB'
+				const durationString = infoJson['duration_string']
+				const webpageUrl = infoJson['webpage_url']
+
+				this.setState((state, props) => ({
+					title: title,
+					destPath: destPath,
+					fileSizeValue: fileSizeValue,
+					fileSizeString: fileSizeString,
+					durationString: durationString,
+					webpageUrl: webpageUrl,
+				}))
+			}
+		})
+		this.child = this.props.taskData.process
 		this.child?.stdout?.on('data', (data: Buffer) => {
-			const info = decode(data, 'gbk')
-			if (info.includes('[download] Destination')) {
-				console.log('*downloadingInfo:', info);
-				this.setState((state, props) => ({
-					otherInfo: info,
-					destPath: info.replace('[download] Destination: ', '').trim().replace('\n', ''),
-				}))
-			} else if (info.includes('[download process]')) {
-				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+			const info = decode(data, 'gbk').trim()
+			if (info.includes('[download process]')) {
 				console.log('*processingOutput:', info);
+				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
 				this.setState((state, props) => ({
-					processingOutput: processingOutput,
+					// processingOutput: processingOutput,
+					percentValue: parseFloat(processingOutput[1]),
+					speed: processingOutput[2],
+					etaString: processingOutput[3],
+
+					otherInfo: (state.percentValue && state.percentValue < 100) ? 'Downloading...' : state.otherInfo
 				}))
+				// } else if (info.includes('[download] Destination')) {
+				// 	console.log('*downloadingInfo:', info);
+				// 	this.setState((state, props) => ({
+				// 		otherInfo: info,
+				// 		destPath: info.replace('[download] Destination: ', '').trim().replace('\n', ''),
+				// 	}))
 
 
 			} else if (info.includes('Writing video thumbnail')) {
 				console.log('*thumbnailInfo:', info);
 				this.setState((state, props) => ({
-					thumbnailInfo: info,
-				}))
-				// } else if (info.includes('[download] Destination')) {
-				// 	console.log('*downloadingInfo:', info);
-				// 	this.setState((state, props) => ({
-				// 		downloadingInfo: info,
-				// 	}))
-
-			} else if (info.includes('has already been downloaded')) {
-				console.log('*otherinfo:', info);
-				// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
-				this.setState((state, props) => ({
+					thumbnailFinished: true,
 					otherInfo: info,
-					destPath: info.replace('[download] ', '').replace(' has already been downloaded', '').replace('\n', ''),
 				}))
+
+
+				// } else if (info.includes('has already been downloaded')) {
+				// 	console.log('*otherinfo:', info);
+				// 	// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
+				// 	this.setState((state, props) => ({
+				// 		otherInfo: info,
+				// 		destPath: info.replace('[download] ', '').replace(' has already been downloaded', '').replace('\n', ''),
+				// 	}))
 			} else if (info.includes('idk')) {
 				/* empty */
-			} else if (info.includes('Downloading video thumbnail')) {
-				console.log('*otherinfo:', info);
+
+				// } else if (info.includes('Downloading video thumbnail')) {
+				// 	console.log('*otherinfo:', info);
 			} else {
 				console.log('*other info:', info);
 				this.setState((state, props) => ({
@@ -826,7 +875,6 @@ class Task extends React.Component<
 				errorInfo: info
 			}))
 		})
-
 		this.child?.on('close', (code) => {
 			console.log('*process close:', code);
 			// this.setState((state, props) => ({
@@ -865,6 +913,7 @@ class Task extends React.Component<
 					if (this.state.status !== 'stopped') {
 						this.setState((state, props) => ({
 							status: "error",
+							otherInfo: "Failed"
 						}))
 					}
 					break;
@@ -912,66 +961,83 @@ class Task extends React.Component<
 		}
 	}
 	render() {
-		'"downloading-%(progress._percent_str)s-%(progress._total_bytes_str)s-%(progress._speed_str)s-%(progress._eta_str)s"'
-		interface info {
-			status: string,
-			processingOutput?: string[],
-			other?: string,
-			error?: string,
-			thumbnail?: string,
-			percent?: string,
-			size?: string,
-			speed?: string,
-			eta?: string,
-			title?: string,
-			percentValue?: number,
-			destPath?: string,
+		const info = {
+			thumbnailFinished: this.state.thumbnailFinished,
+			otherInfo: this.state.otherInfo,
+			errorInfo: this.state.errorInfo,
 
-		}
-		const info: info = {
-			status: this.state.status,
-
-			processingOutput: this.state.processingOutput,
-			other: this.state.otherInfo?.trim(),
-			error: this.state.errorInfo?.trim(),
-			thumbnail: this.state.thumbnailInfo?.trim(),
-			title: this.props.url,
 			destPath: this.state.destPath,
-		}
-		if (info.processingOutput) {
-			info.percent = info.processingOutput[1]?.trim()
-			info.size = info.processingOutput[2]?.trim()
-			info.speed = info.processingOutput[3]?.trim()
-			info.eta = info.processingOutput[4]?.trim()
-			info.title = info.processingOutput[5]?.trim()
-			info.percentValue = parseFloat(info.percent)
-		}
-		if (info.percentValue && info.percentValue < 100) {
-			info.other = 'Downloading...'
-		}
-		if (info.status === 'error' && info.other) {
-			info.other = 'Failed'
-		}
+			title: this.state.title,
+			fileSizeValue: this.state.fileSizeValue,
+			fileSizeString: this.state.fileSizeString,
+			durationString: this.state.durationString,
+			webpageUrl: this.state.webpageUrl,
 
-		const taskHistory = {
-			timestamp: this.props.timestamp,
-			url: this.props.url,
-			status: info.status === 'downloading' ? 'stopped' : info.status,
-			processingOutput: info.processingOutput,
-			destPath: info.destPath,
+			speed: this.state.speed,
+			etaString: this.state.etaString,
+			percentValue: this.state.percentValue,
+
+			status: this.state.status,
 		}
-		const taskHistories = store.get('taskHistories')
-		const historyIndex = taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === this.props.timestamp)
-		if (historyIndex !== -1) {
-			taskHistories.splice(
-				historyIndex,
-				1,
-			)
-		}
-		store.set('taskHistories', [
-			...taskHistories,
-			taskHistory,
-		])
+		// interface info {
+		// 	status: string,
+		// 	processingOutput?: string[],
+		// 	other?: string,
+		// 	error?: string,
+		// 	thumbnail?: string,
+		// 	percent?: string,
+		// 	size?: string,
+		// 	speed?: string,
+		// 	eta?: string,
+		// 	title?: string,
+		// 	percentValue?: number,
+		// 	destPath?: string,
+
+		// }
+		// const info: info = {
+		// 	status: this.state.status,
+
+		// 	processingOutput: this.state.processingOutput,
+		// 	other: this.state.otherInfo?.trim(),
+		// 	error: this.state.errorInfo?.trim(),
+		// 	thumbnail: this.state.thumbnailInfo?.trim(),
+		// 	title: this.props.taskData.url,
+		// 	destPath: this.state.destPath,
+		// }
+		// if (info.processingOutput) {
+		// 	info.percent = info.processingOutput[1]?.trim()
+		// 	info.size = info.processingOutput[2]?.trim()
+		// 	info.speed = info.processingOutput[3]?.trim()
+		// 	info.eta = info.processingOutput[4]?.trim()
+		// 	info.title = info.processingOutput[5]?.trim()
+		// 	info.percentValue = parseFloat(info.percent)
+		// }
+		// if (info.percentValue && info.percentValue < 100) {
+		// 	info.other = 'Downloading...'
+		// }
+		// if (info.status === 'error' && info.other) {
+		// 	info.other = 'Failed'
+		// }
+
+		// const taskHistory = {
+		// 	timestamp: this.props.timestamp,
+		// 	url: this.props.url,
+		// 	status: info.status === 'downloading' ? 'stopped' : info.status,
+		// 	processingOutput: info.processingOutput,
+		// 	destPath: info.destPath,
+		// }
+		// const taskHistories = store.get('taskHistories')
+		// const historyIndex = taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === this.props.timestamp)
+		// if (historyIndex !== -1) {
+		// 	taskHistories.splice(
+		// 		historyIndex,
+		// 		1,
+		// 	)
+		// }
+		// store.set('taskHistories', [
+		// 	...taskHistories,
+		// 	taskHistory,
+		// ])
 
 		const progressBar =
 			// <div className="progress">
@@ -1012,7 +1078,7 @@ class Task extends React.Component<
 		}
 
 		const statusIndicator = <div className="statusIndicator">
-			{ !!info.thumbnail && svgPhoto }
+			{ !!this.state.thumbnailFinished && svgPhoto }
 			{ statusIcon }
 		</div>
 		const infoDiv = (info: string | undefined, classname: string, svg?: JSX.Element) =>
@@ -1033,27 +1099,27 @@ class Task extends React.Component<
 				{ statusIndicator }
 			</div>
 		const midCol =
-			info.processingOutput &&
+			info.percentValue &&
 			<div className="midcol">
-				{ infoDiv(info.percent, 'infoPercent') }
-				{ infoDiv(info.size, 'infoSize') }
+				{ infoDiv(info.percentValue + '%', 'infoPercent') }
+				{ infoDiv(info.fileSizeString, 'infoSize') }
 				{ infoDiv(info.speed, 'infoSpeed') }
-				{ infoDiv(info.eta, 'infoEta') }
+				{ infoDiv(info.etaString, 'infoEta') }
 			</div>
 		const rightCol =
 			<div className="rightcol" onDoubleClick={ this.handleOpenFolder }>
-				{ infoDiv(info.title, 'infoTitle', svgRight) }
+				{ infoDiv(info.title ?? this.props.taskData.urlInput, 'infoTitle', svgRight) }
 				{ ((info.percentValue && !isNaN(info.percentValue)) || isDebug) && progressBar }
-				{ !!info.other &&
+				{ !!info.otherInfo &&
 					<div className="infoOther">
 						{ svgInfo }
-						<span>{ info.other }</span>
+						<span>{ info.otherInfo }</span>
 					</div>
 				}
-				{ !!info.error &&
+				{ !!info.errorInfo &&
 					<div className="infoError">
 						{ svgDanger }
-						<span> { info.error }</span>
+						<span> { info.errorInfo }</span>
 					</div>
 				}
 			</div>
