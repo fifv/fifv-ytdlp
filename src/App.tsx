@@ -43,6 +43,7 @@ import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
+import { isEqual } from 'lodash-es';
 const win = remote.getCurrentWindow()
 const main = {
 	console: remote.require('console'),
@@ -72,8 +73,12 @@ db.data ||= {
 	histories: []
 }
 const { histories } = db.data
+let historiesComp = histories.slice()
 setInterval(() => {
-	db.write()
+	if (!isEqual(histories, historiesComp)) {
+		db.write()
+		historiesComp = histories.slice()
+	}
 }, 1000)
 // db.write()
 
@@ -363,7 +368,7 @@ export default class App extends React.Component<
 		// }))
 	}
 	handleRemove = (timestamp: number) => {
-		console.log(`*child ${timestamp} removed`);
+		console.log('*task', timestamp, 'removed');
 
 		this.setState((state, props) => {
 			const processes = state.datas
@@ -809,10 +814,10 @@ class Task extends React.Component<
 			const infoJson = JSON.parse(decode(data, 'gbk'))
 			if (infoJson) {
 
-				// console.log('*json:',infoJson.title);
+				console.log('*json:',infoJson);
 				const title = infoJson['fulltitle']
 				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
-				const fileSizeValue = infoJson['requested_downloads'][0]['filesize_approx'] as number
+				const fileSizeValue = infoJson['filesize']??infoJson['filesize_approx'] as number
 				const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
@@ -962,6 +967,8 @@ class Task extends React.Component<
 			return history.timestamp === this.props.taskData.timestamp
 		})
 		histories.splice(historyIndex, 1)
+		db.write()
+		console.log('*remove', this.props.taskData.timestamp, ' from db');
 		this.props.handleRemove()
 	}
 
@@ -1171,7 +1178,7 @@ class Task extends React.Component<
 			</div>
 
 		const rightMostCol =
-			<div className="rightMostCol" onClick={ info.status === 'downloading' ? this.handleStop : () => this.props.handleRemove() }>
+			<div className="rightMostCol" onClick={ info.status === 'downloading' ? this.handleStop : () => this.handleRemove() }>
 				{ info.status === 'downloading' ? svgClose() : svgRemove }
 			</div>
 
