@@ -118,6 +118,15 @@ const quotePath = (path: string) => {
 		return '"' + path + '"'
 	}
 }
+const getCurrentData = (datas: TaskData[], timestamp: number) => {
+	/**
+	 * data應該是引用,對他修改會直接導致datas發生變化
+	 * 當然data = ??? 這種應該會導致引用跑掉
+	 */
+	const dataIndex = datas.findIndex((data) => (timestamp === data.timestamp))
+	const data = datas[dataIndex]
+	return { datas, dataIndex, data }
+}
 const store = new ElectronStore({
 	defaults: {
 		isSpecifyDownloadPath: true,
@@ -359,9 +368,10 @@ export default class App extends React.Component<
 		// 	})
 		// }
 		console.log(`*child ${timestamp} report closed`);
-		const datas = this.state.datas
-		const dataIndex = datas.findIndex((data) => { return data.timestamp === timestamp })
-		datas[dataIndex].status = 'stopped'
+		const { datas, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+		// const datas = this.state.datas
+		// const dataIndex = datas.findIndex((data) => { return data.timestamp === timestamp })
+		data.status = 'stopped'
 		this.setState((state, props) => ({
 			datas: datas,
 		}))
@@ -387,13 +397,15 @@ export default class App extends React.Component<
 		console.log('*task', timestamp, 'removed');
 
 		this.setState((state, props) => {
-			const processes = state.datas
-			const i = processes.findIndex(
-				(process) => process.timestamp === timestamp
-			)
-			processes.splice(i, 1)
+			// const processes = state.datas
+			// const i = processes.findIndex(
+			// 	(process) => process.timestamp === timestamp
+			// )
+			const { datas, dataIndex, data } = getCurrentData(state.datas, timestamp)
+
+			datas.splice(dataIndex, 1)
 			return {
-				datas: processes
+				datas: datas
 			}
 		})
 		// const taskHistories = store.get('taskHistories')
@@ -948,10 +960,12 @@ class Task extends React.Component<
 		})
 	}
 	handleRemove = () => {
-		const historyIndex = histories.findIndex((history) => {
-			return history.timestamp === this.props.taskData.timestamp
-		})
-		histories.splice(historyIndex, 1)
+		// const historyIndex = histories.findIndex((history) => {
+		// 	return history.timestamp === this.props.taskData.timestamp
+		// })
+		const { datas, dataIndex, data } = getCurrentData(histories, this.props.taskData.timestamp)
+
+		histories.splice(dataIndex, 1)
 		db.write()
 		console.log('*remove', this.props.taskData.timestamp, ' from db');
 		this.props.handleRemove()
@@ -1011,11 +1025,12 @@ class Task extends React.Component<
 			thumbnailFinished: info.thumbnailFinished,
 		}
 		// console.log(histories);
-		const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
-		if (historyIndex === -1) {
+		// const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
+		const { dataIndex } = getCurrentData(histories, info.timestamp)
+		if (dataIndex === -1) {
 			histories.push(taskHistory)
 		} else {
-			histories[historyIndex] = taskHistory
+			histories[dataIndex] = taskHistory
 		}
 
 		const progressBar =
