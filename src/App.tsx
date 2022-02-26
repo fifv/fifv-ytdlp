@@ -203,8 +203,6 @@ export default class App extends React.Component<
 		urlInput: string,
 		maximized: boolean,
 		datas: TaskData[],
-		closedCount: number,
-
 
 		isSpecifyDownloadPath: boolean,
 		isProxy: boolean,
@@ -234,7 +232,6 @@ export default class App extends React.Component<
 			// processes: store.get('taskHistories').sort((a: TaskHistory, b: TaskHistory) => a.timestamp - b.timestamp),
 			datas: histories ?? [],
 			maximized: false,
-			closedCount: 0,
 
 			isSpecifyDownloadPath: store.get('isSpecifyDownloadPath'),
 			isProxy: store.get('isProxy'),
@@ -362,9 +359,15 @@ export default class App extends React.Component<
 		// 	})
 		// }
 		console.log(`*child ${timestamp} report closed`);
+		const datas = this.state.datas
+		const dataIndex = datas.findIndex((data) => { return data.timestamp === timestamp })
+		datas[dataIndex].status = 'stopped'
 		this.setState((state, props) => ({
-			closedCount: state.closedCount + 1,
+			datas: datas,
 		}))
+		// this.setState((state, props) => ({
+		// 	closedCount: state.closedCount + 1,
+		// }))
 		/**
 		 * seems like directly remove the process from state is probably not a good idea.
 		 * if something downloaded finished, or failed, yes, the process is not running.
@@ -569,7 +572,9 @@ export default class App extends React.Component<
 			/**
 			 * TO\DO: make the spinner work well
 			 */
-			(this.state.datas.length - this.state.closedCount > 0) &&
+			!!this.state.datas.reduce((count, data) => {
+				return data.status === 'downloading' ? count + 1 : count
+			}, 0) &&
 			<div className='totalLoader'>
 				{ svgLoaderPuff }
 			</div>
@@ -939,6 +944,7 @@ class Task extends React.Component<
 				status: "stopped",
 				otherInfo: 'Cancelled',
 			}))
+			this.props.handleStop()
 		})
 	}
 	handleRemove = () => {
