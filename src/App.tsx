@@ -46,6 +46,8 @@ import * as remote from '@electron/remote'
 import { isEqual } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
+import { Scrollbars } from 'react-custom-scrollbars';
+
 
 
 const isDebug = false
@@ -745,34 +747,35 @@ export default class App extends React.Component<
 
 		const tasksArea =
 			<Flipper flipKey={ this.state.datas.length } className='flipper' spring={ { stiffness: 10000, damping: 200 } }>
-				{/* <Scrollbar
-					style={ { height: '400px' } }
+				<Scrollbars
+					style={ { height: '100%',/* right:'3%' */ } }
 					// noDefaultStyles 
-					removeTracksWhenNotUsed
-					disableTracksWidthCompensation
-					// This will activate auto hide
-					// autoHide
-					// // Hide delay in ms
-					// autoHideTimeout={ 1000 }
-					// // Duration for hide animation in ms.
-					// autoHideDuration={ 200 }
-				> */}
-				<div className="display-area">
-					{
-						this.state.datas.map((taskData) => {
-							return (
-								<Task
-									key={ taskData.timestamp }
-									taskData={ taskData }
-									handleStop={ () => this.handleStop(taskData.timestamp) }
-									handleRemove={ () => this.handleRemove(taskData.timestamp) }
-								/>
-							)
-						}).reverse()
-					}
+					// removeTracksWhenNotUsed
+					// disableTracksWidthCompensation
 
-				</div>
-				{/* </Scrollbar> */ }
+					renderTrackVertical={props => <div {...props} className="scrollbarTrackVertical"/>}
+					hideTracksWhenNotNeeded
+					// autoHeight
+					autoHide
+					autoHideTimeout={ 1000 }
+					autoHideDuration={ 200 }
+				>
+					<div className="display-area">
+						{
+							this.state.datas.map((taskData) => {
+								return (
+									<Task
+										key={ taskData.timestamp }
+										taskData={ taskData }
+										handleStop={ () => this.handleStop(taskData.timestamp) }
+										handleRemove={ () => this.handleRemove(taskData.timestamp) }
+									/>
+								)
+							}).reverse()
+						}
+
+					</div>
+				</Scrollbars>
 			</Flipper>
 		return (
 			<>

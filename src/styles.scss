@@ -110,562 +110,11 @@ html {
 			height: 100%;
 		}
 
-		.container {
-			padding-left: 5%;
-			padding-right: 5%;
-		}
+		// .container {
+		// 	padding-left: 5%;
+		// 	padding-right: 5%;
+		// }
 
-		.main {
-			display: flex;
-			flex-direction: column;
-			justify-content: space-between;
-			flex-wrap: nowrap;
-			align-content: stretch;
-			align-items: stretch;
-
-			.totalLoader {
-				display: flex;
-				flex-direction: row;
-				flex-wrap: nowrap;
-				justify-content: center;
-				align-content: center;
-				align-items: center;
-				// border-left: 0;
-				// border-bottom: 0;
-				position: fixed;
-				top: 10px;
-				left: 10px;
-				z-index: 100;
-				// line-height: 42px;
-			}
-
-			.urlBar {
-				@include inputGroup();
-				height: 30px;
-				// position: sticky;
-				width: 100%;
-				flex-shrink: 0;
-				// top: 32px;
-				-webkit-app-region: no-drag;
-				margin-top: 32px;
-				margin-bottom: 15px;
-
-				display: flex;
-				flex-direction: row;
-				flex-wrap: nowrap;
-				justify-content: center;
-				align-content: center;
-				align-items: stretch;
-
-
-
-				.urlInput {
-					// border-bottom: 0;
-					padding-left: 10px;
-					@include textInput();
-				}
-
-
-				.btnStart,
-				.btnPaste {
-					@include btn();
-					padding: 8px;
-					display: flex;
-					flex-direction: row;
-					flex-wrap: nowrap;
-					justify-content: center;
-					align-content: center;
-					align-items: center;
-				}
-
-				.btnStart {
-
-					&:hover {
-						color: $blue;
-					}
-
-					&:active {
-						color: $blueDark;
-					}
-				}
-
-				.btnPaste {
-
-					&:hover {
-						color: $primaryDark;
-					}
-
-					&:active {
-						color: $primaryDarkDark;
-					}
-				}
-
-
-			}
-
-			.optionsArea {
-				flex-shrink: 0;
-				margin-bottom: 20px;
-				// margin-top: 20px;
-
-				// position: fixed;
-				// bottom: 32px;
-				user-select: none;
-				display: flex;
-				flex-direction: column;
-				flex-wrap: nowrap;
-				align-content: stretch;
-				align-items: stretch;
-				justify-content: center;
-
-				input,
-				label,
-				button,
-				div {
-					-webkit-app-region: no-drag;
-				}
-
-
-				.selectors {
-					color: $secondary;
-
-					display: flex;
-					flex-direction: row;
-					flex-wrap: wrap;
-					align-content: center;
-					justify-content: space-evenly;
-					align-items: center;
-					width: 100%;
-
-					input {
-						display: none;
-					}
-
-					.contentSelector,
-					.bonusSelector {
-						display: flex;
-						flex-direction: row;
-						flex-wrap: nowrap;
-						justify-content: center;
-						align-content: center;
-						align-items: center;
-						// margin-top: 5px;
-						// margin-bottom: 5px;
-						margin: 5px;
-
-						// border: 1px solid $secondary;
-						@include inputGroup();
-
-						.selectorOption {
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-
-							cursor: pointer;
-							border: 1px solid $secondary;
-							padding: 8px;
-
-							// &:hover {
-							// 	color: $primary;
-							// 	background-color: inherit;
-							// }
-
-							&.checked {
-
-								color: $primary;
-								background-color: $secondary;
-								// border: 0;
-							}
-						}
-
-						.btn-check:checked+.selectorOption {
-							color: $primary;
-							background-color: $secondary;
-						}
-					}
-				}
-
-				// .option {
-				// 	margin-bottom: 5px;
-
-				// 	* {
-				// 		border-color: $primary;
-				// 		// color: $primary;
-				// 	}
-
-				// 	input[type=text] {
-				// 		// display: inline;
-				// 		background-color: transparent;
-				// 	}
-
-				// 	input[type=checkbox] {
-				// 		cursor: pointer;
-				// 	}
-
-				// 	label#destPath,
-				// 	label#historyFile,
-				// 	label#cookieFile {
-				// 		cursor: pointer;
-
-				// 		&:hover {
-				// 			// background-color: $danger;
-				// 			text-shadow: 0px 0px 15px rgb(229, 255, 0);
-				// 			// color: rgb(255, 208, 208);
-				// 		}
-				// 	}
-
-
-				// 	.check-container {
-				// 		border-bottom-left-radius: 4px !important;
-				// 		border-top-left-radius: 4px !important;
-				// 	}
-
-				// 	svg {
-				// 		width: 16px;
-				// 		height: 16px;
-				// 	}
-
-
-				// }
-
-				.options {
-					display: flex;
-					flex-direction: row;
-					flex-wrap: wrap;
-					justify-content: center;
-					align-content: stretch;
-					align-items: stretch;
-
-					.optionWithInput {
-						@media only screen and (max-width: 650px) {
-							width: calc(100% - 10px);
-						}
-
-						width: calc(50% - 10px);
-						// width: 310px;
-						// margin-top: 5px;
-						// margin-bottom: 5px;
-						// margin: 5px;
-						padding: 5px;
-						color: $primary;
-						display: flex;
-						flex-direction: row;
-						flex-wrap: nowrap;
-						justify-content: flex-start;
-						align-content: stretch;
-						align-items: stretch;
-
-						@include inputGroup();
-
-						.checkButton {
-							// @include btn();
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-
-							padding: 8px;
-							border: 1px solid $secondary;
-
-							cursor: pointer;
-
-							&.checked {
-								background-color: $secondary;
-							}
-						}
-
-						.promptButton {
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-							padding: 0px 8px !important;
-
-							// border: 1px solid $secondary;
-							background: $secondary;
-
-							&.clickAble {
-								@include btn();
-							}
-
-							&.noTextInput {
-								flex-grow: 1;
-								justify-content: flex-start;
-							}
-
-							// &:hover {
-							// 	background: $secondaryDark;
-							// }
-
-							// &:active {
-							// 	background: $secondaryDarkDark;
-							// }
-
-						}
-
-						.input {
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-							@include textInput();
-							padding: 0px 5px;
-						}
-					}
-				}
-
-
-			}
-
-			.flipper {
-				/**
-				 * 只要這一條就能解決爆出來
-				 */
-				overflow-y: scroll;
-				-webkit-app-region: no-drag;
-
-				.display-area {
-					flex-grow: 1;
-					overflow-y: scroll;
-					width: 100%;
-					// margin-bottom: 15px;
-					// font-size: 0.8em;
-					font-size: 15px;
-
-					.task {
-						/**
-					 * 不能在這裡禁止拖動,滾到上面去會導致頂條也拖不了
-					 */
-						// -webkit-app-region: no-drag;
-						z-index: -999;
-						color: #fff;
-						margin-top: 5px;
-						margin-bottom: 5px;
-						border-radius: 4px;
-						border: 1px solid $primaryDark;
-						border-radius: 4px;
-						// padding: 5px;
-
-						// background-color: #6d767e88;
-						display: flex;
-						flex-direction: row;
-						flex-wrap: nowrap;
-						justify-content: flex-start;
-						align-items: center;
-						align-content: center;
-
-						.leftcol {
-							user-select: none;
-							padding-top: 5px;
-							padding-bottom: 5px;
-							width: 30px;
-							flex-shrink: 0;
-
-							display: flex;
-							flex-direction: column;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-
-							.statusIndicator {
-								height: 30px;
-								width: 16px;
-
-								display: flex;
-								flex-direction: column;
-								flex-wrap: nowrap;
-								justify-content: space-around;
-								align-content: center;
-								align-items: center;
-
-								// padding: 5px;
-								// &>* {
-								// 	margin-left: 5px;
-								// 	margin-right: 5px;
-								// }
-								.svgCloseError {
-									color: $danger;
-								}
-
-								.svgCloseStopped {
-									color: $secondary;
-								}
-
-								.svgPhoto {
-									color: $success;
-								}
-
-								.svgSuccess {
-									color: $success;
-								}
-							}
-						}
-
-						.midcol {
-							user-select: none;
-							padding-top: 5px;
-							padding-bottom: 5px;
-							width: 90px;
-							flex-shrink: 0;
-
-							display: flex;
-							flex-direction: column;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-
-						}
-
-						.rightcol {
-							display: flex;
-							flex-direction: column;
-							flex-wrap: nowrap;
-							align-content: center;
-							justify-content: center;
-							align-items: flex-start;
-
-							// padding: 5px;
-							flex-grow: 1;
-							margin-right: 10px;
-							margin-top: 5px;
-							margin-bottom: 5px;
-
-							@mixin info {
-								display: flex;
-								flex-direction: row;
-								flex-wrap: nowrap;
-								justify-content: flex-start;
-								align-content: center;
-								align-items: center;
-
-								margin: 5px;
-
-								svg {
-									margin-right: 5px;
-								}
-							}
-
-							.infoTitle {
-								@include info();
-							}
-
-							.infoOther {
-								@include info();
-								color: $blue;
-							}
-
-							.infoError {
-								@include info();
-								color: $danger;
-							}
-
-							// .progress {
-
-							// 	width: 100%;
-							// 	// background-color: $secondary;
-							// 	background-color: $blue;
-							// 	// border-left: 0;
-							// 	// border-right: 0;
-							// 	// border-bottom: $darkBlue 1px solid;
-							// 	// border-top: $darkBlue 1px solid;
-							// 	border: 0;
-							// 	// outline: 1px $darkBlue solid;
-							// 	height: 1px;
-							// 	// border-top-right-radius: 0px;
-							// 	// border-top-left-radius: 0px;
-							// 	border-radius: 0;
-
-							// 	.progress-bar {
-							// 		background-color: $success;
-							// 	}
-							// }
-							.progressBar {
-								margin: 5px;
-							}
-						}
-
-						.rightMostCol {
-							user-select: none;
-							display: flex;
-							flex-direction: row;
-							flex-wrap: nowrap;
-							justify-content: center;
-							align-content: center;
-							align-items: center;
-
-							// height: 100%;
-							/**
-						 * %用不了,可以用align-self
-						 */
-							align-self: stretch;
-							width: 30px;
-							/**
-						 * 這個多加加,不然坍縮會很怪
-						 */
-							flex-shrink: 0;
-
-							.svgRemoveConfirmed {
-								color: $danger;
-							}
-
-							&:hover {
-								cursor: pointer;
-
-								// background: rgb(42, 42, 42);
-
-								.svgClose {
-									color: $danger;
-									// &:
-								}
-
-								.svgRemove {
-									color: $primaryDark;
-								}
-
-								.svgRemoveConfirmed {
-									color: $dangerDark;
-								}
-							}
-						}
-
-
-
-					}
-				}
-			}
-		}
-
-		.trafficLight {
-			-webkit-app-region: no-drag;
-			position: fixed;
-			top: 0;
-			right: 0;
-			// border-radius: 0;
-			// border: 0;
-
-			// @include inputGroup();
-
-			button {
-				@include btn();
-				border: 0;
-				// height: 25px;
-				// width: 25px;
-				// border-radius: 0 !important;
-				background: transparent;
-				line-height: 0;
-			}
-		}
 
 		// .input-url {
 		// 	width: 80%;
@@ -673,10 +122,578 @@ html {
 	}
 }
 
+.main {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	align-content: stretch;
+	align-items: stretch;
 
+	.totalLoader {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-content: center;
+		align-items: center;
+		// border-left: 0;
+		// border-bottom: 0;
+		position: fixed;
+		top: 10px;
+		left: 10px;
+		z-index: 100;
+		// line-height: 42px;
+	}
+
+	.urlBar {
+		@include inputGroup();
+		height: 30px;
+		// position: sticky;
+		// width: 100%;
+		flex-shrink: 0;
+		// top: 32px;
+		-webkit-app-region: no-drag;
+		margin-top: 32px;
+		margin-bottom: 15px;
+
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-content: center;
+		align-items: stretch;
+		padding-left: 5%;
+		padding-right: 5%;
+
+
+
+		.urlInput {
+			// border-bottom: 0;
+			padding-left: 10px;
+			@include textInput();
+		}
+
+
+		.btnStart,
+		.btnPaste {
+			@include btn();
+			padding: 8px;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			justify-content: center;
+			align-content: center;
+			align-items: center;
+		}
+
+		.btnStart {
+
+			&:hover {
+				color: $blue;
+			}
+
+			&:active {
+				color: $blueDark;
+			}
+		}
+
+		.btnPaste {
+
+			&:hover {
+				color: $primaryDark;
+			}
+
+			&:active {
+				color: $primaryDarkDark;
+			}
+		}
+
+
+	}
+
+	.optionsArea {
+		flex-shrink: 0;
+		margin-bottom: 20px;
+		// margin-top: 20px;
+
+		// position: fixed;
+		// bottom: 32px;
+		user-select: none;
+		display: flex;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-content: stretch;
+		align-items: stretch;
+		justify-content: center;
+
+		padding-left: 5%;
+		padding-right: 5%;
+
+		input,
+		label,
+		button,
+		div {
+			-webkit-app-region: no-drag;
+		}
+
+
+		.selectors {
+			color: $secondary;
+
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: center;
+			justify-content: space-evenly;
+			align-items: center;
+			// width: 100%;
+
+			input {
+				display: none;
+			}
+
+			.contentSelector,
+			.bonusSelector {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				justify-content: center;
+				align-content: center;
+				align-items: center;
+				// margin-top: 5px;
+				// margin-bottom: 5px;
+				margin: 5px;
+
+				// border: 1px solid $secondary;
+				@include inputGroup();
+
+				.selectorOption {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+
+					cursor: pointer;
+					border: 1px solid $secondary;
+					padding: 8px;
+
+					// &:hover {
+					// 	color: $primary;
+					// 	background-color: inherit;
+					// }
+
+					&.checked {
+
+						color: $primary;
+						background-color: $secondary;
+						// border: 0;
+					}
+				}
+
+				.btn-check:checked+.selectorOption {
+					color: $primary;
+					background-color: $secondary;
+				}
+			}
+		}
+
+		// .option {
+		// 	margin-bottom: 5px;
+
+		// 	* {
+		// 		border-color: $primary;
+		// 		// color: $primary;
+		// 	}
+
+		// 	input[type=text] {
+		// 		// display: inline;
+		// 		background-color: transparent;
+		// 	}
+
+		// 	input[type=checkbox] {
+		// 		cursor: pointer;
+		// 	}
+
+		// 	label#destPath,
+		// 	label#historyFile,
+		// 	label#cookieFile {
+		// 		cursor: pointer;
+
+		// 		&:hover {
+		// 			// background-color: $danger;
+		// 			text-shadow: 0px 0px 15px rgb(229, 255, 0);
+		// 			// color: rgb(255, 208, 208);
+		// 		}
+		// 	}
+
+
+		// 	.check-container {
+		// 		border-bottom-left-radius: 4px !important;
+		// 		border-top-left-radius: 4px !important;
+		// 	}
+
+		// 	svg {
+		// 		width: 16px;
+		// 		height: 16px;
+		// 	}
+
+
+		// }
+
+		.options {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-content: stretch;
+			align-items: stretch;
+
+			.optionWithInput {
+				@media only screen and (max-width: 650px) {
+					width: calc(100% - 10px);
+				}
+
+				width: calc(50% - 10px);
+				// width: 310px;
+				// margin-top: 5px;
+				// margin-bottom: 5px;
+				// margin: 5px;
+				padding: 5px;
+				color: $primary;
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				justify-content: flex-start;
+				align-content: stretch;
+				align-items: stretch;
+
+				@include inputGroup();
+
+				.checkButton {
+					// @include btn();
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+
+					padding: 8px;
+					border: 1px solid $secondary;
+
+					cursor: pointer;
+
+					&.checked {
+						background-color: $secondary;
+					}
+				}
+
+				.promptButton {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+					padding: 0px 8px !important;
+
+					// border: 1px solid $secondary;
+					background: $secondary;
+
+					&.clickAble {
+						@include btn();
+					}
+
+					&.noTextInput {
+						flex-grow: 1;
+						justify-content: flex-start;
+					}
+
+					// &:hover {
+					// 	background: $secondaryDark;
+					// }
+
+					// &:active {
+					// 	background: $secondaryDarkDark;
+					// }
+
+				}
+
+				.input {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+					@include textInput();
+					padding: 0px 5px;
+				}
+			}
+		}
+
+
+	}
+
+	.flipper {
+		/**
+			 * 只要這一條就能解決爆出來
+			 */
+		// overflow-y: scroll;
+		-webkit-app-region: no-drag;
+		flex-grow: 1;
+
+		.display-area {
+			flex-grow: 1;
+			// overflow-y: scroll;
+			// width: 100%;
+			// margin-bottom: 15px;
+			// font-size: 0.8em;
+			font-size: 15px;
+
+			padding-left: 5%;
+			padding-right: 5%;
+
+			.task {
+				/**
+				 * 不能在這裡禁止拖動,滾到上面去會導致頂條也拖不了
+				 */
+				// -webkit-app-region: no-drag;
+				z-index: -999;
+				color: #fff;
+				margin-top: 5px;
+				margin-bottom: 5px;
+				border-radius: 4px;
+				border: 1px solid $primaryDark;
+				border-radius: 4px;
+				// padding: 5px;
+
+				// background-color: #6d767e88;
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				justify-content: flex-start;
+				align-items: center;
+				align-content: center;
+
+				.leftcol {
+					user-select: none;
+					padding-top: 5px;
+					padding-bottom: 5px;
+					width: 30px;
+					flex-shrink: 0;
+
+					display: flex;
+					flex-direction: column;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+
+					.statusIndicator {
+						height: 30px;
+						width: 16px;
+
+						display: flex;
+						flex-direction: column;
+						flex-wrap: nowrap;
+						justify-content: space-around;
+						align-content: center;
+						align-items: center;
+
+						// padding: 5px;
+						// &>* {
+						// 	margin-left: 5px;
+						// 	margin-right: 5px;
+						// }
+						.svgCloseError {
+							color: $danger;
+						}
+
+						.svgCloseStopped {
+							color: $secondary;
+						}
+
+						.svgPhoto {
+							color: $success;
+						}
+
+						.svgSuccess {
+							color: $success;
+						}
+					}
+				}
+
+				.midcol {
+					user-select: none;
+					padding-top: 5px;
+					padding-bottom: 5px;
+					width: 90px;
+					flex-shrink: 0;
+
+					display: flex;
+					flex-direction: column;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+
+				}
+
+				.rightcol {
+					display: flex;
+					flex-direction: column;
+					flex-wrap: nowrap;
+					align-content: center;
+					justify-content: center;
+					align-items: flex-start;
+
+					// padding: 5px;
+					flex-grow: 1;
+					margin-right: 10px;
+					margin-top: 5px;
+					margin-bottom: 5px;
+
+					@mixin info {
+						display: flex;
+						flex-direction: row;
+						flex-wrap: nowrap;
+						justify-content: flex-start;
+						align-content: center;
+						align-items: center;
+
+						margin: 5px;
+
+						svg {
+							margin-right: 5px;
+						}
+					}
+
+					.infoTitle {
+						@include info();
+					}
+
+					.infoOther {
+						@include info();
+						color: $blue;
+					}
+
+					.infoError {
+						@include info();
+						color: $danger;
+					}
+
+					// .progress {
+
+					// 	width: 100%;
+					// 	// background-color: $secondary;
+					// 	background-color: $blue;
+					// 	// border-left: 0;
+					// 	// border-right: 0;
+					// 	// border-bottom: $darkBlue 1px solid;
+					// 	// border-top: $darkBlue 1px solid;
+					// 	border: 0;
+					// 	// outline: 1px $darkBlue solid;
+					// 	height: 1px;
+					// 	// border-top-right-radius: 0px;
+					// 	// border-top-left-radius: 0px;
+					// 	border-radius: 0;
+
+					// 	.progress-bar {
+					// 		background-color: $success;
+					// 	}
+					// }
+					.progressBar {
+						margin: 5px;
+					}
+				}
+
+				.rightMostCol {
+					user-select: none;
+					display: flex;
+					flex-direction: row;
+					flex-wrap: nowrap;
+					justify-content: center;
+					align-content: center;
+					align-items: center;
+
+					// height: 100%;
+					/**
+					 * %用不了,可以用align-self
+					 */
+					align-self: stretch;
+					width: 30px;
+					/**
+					 * 這個多加加,不然坍縮會很怪
+					 */
+					flex-shrink: 0;
+
+					.svgRemoveConfirmed {
+						color: $danger;
+					}
+
+					&:hover {
+						cursor: pointer;
+
+						// background: rgb(42, 42, 42);
+
+						.svgClose {
+							color: $danger;
+							// &:
+						}
+
+						.svgRemove {
+							color: $primaryDark;
+						}
+
+						.svgRemoveConfirmed {
+							color: $dangerDark;
+						}
+					}
+				}
+
+
+
+			}
+		}
+	}
+}
+
+.trafficLight {
+	-webkit-app-region: no-drag;
+	position: fixed;
+	top: 0;
+	right: 0;
+	// border-radius: 0;
+	// border: 0;
+
+	// @include inputGroup();
+
+	button {
+		@include btn();
+		border: 0;
+		// height: 25px;
+		// width: 25px;
+		// border-radius: 0 !important;
+		background: transparent;
+		line-height: 0;
+	}
+}
+
+.scrollbarTrackVertical {
+	right: 3%;
+    top: 0;
+	// bottom: 5px;
+    height: 100%;
+    border-radius: 3px;
+}
 ::-webkit-scrollbar {
 	/*滚动条整体样式*/
-	width: 0px;
+	/* 詭異,react-custom-scrollbars會吃這個,0px就消失.但是1px就沒問題 */
+	width: 1px;
 	/*高宽分别对应横竖滚动条的尺寸*/
 	/* 高度0相當於禁用了橫向滾動條 */
 	height: 0px;
