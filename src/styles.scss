@@ -163,8 +163,9 @@ html {
 		justify-content: center;
 		align-content: center;
 		align-items: stretch;
-		padding-left: 5%;
-		padding-right: 5%;
+		// padding-left: 5%;
+		// padding-right: 5%;
+		padding: 0 calc(5% + 5px);
 
 
 
@@ -227,8 +228,7 @@ html {
 		align-items: stretch;
 		justify-content: center;
 
-		padding-left: 5%;
-		padding-right: 5%;
+		padding: 0 5%;
 
 		input,
 		label,
@@ -454,8 +454,7 @@ html {
 			// font-size: 0.8em;
 			font-size: 15px;
 
-			padding-left: 5%;
-			padding-right: 5%;
+			padding: 0 calc(5% + 5px);
 
 			.task {
 				/**
