@@ -44,30 +44,58 @@ import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
 import { isEqual } from 'lodash-es';
+
+
+const isDebug = false
+// const isDebug = true
+
+/**
+ * 以下為type
+ */
+/**
+ * 詭異的typescript&vscode:
+ * 用type,懸浮上去會有完整的內容
+ * 用interface,懸浮上去只有一個名稱
+ * 
+ * DB['histories']這種type index只有type能用,interface不行
+ * 
+ * interface在outline中會有專屬的圖標,而type和普通的變元一個圖標
+ */
+type KeyofType<OBJ, TYPE> = {
+	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
+}[keyof OBJ]
+type Status = "finished" | "stopped" | "downloading" | "error"
+type History = {
+	timestamp: number,
+	urlInput: string,
+	status: Status,
+	thumbnailFinished?: boolean,
+	destPath?: string,
+	percentValue?: number,
+	fileSizeValue?: number,
+	fileSizeString?: string,
+	title?: string,
+	durationString?: string,
+}
+type DB = {
+	histories: History[]
+}
+type TaskData = History & {
+	timestamp: number,
+	process?: ChildProcess,
+	processJson?: ChildProcess,
+	urlInput: string,
+}
+
+/**
+ * global
+ */
 const win = remote.getCurrentWindow()
 const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-
-const isDebug = false
-// const isDebug = true
-type Status = "finished" | "stopped" | "downloading" | "error"
-type Data = {
-	histories: {
-		timestamp: number,
-		urlInput: string,
-		status: Status,
-		thumbnailFinished?: boolean,
-		destPath?: string,
-		percentValue?: number,
-		fileSizeValue?: number,
-		fileSizeString?: string,
-		title?: string,
-		durationString?: string,
-	}[]
-}
-const db = new Low<Data>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
+const db = new Low<DB>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
 await db.read()
 db.data ||= {
 	histories: []
@@ -81,12 +109,51 @@ setInterval(() => {
 	}
 }, 1000)
 // db.write()
-
 console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
-type KeyofType<OBJ, TYPE> = {
-	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
-}[keyof OBJ]
+const quotePath = (path: string) => {
+	if ((path[0] === `'` && path[path.length - 1] === `'`) || (path[0] === `"` && path[path.length - 1] === `"`)) {
+		return path
+	} else {
+		return '"' + path + '"'
+	}
+}
+const store = new ElectronStore({
+	defaults: {
+		isSpecifyDownloadPath: true,
+		isProxy: false,
+		isFormatFilename: true,
+		saveThumbnail: true,
+		saveSubtitles: false,
+		isUseCookie: true,
+		isUseHistory: false,
+		saveAutoSubtitle: false,
+		saveAllSubtitles: false,
+		isUseLocalYtdlp: false,
+		contentSelector: 'video',
+
+		proxyHost: 'http://127.0.0.1:1080',
+		cookieFile: 'cookiejar.txt',
+		historyFile: 'history.txt',
+		fileNameTemplate: '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',
+
+		destPath: main.app.getPath('downloads'),
+		tempPath: path.join(main.app.getPath('downloads'), 'temp'),
+
+		taskHistories: [],
+	}
+})
+window.onbeforeunload = (event) => {
+	/* If window is reloaded, remove win event listeners
+	(DOM element listeners get auto garbage collected but not
+	Electron win listeners as the win is not dereferenced unless closed) */
+	win.removeAllListeners();
+
+}
+
+/**
+ * svg
+ */
 const svgLoaderHash = <HashLoader size={ 10 } color="white" />
 const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
 const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
@@ -129,55 +196,7 @@ const svgDanger =
 	</IconContext.Provider>
 const svgInfo = <MdInfo />
 
-const quotePath = (path: string) => {
-	if ((path[0] === `'` && path[path.length - 1] === `'`) || (path[0] === `"` && path[path.length - 1] === `"`)) {
-		return path
-	} else {
-		return '"' + path + '"'
-	}
-}
 
-const store = new ElectronStore({
-	defaults: {
-		isSpecifyDownloadPath: true,
-		isProxy: false,
-		isFormatFilename: true,
-		saveThumbnail: true,
-		saveSubtitles: false,
-		isUseCookie: true,
-		isUseHistory: false,
-		saveAutoSubtitle: false,
-		saveAllSubtitles: false,
-		isUseLocalYtdlp: false,
-		contentSelector: 'video',
-
-		proxyHost: 'http://127.0.0.1:1080',
-		cookieFile: 'cookiejar.txt',
-		historyFile: 'history.txt',
-		fileNameTemplate: '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',
-
-		destPath: main.app.getPath('downloads'),
-		tempPath: path.join(main.app.getPath('downloads'), 'temp'),
-
-		taskHistories: [],
-	}
-})
-
-
-window.onbeforeunload = (event) => {
-	/* If window is reloaded, remove win event listeners
-	(DOM element listeners get auto garbage collected but not
-	Electron win listeners as the win is not dereferenced unless closed) */
-	win.removeAllListeners();
-
-}
-type TaskData = Data['histories'][number] & {
-	timestamp: number,
-	process?: ChildProcess,
-	processJson?: ChildProcess,
-	urlInput: string,
-
-}
 export default class App extends React.Component<
 	{},
 	{
@@ -319,12 +338,6 @@ export default class App extends React.Component<
 		)
 		ytdlpOptions.push('-J',)
 		const childJson = spawn(
-			/**
-			 * 太奇怪了,用yt-dlp.exe直接沒法停止...為什麼會這樣...?
-			 * 但是用yt-dlp_min.exe好像就正常
-			 * 
-			 * 用builder打包的話整個build目錄都被壓成了app.asar,此時getPath之類的操作好像就失效了淦
-			 */
 			ytdlpCommand,
 			ytdlpOptions,
 			{ shell: true },
@@ -590,40 +603,7 @@ export default class App extends React.Component<
 		// type A = {
 		// 	[key in keyof App['state']]: App['state'][key] extends boolean ? key : never
 		// }[keyof App['state']]
-		// const option = (id: KeyofType<App['state'], boolean>, name?: string) => {
-		// 	if (!name) {
-		// 		name = id.replace(/([A-Z])/g, ' $1')
-		// 		name = name[0].toUpperCase() + name.slice(1)
-		// 	}
-		// 	return (
-		// 		// <div className="col-12 col-sm-6 col-xl-4">
-		// 		// 	<div className="input-group input-group-sm option">
-		// 		// 		<input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-		// 		// 		<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label>
 
-		// 		// 		<input tabIndex={ -1 } type="text" value={ name } className="form-control form-control-sm text-primary" disabled readOnly />
-		// 		// 	</div>
-
-		// 		// </div>
-		// 		<div className="input-group input-group-sm optionWithInput">
-		// 			{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-		// 				<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
-		// 			<div className={ classNames('checkButton', { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ svgSuccess }</div>
-
-		// 			<div
-		// 				id={ id }
-		// 				// type='button'
-		// 				className="btn btn-outline-primary bg-transparent promptButton"
-		// 				/* htmlFor={ id } */
-		// 				onClick={ this.handleClick }
-		// 				tabIndex={ -1 }
-		// 			>{ name }</div>
-
-		// 			{/* <input tabIndex={ -1 } type="text" className="form-control form-control-sm input" value={ this.state[textInput] } onChange={ this.handleInputChange } id={ textInput } placeholder={ placeholder } /> */ }
-		// 		</div>
-
-		// 	)
-		// }
 		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
 			/**
 			 * if no buttonName provided, checkboxId will be used
@@ -645,8 +625,6 @@ export default class App extends React.Component<
 			return (
 				// <div className=" col-12 col-sm-6 col-xl-4">
 				<div className="optionWithInput">
-					{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } />
-						<label className='btn btn-outline-primary check-container' htmlFor={ id }>{ svgSuccess }</label> */}
 					<div className={ classNames('checkButton', { 'checked': this.state[checkboxId] }) } id={ checkboxId } onClick={ this.handleClick } >{ svgSuccess }</div>
 
 					<div
@@ -670,22 +648,25 @@ export default class App extends React.Component<
 			)
 		}
 		const contentSelectorOption = (id: 'video' | 'audio' | 'skip', buttonName?: string | JSX.Element) => {
-			return <>
-				{/* <input checked={ this.state.contentSelector === id } onChange={ this.handleRadio } className='btn-check' type="radio" id={ id } name="contentSelector" value={ id } tabIndex={ -1 } />
-				<label className='selectorOption' htmlFor={ id }>{ id.toUpperCase() }</label> */}
-				<div className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) } id={ id } onClick={ this.handleClick }>{ buttonName || id.toUpperCase() }</div>
-			</>
+			return <div
+				className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) }
+				id={ id }
+				onClick={ this.handleClick }
+			>
+				{ buttonName || id.toUpperCase() }
+			</div>
 		}
 		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element) => {
 			if (!buttonName) {
 				buttonName = id.replace(/([A-Z])/g, ' $1')
 				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
 			}
-			return <>
-				{/* <input checked={ this.state[id] } onChange={ this.handleInputChange } className='btn-check' type="checkbox" id={ id } tabIndex={ -1 } /> */ }
-				{/* <label className='selectorOption' htmlFor={ id }>{ name }</label> */ }
-				<div className={ classNames("selectorOption", { 'checked': this.state[id] }) } id={ id } onClick={ this.handleClick } >{ buttonName }</div>
-			</>
+			return <div
+				className={ classNames("selectorOption", { 'checked': this.state[id] }) }
+				id={ id }
+				onClick={ this.handleClick } >
+				{ buttonName }
+			</div>
 		}
 		const contentSelector =
 			<div className="contentSelector">
@@ -785,28 +766,30 @@ class Task extends React.Component<
 	childJson?: ChildProcess
 	constructor(props: Task['props']) {
 		super(props);
-		const taskHistory = this.props.taskData
-		// const taskHistory = store.get('taskHistories').find(
-		// 	(taskHistory: taskHistory) =>
-		// 		taskHistory.timestamp === this.props.timestamp
-		// ) as taskHistory | undefined
+		const taskData = this.props.taskData
+		/**
+		 * 目前使用從上面傳下來的方法
+		 * 而上面的有兩種來源:新建 | 讀取自db
+		 * 新建的 會 有childprocess,但是 不會 有其餘的資訊
+		 * db的 不會 有childprocess,但是 有 大量的資訊
+		 */
 		this.state = {
-			thumbnailFinished: taskHistory?.thumbnailFinished,
-			// otherInfo: taskHistory?.otherInfo,
-			// errorInfo: taskHistory?.errorInfo,
+			thumbnailFinished: taskData.thumbnailFinished,
+			// otherInfo: taskHistory.otherInfo,
+			// errorInfo: taskHistory.errorInfo,
 
-			destPath: taskHistory?.destPath,
-			title: taskHistory?.title,
-			fileSizeValue: taskHistory?.fileSizeValue,
-			fileSizeString: taskHistory?.fileSizeString,
-			durationString: taskHistory?.durationString,
-			// webpageUrl: taskHistory?.webpageUrl,
+			destPath: taskData.destPath,
+			title: taskData.title,
+			fileSizeValue: taskData.fileSizeValue,
+			fileSizeString: taskData.fileSizeString,
+			durationString: taskData.durationString,
+			// webpageUrl: taskHistory.webpageUrl,
 
-			// speed: taskHistory?.speed,
-			// etaString: taskHistory?.etaString,
-			percentValue: taskHistory?.percentValue,
+			// speed: taskHistory.speed,
+			// etaString: taskHistory.etaString,
+			percentValue: taskData.percentValue,
 
-			status: taskHistory ? taskHistory.status : 'downloading',
+			status: taskData.status,
 		}
 
 		this.childJson = this.props.taskData.processJson
@@ -814,10 +797,10 @@ class Task extends React.Component<
 			const infoJson = JSON.parse(decode(data, 'gbk'))
 			if (infoJson) {
 
-				console.log('*json:',infoJson);
+				console.log('*json:', infoJson);
 				const title = infoJson['fulltitle']
 				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
-				const fileSizeValue = infoJson['filesize']??infoJson['filesize_approx'] as number
+				const fileSizeValue = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
 				const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
@@ -893,10 +876,6 @@ class Task extends React.Component<
 		})
 		this.child?.on('close', (code) => {
 			console.log('*process close:', code);
-			// this.setState((state, props) => ({
-			// 	// infos: state.infos.concat('[Download Stopped]'),
-			// 	process: null,
-			// }))
 			this.props.handleStop()
 			/**
 			 * seems that 0 === finished
@@ -1013,7 +992,7 @@ class Task extends React.Component<
 
 			status: this.state.status,
 		}
-		const taskHistory: Data['histories'][number] = {
+		const taskHistory: History = {
 			timestamp: info.timestamp,
 			status: info.status === 'downloading' ? 'stopped' : info.status,
 			urlInput: info.urlInput,
@@ -1032,75 +1011,8 @@ class Task extends React.Component<
 		} else {
 			histories[historyIndex] = taskHistory
 		}
-		// interface info {
-		// 	status: string,
-		// 	processingOutput?: string[],
-		// 	other?: string,
-		// 	error?: string,
-		// 	thumbnail?: string,
-		// 	percent?: string,
-		// 	size?: string,
-		// 	speed?: string,
-		// 	eta?: string,
-		// 	title?: string,
-		// 	percentValue?: number,
-		// 	destPath?: string,
-
-		// }
-		// const info: info = {
-		// 	status: this.state.status,
-
-		// 	processingOutput: this.state.processingOutput,
-		// 	other: this.state.otherInfo?.trim(),
-		// 	error: this.state.errorInfo?.trim(),
-		// 	thumbnail: this.state.thumbnailInfo?.trim(),
-		// 	title: this.props.taskData.url,
-		// 	destPath: this.state.destPath,
-		// }
-		// if (info.processingOutput) {
-		// 	info.percent = info.processingOutput[1]?.trim()
-		// 	info.size = info.processingOutput[2]?.trim()
-		// 	info.speed = info.processingOutput[3]?.trim()
-		// 	info.eta = info.processingOutput[4]?.trim()
-		// 	info.title = info.processingOutput[5]?.trim()
-		// 	info.percentValue = parseFloat(info.percent)
-		// }
-		// if (info.percentValue && info.percentValue < 100) {
-		// 	info.other = 'Downloading...'
-		// }
-		// if (info.status === 'error' && info.other) {
-		// 	info.other = 'Failed'
-		// }
-
-		// const taskHistory = {
-		// 	timestamp: this.props.timestamp,
-		// 	url: this.props.url,
-		// 	status: info.status === 'downloading' ? 'stopped' : info.status,
-		// 	processingOutput: info.processingOutput,
-		// 	destPath: info.destPath,
-		// }
-		// const taskHistories = store.get('taskHistories')
-		// const historyIndex = taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === this.props.timestamp)
-		// if (historyIndex !== -1) {
-		// 	taskHistories.splice(
-		// 		historyIndex,
-		// 		1,
-		// 	)
-		// }
-		// store.set('taskHistories', [
-		// 	...taskHistories,
-		// 	taskHistory,
-		// ])
 
 		const progressBar =
-			// <div className="progress">
-			// 	<div
-			// 		className="progress-bar"
-			// 		style={ {
-			// 			width: info.percentValue + '%',
-			// 		} }
-			// 	/>
-			// </div>
 			<ProgressLine
 				percent={ info.percentValue }
 				// strokeColor={ '#cc66ff' }
