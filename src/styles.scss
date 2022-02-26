@@ -426,212 +426,222 @@ html {
 
 			}
 
-			.display-area {
-				flex-grow: 1;
+			.flipper {
+				/**
+				 * 只要這一條就能解決爆出來
+				 */
 				overflow-y: scroll;
-				width: 100%;
-				// margin-bottom: 15px;
-				// font-size: 0.8em;
-				font-size: 15px;
-				-webkit-app-region: no-drag;
 
-				.task {
-					/**
+				.display-area {
+					flex-grow: 1;
+					overflow-y: scroll;
+					width: 100%;
+					// margin-bottom: 15px;
+					// font-size: 0.8em;
+					font-size: 15px;
+					-webkit-app-region: no-drag;
+
+					.task {
+						/**
 					 * 不能在這裡禁止拖動,滾到上面去會導致頂條也拖不了
 					 */
-					// -webkit-app-region: no-drag;
-					z-index: -999;
-					color: #fff;
-					margin-top: 5px;
-					margin-bottom: 5px;
-					border-radius: 4px;
-					border: 1px solid $primaryDark;
-					border-radius: 4px;
-					// padding: 5px;
+						// -webkit-app-region: no-drag;
+						z-index: -999;
+						color: #fff;
+						margin-top: 5px;
+						margin-bottom: 5px;
+						border-radius: 4px;
+						border: 1px solid $primaryDark;
+						border-radius: 4px;
+						// padding: 5px;
 
-					// background-color: #6d767e88;
-					display: flex;
-					flex-direction: row;
-					flex-wrap: nowrap;
-					justify-content: flex-start;
-					align-items: center;
-					align-content: center;
-
-					.leftcol {
-						user-select: none;
-						padding-top: 5px;
-						padding-bottom: 5px;
-						width: 30px;
-						flex-shrink: 0;
-
+						// background-color: #6d767e88;
 						display: flex;
-						flex-direction: column;
+						flex-direction: row;
 						flex-wrap: nowrap;
-						justify-content: center;
-						align-content: center;
+						justify-content: flex-start;
 						align-items: center;
+						align-content: center;
 
-						.statusIndicator {
-							height: 30px;
-							width: 16px;
+						.leftcol {
+							user-select: none;
+							padding-top: 5px;
+							padding-bottom: 5px;
+							width: 30px;
+							flex-shrink: 0;
 
 							display: flex;
 							flex-direction: column;
 							flex-wrap: nowrap;
-							justify-content: space-around;
+							justify-content: center;
 							align-content: center;
 							align-items: center;
 
+							.statusIndicator {
+								height: 30px;
+								width: 16px;
+
+								display: flex;
+								flex-direction: column;
+								flex-wrap: nowrap;
+								justify-content: space-around;
+								align-content: center;
+								align-items: center;
+
+								// padding: 5px;
+								// &>* {
+								// 	margin-left: 5px;
+								// 	margin-right: 5px;
+								// }
+								.svgCloseError {
+									color: $danger;
+								}
+
+								.svgCloseStopped {
+									color: $secondary;
+								}
+
+								.svgPhoto {
+									color: $success;
+								}
+
+								.svgSuccess {
+									color: $success;
+								}
+							}
+						}
+
+						.midcol {
+							user-select: none;
+							padding-top: 5px;
+							padding-bottom: 5px;
+							width: 90px;
+							flex-shrink: 0;
+
+							display: flex;
+							flex-direction: column;
+							flex-wrap: nowrap;
+							justify-content: center;
+							align-content: center;
+							align-items: center;
+
+						}
+
+						.rightcol {
+							display: flex;
+							flex-direction: column;
+							flex-wrap: nowrap;
+							align-content: center;
+							justify-content: center;
+							align-items: flex-start;
+
 							// padding: 5px;
-							// &>* {
-							// 	margin-left: 5px;
-							// 	margin-right: 5px;
-							// }
-							.svgCloseError {
+							flex-grow: 1;
+							margin-right: 10px;
+							margin-top: 5px;
+							margin-bottom: 5px;
+
+							@mixin info {
+								display: flex;
+								flex-direction: row;
+								flex-wrap: nowrap;
+								justify-content: flex-start;
+								align-content: center;
+								align-items: center;
+
+								margin: 5px;
+
+								svg {
+									margin-right: 5px;
+								}
+							}
+
+							.infoTitle {
+								@include info();
+							}
+
+							.infoOther {
+								@include info();
+								color: $blue;
+							}
+
+							.infoError {
+								@include info();
 								color: $danger;
 							}
 
-							.svgCloseStopped {
-								color: $secondary;
-							}
+							// .progress {
 
-							.svgPhoto {
-								color: $success;
-							}
+							// 	width: 100%;
+							// 	// background-color: $secondary;
+							// 	background-color: $blue;
+							// 	// border-left: 0;
+							// 	// border-right: 0;
+							// 	// border-bottom: $darkBlue 1px solid;
+							// 	// border-top: $darkBlue 1px solid;
+							// 	border: 0;
+							// 	// outline: 1px $darkBlue solid;
+							// 	height: 1px;
+							// 	// border-top-right-radius: 0px;
+							// 	// border-top-left-radius: 0px;
+							// 	border-radius: 0;
 
-							.svgSuccess {
-								color: $success;
+							// 	.progress-bar {
+							// 		background-color: $success;
+							// 	}
+							// }
+							.progressBar {
+								margin: 5px;
 							}
 						}
-					}
 
-					.midcol {
-						user-select: none;
-						padding-top: 5px;
-						padding-bottom: 5px;
-						width: 90px;
-						flex-shrink: 0;
-
-						display: flex;
-						flex-direction: column;
-						flex-wrap: nowrap;
-						justify-content: center;
-						align-content: center;
-						align-items: center;
-
-					}
-
-					.rightcol {
-						display: flex;
-						flex-direction: column;
-						flex-wrap: nowrap;
-						align-content: center;
-						justify-content: center;
-						align-items: flex-start;
-
-						// padding: 5px;
-						flex-grow: 1;
-						margin-right: 10px;
-						margin-top: 5px;
-						margin-bottom: 5px;
-
-						@mixin info {
+						.rightMostCol {
+							user-select: none;
 							display: flex;
 							flex-direction: row;
 							flex-wrap: nowrap;
-							justify-content: flex-start;
+							justify-content: center;
 							align-content: center;
 							align-items: center;
 
-							margin: 5px;
-
-							svg {
-								margin-right: 5px;
-							}
-						}
-
-						.infoTitle {
-							@include info();
-						}
-
-						.infoOther {
-							@include info();
-							color: $blue;
-						}
-
-						.infoError {
-							@include info();
-							color: $danger;
-						}
-
-						// .progress {
-
-						// 	width: 100%;
-						// 	// background-color: $secondary;
-						// 	background-color: $blue;
-						// 	// border-left: 0;
-						// 	// border-right: 0;
-						// 	// border-bottom: $darkBlue 1px solid;
-						// 	// border-top: $darkBlue 1px solid;
-						// 	border: 0;
-						// 	// outline: 1px $darkBlue solid;
-						// 	height: 1px;
-						// 	// border-top-right-radius: 0px;
-						// 	// border-top-left-radius: 0px;
-						// 	border-radius: 0;
-
-						// 	.progress-bar {
-						// 		background-color: $success;
-						// 	}
-						// }
-						.progressBar {
-							margin: 5px;
-						}
-					}
-
-					.rightMostCol {
-						user-select: none;
-						display: flex;
-						flex-direction: row;
-						flex-wrap: nowrap;
-						justify-content: center;
-						align-content: center;
-						align-items: center;
-
-						// height: 100%;
-						/**
+							// height: 100%;
+							/**
 						 * %用不了,可以用align-self
 						 */
-						align-self: stretch;
-						width: 30px;
-						/**
+							align-self: stretch;
+							width: 30px;
+							/**
 						 * 這個多加加,不然坍縮會很怪
 						 */
-						flex-shrink: 0;
-						.svgRemoveConfirmed {
-							color: $danger;
-						}
-						&:hover {
-							cursor: pointer;
+							flex-shrink: 0;
 
-							// background: rgb(42, 42, 42);
-
-							.svgClose {
-								color: $danger;
-								// &:
-							}
-
-							.svgRemove {
-								color: $primaryDark;
-							}
 							.svgRemoveConfirmed {
-								color: $dangerDark;
+								color: $danger;
+							}
+
+							&:hover {
+								cursor: pointer;
+
+								// background: rgb(42, 42, 42);
+
+								.svgClose {
+									color: $danger;
+									// &:
+								}
+
+								.svgRemove {
+									color: $primaryDark;
+								}
+
+								.svgRemoveConfirmed {
+									color: $dangerDark;
+								}
 							}
 						}
+
+
+
 					}
-
-
-
 				}
 			}
 		}

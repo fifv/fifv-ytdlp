@@ -44,6 +44,8 @@ import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
 import { isEqual } from 'lodash-es';
+import { Flipper, Flipped, spring } from 'react-flip-toolkit'
+
 
 
 const isDebug = false
@@ -90,6 +92,27 @@ type TaskData = History & {
 /**
  * global
  */
+const onElementAppear = (element: HTMLElement, index: number) =>
+	spring({
+		config: {
+			stiffness: 10000,
+			damping: 200,
+		},
+		values: {
+			translateY: [-15, 0],
+			opacity: [0, 1]
+		},
+		onUpdate: (value) => {
+			if (typeof value !== 'number') {
+				const { translateY, opacity } = value
+				element.style.opacity = opacity.toString();
+				element.style.transform = `translateY(${translateY}px)`;
+			}
+		},
+		delay: index * 5,
+		onComplete: () => console.log('done')
+	})
+
 const win = remote.getCurrentWindow()
 const main = {
 	console: remote.require('console'),
@@ -721,21 +744,23 @@ export default class App extends React.Component<
 			</div>
 
 		const tasksArea =
-			<div className="display-area">
-				{
-					this.state.datas.map((taskData) => {
-						return (
-							<Task
-								key={ taskData.timestamp }
-								taskData={ taskData }
-								handleStop={ () => this.handleStop(taskData.timestamp) }
-								handleRemove={ () => this.handleRemove(taskData.timestamp) }
-							/>
-						)
-					}).reverse()
-				}
+			<Flipper flipKey={ this.state.datas.length } className='flipper' spring={ { stiffness: 10000, damping: 200 } }>
+				<div className="display-area">
+					{
+						this.state.datas.map((taskData) => {
+							return (
+								<Task
+									key={ taskData.timestamp }
+									taskData={ taskData }
+									handleStop={ () => this.handleStop(taskData.timestamp) }
+									handleRemove={ () => this.handleRemove(taskData.timestamp) }
+								/>
+							)
+						}).reverse()
+					}
 
-			</div>
+				</div>
+			</Flipper>
 		return (
 			<>
 				{ trafficLight }
@@ -1133,12 +1158,14 @@ class Task extends React.Component<
 			</div>
 
 		return (
-			<div className="task">
-				{ leftCol }
-				{ midCol }
-				{ rightCol }
-				{ rightMostCol }
-			</div>
+			<Flipped flipId={ info.timestamp } onAppear={ onElementAppear }>
+				<div className="task">
+					{ leftCol }
+					{ midCol }
+					{ rightCol }
+					{ rightMostCol }
+				</div>
+			</Flipped>
 		);
 	}
 }
