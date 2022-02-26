@@ -24,6 +24,7 @@ $blue: #00c3ff;
 $blueDark: #00ade2;
 $success: #00ff0d;
 $danger: #dc3545;
+$dangerDark: #b82c3a;
 // $darkTrans: rgba(24, 24, 24, 0.931);
 $darkTrans: rgba(40, 44, 52, 0.931);
 
@@ -607,7 +608,9 @@ html {
 						 * 這個多加加,不然坍縮會很怪
 						 */
 						flex-shrink: 0;
-
+						.svgRemoveConfirmed {
+							color: $danger;
+						}
 						&:hover {
 							cursor: pointer;
 
@@ -619,8 +622,10 @@ html {
 							}
 
 							.svgRemove {
-								color: $danger;
-								;
+								color: $primaryDark;
+							}
+							.svgRemoveConfirmed {
+								color: $dangerDark;
 							}
 						}
 					}

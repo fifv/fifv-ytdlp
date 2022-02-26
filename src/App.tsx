@@ -181,8 +181,8 @@ const svgUnmaximize = <CgMinimize />
 const svgMaximize = <VscChromeMaximize />
 const svgUp = <MdOutlineKeyboardArrowUp />
 const svgDown = <MdOutlineKeyboardArrowDown />
-const svgRemove =
-	<IconContext.Provider value={ { className: 'svgRemove' } }>
+const svgRemove = (className = 'svgRemove') =>
+	<IconContext.Provider value={ { className: className } }>
 		<MdOutlineRemove />
 	</IconContext.Provider>
 const svgSuccess =
@@ -537,7 +537,7 @@ export default class App extends React.Component<
 					tabIndex={ -1 } id='minimize'
 					onClick={ () => { win.minimize() } }
 				>
-					{ svgRemove }
+					{ svgRemove() }
 				</button>
 				{
 					// this.state.maximized
@@ -776,6 +776,7 @@ class Task extends React.Component<
 		percentValue?: number,
 
 		status: Status,
+		removeConfirmed: boolean,
 
 	}
 > {
@@ -807,6 +808,7 @@ class Task extends React.Component<
 			percentValue: taskData.percentValue,
 
 			status: taskData.status,
+			removeConfirmed: false,
 		}
 
 		this.childJson = this.props.taskData.processJson
@@ -963,12 +965,23 @@ class Task extends React.Component<
 		// const historyIndex = histories.findIndex((history) => {
 		// 	return history.timestamp === this.props.taskData.timestamp
 		// })
-		const { datas, dataIndex, data } = getCurrentData(histories, this.props.taskData.timestamp)
+		if (!this.state.removeConfirmed) {
+			this.setState((state, props) => ({
+				removeConfirmed: true,
+			}))
+			setTimeout(() => {
+				this.setState((state, props) => ({
+					removeConfirmed: false,
+				}))
+			}, 3000);
+		} else {
+			const { datas, dataIndex, data } = getCurrentData(histories, this.props.taskData.timestamp)
 
-		histories.splice(dataIndex, 1)
-		db.write()
-		console.log('*remove', this.props.taskData.timestamp, ' from db');
-		this.props.handleRemove()
+			histories.splice(dataIndex, 1)
+			db.write()
+			console.log('*remove', this.props.taskData.timestamp, ' from db');
+			this.props.handleRemove()
+		}
 	}
 
 	handleOpenFolder = () => {
@@ -1112,7 +1125,11 @@ class Task extends React.Component<
 
 		const rightMostCol =
 			<div className="rightMostCol" onClick={ info.status === 'downloading' ? this.handleStop : () => this.handleRemove() }>
-				{ info.status === 'downloading' ? svgClose() : svgRemove }
+				{ info.status === 'downloading' ?
+					svgClose()
+					:
+					svgRemove(this.state.removeConfirmed ? 'svgRemoveConfirmed' : 'svgRemove')
+				}
 			</div>
 
 		return (
