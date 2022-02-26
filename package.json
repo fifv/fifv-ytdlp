@@ -1,7 +1,7 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "2.3.2",
+	"version": "2.3.3",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",
@@ -79,6 +79,7 @@
 		"react-dom": "^17.0.2",
 		"react-flip-toolkit": "^7.0.13",
 		"react-icons": "^4.3.1",
+		"react-scrollbars-custom": "^4.0.27",
 		"react-spinners": "^0.11.0",
 		"sass": "^1.49.8",
 		"sass-loader": "^12.6.0",

@@ -45,7 +45,7 @@ import path from 'path';
 import * as remote from '@electron/remote'
 import { isEqual } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
-
+// import { Scrollbar } from "react-scrollbars-custom";
 
 
 const isDebug = false
@@ -745,6 +745,18 @@ export default class App extends React.Component<
 
 		const tasksArea =
 			<Flipper flipKey={ this.state.datas.length } className='flipper' spring={ { stiffness: 10000, damping: 200 } }>
+				{/* <Scrollbar
+					style={ { height: '400px' } }
+					// noDefaultStyles 
+					removeTracksWhenNotUsed
+					disableTracksWidthCompensation
+					// This will activate auto hide
+					// autoHide
+					// // Hide delay in ms
+					// autoHideTimeout={ 1000 }
+					// // Duration for hide animation in ms.
+					// autoHideDuration={ 200 }
+				> */}
 				<div className="display-area">
 					{
 						this.state.datas.map((taskData) => {
@@ -760,6 +772,7 @@ export default class App extends React.Component<
 					}
 
 				</div>
+				{/* </Scrollbar> */ }
 			</Flipper>
 		return (
 			<>

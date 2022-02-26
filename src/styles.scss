@@ -431,6 +431,7 @@ html {
 				 * 只要這一條就能解決爆出來
 				 */
 				overflow-y: scroll;
+				-webkit-app-region: no-drag;
 
 				.display-area {
 					flex-grow: 1;
@@ -439,7 +440,6 @@ html {
 					// margin-bottom: 15px;
 					// font-size: 0.8em;
 					font-size: 15px;
-					-webkit-app-region: no-drag;
 
 					.task {
 						/**
