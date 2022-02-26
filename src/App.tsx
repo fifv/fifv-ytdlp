@@ -950,9 +950,10 @@ class Task extends React.Component<
 
 				default:
 					if (this.state.status !== 'stopped') {
+
 						this.setState((state, props) => ({
 							status: "error",
-							otherInfo: "Failed"
+							otherInfo: this.state.otherInfo && "Failed"
 						}))
 					}
 					break;
@@ -981,7 +982,7 @@ class Task extends React.Component<
 		kill.on('close', () => {
 			this.setState((state, props) => ({
 				status: "stopped",
-				otherInfo: 'Cancelled',
+				otherInfo: this.state.otherInfo && 'Cancelled',
 			}))
 			this.props.handleStop()
 		})
