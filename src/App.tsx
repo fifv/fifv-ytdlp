@@ -994,11 +994,11 @@ class Task extends React.Component<
 			this.setState((state, props) => ({
 				removeConfirmed: true,
 			}))
-			setTimeout(() => {
-				this.setState((state, props) => ({
-					removeConfirmed: false,
-				}))
-			}, 3000);
+			// setTimeout(() => {
+			// 	this.setState((state, props) => ({
+			// 		removeConfirmed: false,
+			// 	}))
+			// }, 3000);
 		} else {
 			const { datas, dataIndex, data } = getCurrentData(histories, this.props.taskData.timestamp)
 
@@ -1149,7 +1149,22 @@ class Task extends React.Component<
 			</div>
 
 		const rightMostCol =
-			<div className="rightMostCol" onClick={ info.status === 'downloading' ? this.handleStop : () => this.handleRemove() }>
+			<div
+				className="rightMostCol"
+				/**
+				 * 點一下變紅,再點一下刪掉
+				 * 滑鼠移開就變白.感覺這樣比等三秒合理
+				 */
+				onClick={ info.status === 'downloading' ? this.handleStop : () => this.handleRemove() }
+				onMouseLeave={
+					() => {
+						// console.log('out');
+						this.setState((state, props) => ({
+							removeConfirmed: false,
+						}))
+					}
+				}
+			>
 				{ info.status === 'downloading' ?
 					svgClose()
 					:
