@@ -25,8 +25,14 @@ const createWindow = () => {
 		/**
 		 * 把transparent:false就會出現奇怪框框,在半透明狀態下非常難看
 		 * 但是此時拖動窗口最大化和最小化動畫都是有的
+		 * 
+		 * 不知為何,新版本(>17,但是改回16也這樣)下,變成了:
+		 * transparent:false下也沒有動畫了,但是反最大化正常,奇怪的框框不見了
+		 * transparent:true會反最大化失敗
+		 * 然後setVibrancy()會強制讓他透明,所以可以transparent:false,讓他最大化能正常
 		 */
-		transparent: true,
+		// transparent: true,
+		// transparent: false,
 		// opacity:0.85,
 		/**
 		 * 很奇怪的顏色設置
@@ -34,7 +40,8 @@ const createWindow = () => {
 		 * 然後這裡在argb裡設置透明度(這裡是argb,css是rgba),在css裡a設為00,這樣有無網頁加載的時候看起來一樣了
 		 * 兩邊顏色設置成一樣的,css裡不設置的話會變成白色,這裡不設置的話網頁加載前後顏色會變
 		 */
-		backgroundColor: '#d9a0b1ff',
+		// backgroundColor: '#d9a0b1ff',藍色
+		backgroundColor: '#00000000',
 		// trafficLightPosition:{沒用
 		// 	x:100,
 		// 	y:100,
@@ -62,6 +69,9 @@ const createWindow = () => {
 			// zoomFactor: 2.0,
 		}
 	})
+	/**
+	 * 這個好像會自動設置transparent: true,
+	 */
 	setVibrancy(win, {
 		// theme:'#a0b1ffd9',
 		effect: 'blur',

@@ -565,19 +565,19 @@ export default class App extends React.Component<
 					{ svgRemove() }
 				</button>
 				{
-					// this.state.maximized
-					// 	?
-					// 	<button tabIndex={ -1 } id='unmaximize'
-					// 		onClick={ this.handleMax }
-					// 	>
-					// 		{ svgUnmaximize }
-					// 	</button>
-					// 	:
-					// 	<button tabIndex={ -1 } id='maximize'
-					// 		onClick={ this.handleMax }
-					// 	>
-					// 		{ svgMaximize }
-					// 	</button>
+					this.state.maximized
+						?
+						<button tabIndex={ -1 } id='unmaximize'
+							onClick={ this.handleMax }
+						>
+							{ svgUnmaximize }
+						</button>
+						:
+						<button tabIndex={ -1 } id='maximize'
+							onClick={ this.handleMax }
+						>
+							{ svgMaximize }
+						</button>
 
 				}
 				<button
