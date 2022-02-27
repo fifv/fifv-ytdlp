@@ -26,7 +26,7 @@ import {
 	MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove,
 	MdOutlineCheck, MdClose, MdPlayArrow, MdOutlineInsertPhoto, MdInfo,
 	MdOutlineSubtitles, MdSubtitles, MdOutlineFolder, MdFormatPaint,
-	MdHistory, MdOutlineContentPaste,
+	MdHistory, MdOutlineContentPaste, MdDownload, MdDownloadDone,
 
 } from 'react-icons/md'
 import { VscChromeMaximize } from 'react-icons/vsc'
@@ -114,7 +114,24 @@ const onElementAppear = (element: HTMLElement, index: number) =>
 		delay: index * 5,
 		onComplete: () => console.log('done')
 	})
+const onElementExit = (element: HTMLElement, index: number, removeElement: () => void) => {
+	spring({
+		// config: { stiffness: 68000, damping: 2220 },//高速
+		// config: { stiffness: 600, damping: 20 },
+		// config: { stiffness: 10000, damping: 500, },
+		config: { stiffness: 10000, damping: 200, },
+		onUpdate: (val) => {
+			if (typeof val === 'number') {
 
+				element.style.opacity = `${1 - val}`;
+				// element.style.transform = `scaleY(${1 - val})`;
+				// console.log(val, index)
+			}
+		},
+		// delay: index * 10,   
+		onComplete: () => { removeElement() },
+	})
+};
 const win = remote.getCurrentWindow()
 const main = {
 	console: remote.require('console'),
@@ -129,6 +146,7 @@ const { histories } = db.data
 let historiesComp = histories.slice()
 setInterval(() => {
 	if (!isEqual(histories, historiesComp)) {
+		// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
 		db.write()
 		historiesComp = histories.slice()
 	}
@@ -143,14 +161,24 @@ const quotePath = (path: string) => {
 		return '"' + path + '"'
 	}
 }
+/**
+ * 千萬注意若找不到,dataIndex === -1 ,這個**必須**處理,否則會出現恐怖的結果!!!
+ * 如果引用state的話,注意用slice(),直接改state是不太好的
+ */
 const getCurrentData = (datas: TaskData[], timestamp: number) => {
 	/**
+	 * datas也是引用,所以如果引用state的話,直接改state是不太好的
 	 * data應該是引用,對他修改會直接導致datas發生變化
 	 * 當然data = ??? 這種應該會導致引用跑掉
 	 */
 	const dataIndex = datas.findIndex((data) => (timestamp === data.timestamp))
 	const data = datas[dataIndex]
-	return { datas, dataIndex, data }
+	return {
+		datas,
+		dataIndex,
+		data,
+		datasSliced: datas.slice(),
+	}
 }
 const store = new ElectronStore({
 	defaults: {
@@ -165,6 +193,8 @@ const store = new ElectronStore({
 		saveAllSubtitles: false,
 		isUseLocalYtdlp: false,
 		contentSelector: 'video',
+		isDisplayFinished: true,
+		isDisplayDownloading: true,
 
 		proxyHost: 'http://127.0.0.1:1080',
 		cookieFile: 'cookiejar.txt',
@@ -192,6 +222,8 @@ const svgLoaderHash = <HashLoader size={ 10 } color="white" />
 const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
 const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
 
+const svgDownload = <MdDownload />
+const svgDownloadDone = <MdDownloadDone />
 const svgPaste = <MdOutlineContentPaste />
 const svgNetwork = <BsHddNetwork />
 const svgHistory = <MdHistory />
@@ -248,6 +280,8 @@ export default class App extends React.Component<
 		saveAutoSubtitle: boolean,
 		saveAllSubtitles: boolean,
 		isUseLocalYtdlp: boolean,
+		isDisplayDownloading: boolean,
+		isDisplayFinished: boolean,
 
 		contentSelector: 'video' | 'audio' | 'skip'
 
@@ -264,7 +298,7 @@ export default class App extends React.Component<
 		this.state = {
 			urlInput: '',
 			// processes: store.get('taskHistories').sort((a: TaskHistory, b: TaskHistory) => a.timestamp - b.timestamp),
-			datas: histories ?? [],
+			datas: histories ? histories.slice() : [],
 			maximized: false,
 
 			isSpecifyDownloadPath: store.get('isSpecifyDownloadPath'),
@@ -278,6 +312,8 @@ export default class App extends React.Component<
 			saveAllSubtitles: store.get('saveAllSubtitles'),
 			isUseLocalYtdlp: store.get('isUseLocalYtdlp'),
 			contentSelector: store.get('contentSelector', 'video') as 'video' | 'audio' | 'skip',
+			isDisplayDownloading: store.get('isDisplayDownloading'),
+			isDisplayFinished: store.get('isDisplayFinished'),
 
 			proxyHost: store.get('proxyHost'),
 			cookieFile: store.get('cookieFile'),
@@ -385,20 +421,24 @@ export default class App extends React.Component<
 
 
 	}
-	handleStop = (timestamp: number) => {
+	reportStatus = (timestamp: number, status: Status) => {
 		// const success = this.state.process?.kill()
 		// if (success) {
 		// 	this.setState({
 		// 		process: null,
 		// 	})
 		// }
-		console.log(`*child ${timestamp} report closed`);
-		const { datas, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+		console.log('*child report', `[${status}]`, ':', timestamp,);
+		const { datasSliced, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+
 		// const datas = this.state.datas
 		// const dataIndex = datas.findIndex((data) => { return data.timestamp === timestamp })
-		data.status = 'stopped'
+		if (dataIndex === -1) {
+			console.error('*Should be found in state.datas but failed!:', timestamp,);
+		}
+		data.status = status
 		this.setState((state, props) => ({
-			datas: datas,
+			datas: datasSliced,
 		}))
 		// this.setState((state, props) => ({
 		// 	closedCount: state.closedCount + 1,
@@ -419,20 +459,42 @@ export default class App extends React.Component<
 		// }))
 	}
 	handleRemove = (timestamp: number) => {
-		console.log('*task', timestamp, 'removed');
 
-		this.setState((state, props) => {
-			// const processes = state.datas
-			// const i = processes.findIndex(
-			// 	(process) => process.timestamp === timestamp
-			// )
-			const { datas, dataIndex, data } = getCurrentData(state.datas, timestamp)
+		const { datasSliced, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+		// console.log('BEFORE:this.state.datas:', this.state.datas);
+		// console.log('BEFORE:datas:', datasSliced);
 
-			datas.splice(dataIndex, 1)
-			return {
-				datas: datas
-			}
-		})
+		// console.log('dataIndex:',dataIndex);
+		if (dataIndex !== -1) {
+			/**
+			 * 如果直接改datas,相當於改state,這不好.
+			 * 雖然其實這裡不會出錯,但是會大幅增加出錯的概率
+			 */
+			const removed = datasSliced.splice(dataIndex, 1)
+			// console.log('AFTER:this.state.datas:', this.state.datas);
+			// console.log('AFTER:datas:', datasSliced);
+
+
+			/**
+			 * 這裡不知道怎麼回事
+			 * dataIndex是錯的
+			 * 因為會有-1啊!!!
+			 * 
+			 * 理論上
+			 */
+			console.log('*task removed:', timestamp, removed,);
+			this.setState((state, props) => {
+				// const processes = state.datas
+				// const i = processes.findIndex(
+				// 	(process) => process.timestamp === timestamp
+				// )
+				return {
+					datas: datasSliced,
+				}
+			})
+		} else {
+			console.error('*Should be found in state.datas but failed!:', timestamp,);
+		}
 		// const taskHistories = store.get('taskHistories')
 		// taskHistories.splice(taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === timestamp))
 		// store.set('taskHistories', taskHistories)
@@ -553,6 +615,12 @@ export default class App extends React.Component<
 			store.set(id, value)
 		}
 	}
+	getStatusCount = (status: Status = 'downloading') => {
+		const count = this.state.datas.reduce((count, data) => {
+			return data.status === status ? count + 1 : count
+		}, 0)
+		return count
+	}
 	render() {
 
 
@@ -609,9 +677,7 @@ export default class App extends React.Component<
 			/**
 			 * TO\DO: make the spinner work well
 			 */
-			!!this.state.datas.reduce((count, data) => {
-				return data.status === 'downloading' ? count + 1 : count
-			}, 0) &&
+			!!this.getStatusCount('downloading') &&
 			<div className='totalLoader'>
 				{ svgLoaderPuff }
 			</div>
@@ -710,14 +776,31 @@ export default class App extends React.Component<
 				{ buttonName }
 			</div>
 		}
+		const displaySelectorOption = (id: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element) => {
+			if (!buttonName) {
+				buttonName = id.replace(/([A-Z])/g, ' $1')
+				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
+			}
+			return <div
+				className={ classNames("selectorOption", { 'checked': this.state[id] }) }
+				id={ id }
+				onClick={ this.handleClick } >
+				{ buttonName }
+			</div>
+		}
+		const displaySelector =
+			<div className="selector">
+				{ displaySelectorOption('isDisplayDownloading', svgDownload) }
+				{ displaySelectorOption('isDisplayFinished', svgDownloadDone) }
+			</div>
 		const contentSelector =
-			<div className="contentSelector">
+			<div className="selector">
 				{ contentSelectorOption('video', svgVideo) }
 				{ contentSelectorOption('audio', svgMusic) }
 				{ contentSelectorOption('skip', svgClose()) }
 			</div>
 		const bonusSelector =
-			<div className="bonusSelector">
+			<div className="selector">
 				{ bonusSelectorOption('saveThumbnail', svgPhoto) }
 				{ bonusSelectorOption('saveSubtitles', svgSubtitle) }
 				{ bonusSelectorOption('saveAutoSubtitle', svgSubtitleFill) }
@@ -727,6 +810,7 @@ export default class App extends React.Component<
 			<div className="optionsArea">
 				<div className="selectors">
 					{ contentSelector }
+					{ displaySelector }
 					{ bonusSelector }
 				</div>
 				<div className="options">
@@ -746,14 +830,18 @@ export default class App extends React.Component<
 			</div>
 
 		const tasksArea =
-			<Flipper flipKey={ this.state.datas.length } className='flipper' spring={ { stiffness: 10000, damping: 200 } }>
+			<Flipper
+				flipKey={ this.state.datas.length + +this.state.isDisplayDownloading + +this.state.isDisplayFinished + this.getStatusCount('downloading') }
+				className='flipper'
+				spring={ { stiffness: 10000, damping: 200 } }
+			>
 				<Scrollbars
 					style={ { height: '100%',/* right:'3%' */ } }
 					// noDefaultStyles 
 					// removeTracksWhenNotUsed
 					// disableTracksWidthCompensation
 
-					renderTrackVertical={props => <div {...props} className="scrollbarTrackVertical"/>}
+					renderTrackVertical={ props => <div { ...props } className="scrollbarTrackVertical" /> }
 					hideTracksWhenNotNeeded
 					// autoHeight
 					autoHide
@@ -765,9 +853,10 @@ export default class App extends React.Component<
 							this.state.datas.map((taskData) => {
 								return (
 									<Task
+										isDisplay={ taskData.status === 'finished' ? this.state.isDisplayFinished : this.state.isDisplayDownloading }
 										key={ taskData.timestamp }
 										taskData={ taskData }
-										handleStop={ () => this.handleStop(taskData.timestamp) }
+										reportStatus={ (status) => this.reportStatus(taskData.timestamp, status) }
 										handleRemove={ () => this.handleRemove(taskData.timestamp) }
 									/>
 								)
@@ -795,8 +884,9 @@ export default class App extends React.Component<
 
 class Task extends React.Component<
 	{
+		isDisplay: boolean,
 		taskData: TaskData
-		handleStop: () => void
+		reportStatus: (status: Status) => void
 		handleRemove: () => void
 	},
 	{
@@ -854,10 +944,16 @@ class Task extends React.Component<
 
 		this.childJson = this.props.taskData.processJson
 		this.childJson?.stdout?.on('data', (data: Buffer) => {
-			const infoJson = JSON.parse(decode(data, 'gbk'))
+			// console.log('json:', typeof data, data);
+			let infoJson: any | null
+			try {
+				infoJson = JSON.parse(decode(data, 'gbk'))
+			} catch {
+				infoJson = null
+			}
 			if (infoJson) {
 
-				console.log('*json:', infoJson);
+				// console.log('*json:', infoJson);
 				const title = infoJson['fulltitle']
 				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
 				const fileSizeValue = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
@@ -935,8 +1031,8 @@ class Task extends React.Component<
 			}))
 		})
 		this.child?.on('close', (code) => {
-			console.log('*process close:', code);
-			this.props.handleStop()
+			console.log('*process close with code', `[${code}]`, ':', this.props.taskData.timestamp);
+
 			/**
 			 * seems that 0 === finished
 			 * null === kill()
@@ -946,6 +1042,7 @@ class Task extends React.Component<
 			 */
 			switch (code) {
 				case 0:
+					this.props.reportStatus('finished')
 					this.setState((state, props) => ({
 						status: "finished",
 						otherInfo: 'Finished',
@@ -966,7 +1063,7 @@ class Task extends React.Component<
 
 				default:
 					if (this.state.status !== 'stopped') {
-
+						this.props.reportStatus('error')
 						this.setState((state, props) => ({
 							status: "error",
 							otherInfo: this.state.otherInfo && "Failed"
@@ -1000,13 +1097,20 @@ class Task extends React.Component<
 				status: "stopped",
 				otherInfo: this.state.otherInfo && 'Cancelled',
 			}))
-			this.props.handleStop()
+			/**
+			 * 上面的handleStop()只幹了一件事:把status設為stopped,以便於統計
+			 * 不能排除這裡按了,但是沒有觸發onClose的event的情況
+			 * 這邊直接來一發就能確保了
+			 * 不過會出現手動按叉叉會執行兩遍this.props.handleStop()的情況,不過無傷大雅
+			 */
+			this.props.reportStatus('stopped')
 		})
 	}
 	handleRemove = () => {
 		// const historyIndex = histories.findIndex((history) => {
 		// 	return history.timestamp === this.props.taskData.timestamp
 		// })
+		const timestamp = this.props.taskData.timestamp
 		if (!this.state.removeConfirmed) {
 			this.setState((state, props) => ({
 				removeConfirmed: true,
@@ -1017,12 +1121,16 @@ class Task extends React.Component<
 			// 	}))
 			// }, 3000);
 		} else {
-			const { datas, dataIndex, data } = getCurrentData(histories, this.props.taskData.timestamp)
+			const { dataIndex, } = getCurrentData(histories, timestamp)
 
-			histories.splice(dataIndex, 1)
-			db.write()
-			console.log('*remove', this.props.taskData.timestamp, ' from db');
-			this.props.handleRemove()
+			if (dataIndex !== -1) {
+				const removed = histories.splice(dataIndex, 1)
+				db.write()
+				console.log('*remove from db:', timestamp, removed,);
+				this.props.handleRemove()
+			} else {
+				console.error('*Should be found in histories but failed!:', timestamp,);
+			}
 		}
 	}
 
@@ -1083,6 +1191,7 @@ class Task extends React.Component<
 		// const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
 		const { dataIndex } = getCurrentData(histories, info.timestamp)
 		if (dataIndex === -1) {
+			console.log('*not in histories and will be added:', info.timestamp,);
 			histories.push(taskHistory)
 		} else {
 			histories[dataIndex] = taskHistory
@@ -1190,7 +1299,8 @@ class Task extends React.Component<
 			</div>
 
 		return (
-			<Flipped flipId={ info.timestamp } onAppear={ onElementAppear }>
+			this.props.isDisplay &&
+			<Flipped flipId={ info.timestamp } onAppear={ onElementAppear } /* onExit={ onElementExit } */>
 				<div className="task">
 					{ leftCol }
 					{ midCol }
