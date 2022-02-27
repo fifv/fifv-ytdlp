@@ -30,8 +30,11 @@ const createWindow = () => {
 		 * transparent:false下也沒有動畫了,但是反最大化正常,奇怪的框框不見了
 		 * transparent:true會反最大化失敗
 		 * 然後setVibrancy()會強制讓他透明,所以可以transparent:false,讓他最大化能正常
+		 * 
+		 * 直接start和生成出來的差很多誒
+		 * 目前transparent: true的dist可以正常最大化(start不行),也沒有怪框框
 		 */
-		// transparent: true,
+		transparent: true,
 		// transparent: false,
 		// opacity:0.85,
 		/**

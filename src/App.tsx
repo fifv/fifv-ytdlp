@@ -646,7 +646,6 @@ export default class App extends React.Component<
 						>
 							{ svgMaximize }
 						</button>
-
 				}
 				<button
 					tabIndex={ -1 } id='close'
