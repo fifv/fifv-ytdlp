@@ -112,7 +112,7 @@ const onElementAppear = (element: HTMLElement, index: number) =>
 			}
 		},
 		delay: index * 5,
-		onComplete: () => console.log('done')
+		// onComplete: () => console.log('done')
 	})
 const onElementExit = (element: HTMLElement, index: number, removeElement: () => void) => {
 	spring({
