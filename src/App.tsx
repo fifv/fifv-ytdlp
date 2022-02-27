@@ -152,7 +152,6 @@ setInterval(() => {
 	}
 }, 1000)
 // db.write()
-console.log('*yt-dlp bin path:', path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'));
 // console.log(main.app.getPath('exe'));
 const quotePath = (path: string) => {
 	if ((path[0] === `'` && path[path.length - 1] === `'`) || (path[0] === `"` && path[path.length - 1] === `"`)) {
@@ -383,13 +382,14 @@ export default class App extends React.Component<
 		ytdlpOptions.push(urlInput)
 		const ytdlpCommand = this.state.isUseLocalYtdlp ?
 			/**
-			 * 使用py要比用standalone快得多
-			 * 各種不同的py版本很奇怪.總之啟用shell:true以及taskkill應該就ok了
-			 */
+				 * 使用py要比用standalone快得多
+				 * 各種不同的py版本很奇怪.總之啟用shell:true以及taskkill應該就ok了
+				 */
 			'yt-dlp'
 			// 'D:/usr/bin/yt-dlp#.exe'
 			:
-			path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe')
+			'"' + path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe') + '"'
+		console.log('*yt-dlp command:', ytdlpCommand);
 
 		// console.log(__dirname,'yt-dlp.exe');
 		const child = spawn(
