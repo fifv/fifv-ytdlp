@@ -1,6 +1,7 @@
 /build
 /out
 /dist
+node_modules
 *.webp
 *.webm
 *.webp.part

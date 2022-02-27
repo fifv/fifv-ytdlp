@@ -5,6 +5,7 @@ const { app, BrowserWindow, } = require('electron');
 const path = require('path');
 const ElectronStore = require('electron-store');
 const { setVibrancy } = require('electron-acrylic-window')
+// console.log(app.getPath('exe'));
 
 if (app.getPath('exe').includes('electron.exe')) {
 	/**
