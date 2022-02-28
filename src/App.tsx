@@ -1113,7 +1113,7 @@ class Task extends React.Component<
 		})
 	}
 	handleContextClick = (e: React.MouseEvent, data: ContextData) => {
-		console.log('*context data:',data);
+		console.log('*context data:', data);
 		data.action && data.action()
 	}
 	handleRemove = () => {
@@ -1287,7 +1287,7 @@ class Task extends React.Component<
 					onDoubleClick: this.handleOpenFolder,
 				} }
 			>
-				{ rightcolContext }
+
 				{/* <div className="rightcol" onDoubleClick={ this.handleOpenFolder }> */ }
 				{ infoDiv(info.title ?? this.props.taskData.urlInput, 'infoTitle', svgRight) }
 				{ ((info.percentValue && !isNaN(info.percentValue)) || isDebug) && progressBar }
@@ -1332,15 +1332,25 @@ class Task extends React.Component<
 			</div>
 
 		return (
-			this.props.isDisplay &&
-			<Flipped flipId={ info.timestamp } onAppear={ onElementAppear } /* onExit={ onElementExit } */>
-				<div className="task">
-					{ leftCol }
-					{ midCol }
-					{ rightCol }
-					{ rightMostCol }
-				</div>
-			</Flipped>
+			<>
+				{ this.props.isDisplay &&
+					<Flipped flipId={ info.timestamp } onAppear={ onElementAppear } /* onExit={ onElementExit } */>
+						<div className="task">
+							{ leftCol }
+							{ midCol }
+							{ rightCol }
+							{ rightMostCol }
+						</div>
+					</Flipped>
+				}
+				{
+					/**
+					 * 這個如果unmount的話會出現詭異的bug,那就不要讓他unmount好了
+					 * 然後他在這個位置之後,就不會隨著列表滾動了
+					 */
+					rightcolContext
+				}
+			</>
 		);
 	}
 }
