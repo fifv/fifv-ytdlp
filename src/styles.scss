@@ -681,13 +681,98 @@ html {
 	}
 }
 
+.react-contextmenu {
+	/**
+	 * 直接套用sample,稍微改了點
+	 */
+	background-color: $secondary;
+	// border: 1px solid $secondary;
+	border: 0;
+	border-radius: 4px;
+	// color: $primary;
+	// font-size: 16px;
+	margin: 2px 0 0;
+	min-width: 160px;
+	outline: none;
+	opacity: 0;
+	padding: 5px 0;
+	pointer-events: none;
+	text-align: left;
+	transition: opacity 100ms ease !important;
+
+	&.react-contextmenu--visible {
+		opacity: 1;
+		pointer-events: auto;
+		z-index: 9999;
+	}
+
+	.react-contextmenu-item {
+		border: 0;
+		color: $primary;
+		font-size: 13px;
+		cursor: pointer;
+		// font-weight: 400;
+		line-height: 1.5;
+		padding: 3px 20px;
+		text-align: inherit;
+		white-space: nowrap;
+
+		&.react-contextmenu-item--active,
+		&.react-contextmenu-item--selected {
+			color: #fff;
+			background-color: $secondaryDarkDark;
+			// border-color: #20a0ff;
+			text-decoration: none;
+		}
+
+		&.react-contextmenu-item--disabled,
+		&.react-contextmenu-item--disabled:hover {
+			background-color: transparent;
+			border-color: rgba(0, 0, 0, .15);
+			color: #878a8c;
+		}
+
+		
+		&.react-contextmenu-submenu {
+			padding: 0;
+		}
+		
+		&.react-contextmenu-submenu>.react-contextmenu-item {}
+		
+		&.react-contextmenu-submenu>.react-contextmenu-item:after {
+			content: "▶";
+			display: inline-block;
+			position: absolute;
+			right: 7px;
+		}
+		
+	}
+	.example-multiple-targets::after {
+		content: attr(data-count);
+		display: block;
+	}
+	
+	.react-contextmenu-item--divider {
+		border-bottom: 1px solid rgba(0, 0, 0, .15);
+		cursor: inherit;
+		margin-bottom: 3px;
+		padding: 2px 0;
+	}
+	
+	.react-contextmenu-item--divider:hover {
+		background-color: transparent;
+		border-color: rgba(0, 0, 0, .15);
+	}
+}
+
 .scrollbarTrackVertical {
 	right: 3%;
-    top: 0;
+	top: 0;
 	// bottom: 5px;
-    height: 100%;
-    border-radius: 3px;
+	height: 100%;
+	border-radius: 3px;
 }
+
 ::-webkit-scrollbar {
 	/*滚动条整体样式*/
 	/* 詭異,react-custom-scrollbars會吃這個,0px就消失.但是1px就沒問題 */

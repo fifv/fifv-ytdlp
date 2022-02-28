@@ -47,6 +47,8 @@ import { isEqual, isNumber } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
 import { Scrollbars } from 'react-custom-scrollbars';
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+
 
 
 
@@ -69,6 +71,11 @@ type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
 type Status = "finished" | "stopped" | "downloading" | "error"
+type ContextData = {
+	inputUrl?: string,
+	actionId?: string,
+	action?: () => void,
+}
 type History = {
 	timestamp: number,
 	urlInput: string,
@@ -1105,6 +1112,10 @@ class Task extends React.Component<
 			this.props.reportStatus('stopped')
 		})
 	}
+	handleContextClick = (e: React.MouseEvent, data: ContextData) => {
+		console.log('*context data:',data);
+		data.action && data.action()
+	}
 	handleRemove = () => {
 		// const historyIndex = histories.findIndex((history) => {
 		// 	return history.timestamp === this.props.taskData.timestamp
@@ -1255,8 +1266,29 @@ class Task extends React.Component<
 				{ infoDiv(info.speed, 'infoSpeed') }
 				{ infoDiv(info.etaString, 'infoEta') }
 			</div>
+		const rightcolContext =
+			<ContextMenu id={ "rightcolContext" + info.timestamp } hideOnLeave>
+				{ info.urlInput &&
+					<MenuItem data={ { actionId: 'copyUrl', action: () => { clipboard.writeText(info.urlInput) }, info: info } as ContextData } onClick={ this.handleContextClick }>
+						Copy Url: { info.urlInput }
+					</MenuItem>
+				}
+				{ info.destPath &&
+					<MenuItem data={ { actionId: 'openFolder', action: this.handleOpenFolder } as ContextData } onClick={ this.handleContextClick }>
+						Open In Explorer
+					</MenuItem>
+				}
+			</ContextMenu>
 		const rightCol =
-			<div className="rightcol" onDoubleClick={ this.handleOpenFolder }>
+			<ContextMenuTrigger
+				id={ "rightcolContext" + info.timestamp }
+				attributes={ {
+					className: 'rightcol',
+					onDoubleClick: this.handleOpenFolder,
+				} }
+			>
+				{ rightcolContext }
+				{/* <div className="rightcol" onDoubleClick={ this.handleOpenFolder }> */ }
 				{ infoDiv(info.title ?? this.props.taskData.urlInput, 'infoTitle', svgRight) }
 				{ ((info.percentValue && !isNaN(info.percentValue)) || isDebug) && progressBar }
 				{ !!info.otherInfo &&
@@ -1271,7 +1303,9 @@ class Task extends React.Component<
 						<span> { info.errorInfo }</span>
 					</div>
 				}
-			</div>
+				{/* </div> */ }
+
+			</ContextMenuTrigger>
 
 		const rightMostCol =
 			<div
