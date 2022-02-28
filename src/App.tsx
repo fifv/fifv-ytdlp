@@ -43,7 +43,7 @@ import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
-import { isEqual } from 'lodash-es';
+import { isEqual, isNumber } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
 import { Scrollbars } from 'react-custom-scrollbars';
@@ -362,7 +362,7 @@ export default class App extends React.Component<
 		const ytdlpOptions: string[] = [];
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
-		ytdlpOptions.push('-r', '5K') //調試用降速
+		// ytdlpOptions.push('-r', '5K') //調試用降速
 		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
@@ -1248,7 +1248,7 @@ class Task extends React.Component<
 				{ statusIndicator }
 			</div>
 		const midCol =
-			info.percentValue &&
+			isNumber(info.percentValue) &&
 			<div className="midcol">
 				{ infoDiv(info.percentValue + '%', 'infoPercent') }
 				{ infoDiv(info.fileSizeString, 'infoSize') }
