@@ -792,8 +792,8 @@ export default class App extends React.Component<
 		}
 		const displaySelector =
 			<div className="selector">
-				{ checkOption('isDisplayDownloading', svgDownload, 'Show Downloading or Failed') }
-				{ checkOption('isDisplayFinished', svgDownloadDone, 'Show Finished') }
+				{ checkOption('isDisplayDownloading', svgDownload, 'Show Tasks Downloading or Failed') }
+				{ checkOption('isDisplayFinished', svgDownloadDone, 'Show Tasks Finished') }
 			</div>
 		const contentSelector =
 			<div className="selector">
@@ -816,7 +816,7 @@ export default class App extends React.Component<
 					{ bonusSelector }
 				</div>
 				<div className="options">
-					{ optionWithInput('isSpecifyDownloadPath', 'Enable to download to the specific path. Otherwise to where the app exists', svgFolder, 'Open folder, depending on your setting', 'destPath', 'openDir',) }
+					{ optionWithInput('isSpecifyDownloadPath', 'Enable to download at the specific path. Otherwise at where the app exists', svgFolder, 'Open folder, depending on your setting', 'destPath', 'openDir',) }
 					{ optionWithInput('isProxy', 'Enable to use proxy. support http and socks5, but http is recomended', svgNetwork, '', 'proxyHost',) }
 					{ optionWithInput('isUseCookie', 'Enable to use cookie', svgCookie, 'Open specified cookie file', 'cookieFile', 'openCookie',) }
 					{ optionWithInput('isUseHistory', 'Enable to use history file. If downloaded and recorded in history file, it will not be downloaded twice', svgHistory, 'Open specified history file', 'historyFile', 'openHistory',) }
