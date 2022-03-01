@@ -81,6 +81,24 @@ $darkTrans: rgba(40, 44, 52, 0.931);
 	}
 }
 
+@mixin selectorOption {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+
+	padding: 8px;
+	border: 1px solid $secondary;
+	cursor: pointer;
+
+	&.checked {
+		color: $primary;
+		background-color: $secondary;
+	}
+}
+
 html {
 	min-height: 100vh;
 	-webkit-app-region: drag;
@@ -268,28 +286,7 @@ html {
 				@include inputGroup();
 
 				.selectorOption {
-					display: flex;
-					flex-direction: row;
-					flex-wrap: nowrap;
-					justify-content: center;
-					align-content: center;
-					align-items: center;
-
-					cursor: pointer;
-					border: 1px solid $secondary;
-					padding: 8px;
-
-					// &:hover {
-					// 	color: $primary;
-					// 	background-color: inherit;
-					// }
-
-					&.checked {
-
-						color: $primary;
-						background-color: $secondary;
-						// border: 0;
-					}
+					@include selectorOption();
 				}
 
 				.btn-check:checked+.selectorOption {
@@ -299,48 +296,6 @@ html {
 			}
 		}
 
-		// .option {
-		// 	margin-bottom: 5px;
-
-		// 	* {
-		// 		border-color: $primary;
-		// 		// color: $primary;
-		// 	}
-
-		// 	input[type=text] {
-		// 		// display: inline;
-		// 		background-color: transparent;
-		// 	}
-
-		// 	input[type=checkbox] {
-		// 		cursor: pointer;
-		// 	}
-
-		// 	label#destPath,
-		// 	label#historyFile,
-		// 	label#cookieFile {
-		// 		cursor: pointer;
-
-		// 		&:hover {
-		// 			// background-color: $danger;
-		// 			text-shadow: 0px 0px 15px rgb(229, 255, 0);
-		// 			// color: rgb(255, 208, 208);
-		// 		}
-		// 	}
-
-
-		// 	.check-container {
-		// 		border-bottom-left-radius: 4px !important;
-		// 		border-top-left-radius: 4px !important;
-		// 	}
-
-		// 	svg {
-		// 		width: 16px;
-		// 		height: 16px;
-		// 	}
-
-
-		// }
 
 		.options {
 			display: flex;
@@ -371,23 +326,8 @@ html {
 
 				@include inputGroup();
 
-				.checkButton {
-					// @include btn();
-					display: flex;
-					flex-direction: row;
-					flex-wrap: nowrap;
-					justify-content: center;
-					align-content: center;
-					align-items: center;
-
-					padding: 8px;
-					border: 1px solid $secondary;
-
-					cursor: pointer;
-
-					&.checked {
-						background-color: $secondary;
-					}
+				.selectorOption {
+					@include selectorOption();
 				}
 
 				.promptButton {
@@ -732,33 +672,34 @@ html {
 			color: #878a8c;
 		}
 
-		
+
 		&.react-contextmenu-submenu {
 			padding: 0;
 		}
-		
+
 		&.react-contextmenu-submenu>.react-contextmenu-item {}
-		
+
 		&.react-contextmenu-submenu>.react-contextmenu-item:after {
 			content: "▶";
 			display: inline-block;
 			position: absolute;
 			right: 7px;
 		}
-		
+
 	}
+
 	.example-multiple-targets::after {
 		content: attr(data-count);
 		display: block;
 	}
-	
+
 	.react-contextmenu-item--divider {
 		border-bottom: 1px solid rgba(0, 0, 0, .15);
 		cursor: inherit;
 		margin-bottom: 3px;
 		padding: 2px 0;
 	}
-	
+
 	.react-contextmenu-item--divider:hover {
 		background-color: transparent;
 		border-color: rgba(0, 0, 0, .15);
@@ -771,6 +712,28 @@ html {
 	// bottom: 5px;
 	height: 100%;
 	border-radius: 3px;
+}
+
+.tippy-box {
+	$background: $secondaryDarkDark;
+
+	background: $background !important;
+
+	&[data-placement^='top']>.tippy-arrow::before {
+		border-top-color: $background !important;
+	}
+
+	&[data-placement^='bottom']>.tippy-arrow::before {
+		border-bottom-color: $background !important;
+	}
+
+	&[data-placement^='left']>.tippy-arrow::before {
+		border-left-color: $background !important;
+	}
+
+	&[data-placement^='right']>.tippy-arrow::before {
+		border-right-color: $background !important;
+	}
 }
 
 ::-webkit-scrollbar {

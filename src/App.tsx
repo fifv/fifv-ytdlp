@@ -48,7 +48,8 @@ import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
 import { Scrollbars } from 'react-custom-scrollbars';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
-
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css'; // optional
 
 
 
@@ -718,15 +719,15 @@ export default class App extends React.Component<
 		// 	[key in keyof App['state']]: App['state'][key] extends boolean ? key : never
 		// }[keyof App['state']]
 
-		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
+		const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, checkboxPopupContent?: string, buttonContent?: string | JSX.Element, buttonPopupContent?: string, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
 			/**
 			 * if no buttonName provided, checkboxId will be used
 			 * if no placeholder provided, textInputId will be used
 			 * these ids are used as the html id and state name
 			 */
-			if (!buttonName) {
-				buttonName = checkboxId.replace(/([A-Z])/g, ' $1')
-				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
+			if (!buttonContent) {
+				buttonContent = checkboxId.replace(/([A-Z])/g, ' $1')
+				buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
 			}
 			if (!placeholder && textInputId) {
 				placeholder = textInputId.replace(/([A-Z])/g, ' $1')
@@ -737,79 +738,74 @@ export default class App extends React.Component<
 			 * TO\DO:make options beautiful
 			 */
 			return (
-				// <div className=" col-12 col-sm-6 col-xl-4">
 				<div className="optionWithInput">
-					<div className={ classNames('checkButton', { 'checked': this.state[checkboxId] }) } id={ checkboxId } onClick={ this.handleClick } >{ svgSuccess }</div>
-
-					<div
-						id={ buttonId }
-						// type='button'
-						className={ classNames(
-							"promptButton",
-							{ 'clickAble': buttonId },
-							{ 'noTextInput': !textInputId },
-						) }
-						/* htmlFor={ id } */
-						onClick={ buttonId ? this.handleClick : undefined }
-						tabIndex={ -1 }
-					>{ buttonName }</div>
+					{ checkOption(checkboxId, svgSuccess, checkboxPopupContent) }
+					<Tippy content={ buttonPopupContent } disabled={ !buttonPopupContent }>
+						<div
+							id={ buttonId }
+							// type='button'
+							className={ classNames(
+								"promptButton",
+								{ 'clickAble': buttonId },
+								{ 'noTextInput': !textInputId },
+							) }
+							/* htmlFor={ id } */
+							onClick={ buttonId ? this.handleClick : undefined }
+							tabIndex={ -1 }
+						>{ buttonContent }</div>
+					</Tippy>
 
 					{ textInputId &&
 						<input tabIndex={ -1 } type="text" className="input" value={ this.state[textInputId] } onChange={ this.handleInputChange } id={ textInputId } placeholder={ placeholder } />
 					}
 				</div>
-				// </div>
 			)
 		}
-		const contentSelectorOption = (id: 'video' | 'audio' | 'skip', buttonName?: string | JSX.Element) => {
-			return <div
-				className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) }
-				id={ id }
-				onClick={ this.handleClick }
-			>
-				{ buttonName || id.toUpperCase() }
-			</div>
-		}
-		const bonusSelectorOption = (id: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element) => {
-			if (!buttonName) {
-				buttonName = id.replace(/([A-Z])/g, ' $1')
-				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
+		const radioOption = (id: 'video' | 'audio' | 'skip', buttonContent?: string | JSX.Element, popupContent?: string,) => {
+			if (!buttonContent) {
+				buttonContent = id.replace(/([A-Z])/g, ' $1')
+				buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
 			}
-			return <div
-				className={ classNames("selectorOption", { 'checked': this.state[id] }) }
-				id={ id }
-				onClick={ this.handleClick } >
-				{ buttonName }
-			</div>
+			return <Tippy content={ popupContent } disabled={ !popupContent }>
+				<div
+					className={ classNames("selectorOption contentSelectorOption", { 'checked': this.state.contentSelector === id }) }
+					id={ id }
+					onClick={ this.handleClick }
+				>
+					{ buttonContent }
+				</div>
+			</Tippy>
 		}
-		const displaySelectorOption = (id: KeyofType<App['state'], boolean>, buttonName?: string | JSX.Element) => {
-			if (!buttonName) {
-				buttonName = id.replace(/([A-Z])/g, ' $1')
-				buttonName = buttonName[0].toUpperCase() + buttonName.slice(1)
+		const checkOption = (id: KeyofType<App['state'], boolean>, buttonContent?: string | JSX.Element, popupContent?: string) => {
+			if (!buttonContent) {
+				buttonContent = id.replace(/([A-Z])/g, ' $1')
+				buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
 			}
-			return <div
-				className={ classNames("selectorOption", { 'checked': this.state[id] }) }
-				id={ id }
-				onClick={ this.handleClick } >
-				{ buttonName }
-			</div>
+			return <Tippy content={ popupContent } disabled={ !popupContent } duration={100}>
+				<div
+					className={ classNames("selectorOption", { 'checked': this.state[id] }) }
+					id={ id }
+					onClick={ this.handleClick } >
+					{ buttonContent }
+				</div>
+			</Tippy>
 		}
 		const displaySelector =
 			<div className="selector">
-				{ displaySelectorOption('isDisplayDownloading', svgDownload) }
-				{ displaySelectorOption('isDisplayFinished', svgDownloadDone) }
+				{ checkOption('isDisplayDownloading', svgDownload, 'Show Downloading or Failed') }
+				{ checkOption('isDisplayFinished', svgDownloadDone, 'Show Finished') }
 			</div>
 		const contentSelector =
 			<div className="selector">
-				{ contentSelectorOption('video', svgVideo) }
-				{ contentSelectorOption('audio', svgMusic) }
-				{ contentSelectorOption('skip', svgClose()) }
+				{ radioOption('video', svgVideo, 'Download best video and audio, then merge') }
+				{ radioOption('audio', svgMusic, 'Only download best audio') }
+				{ radioOption('skip', svgClose(), 'Skip download, useful for downloading thumbnail or test') }
 			</div>
 		const bonusSelector =
 			<div className="selector">
-				{ bonusSelectorOption('saveThumbnail', svgPhoto) }
-				{ bonusSelectorOption('saveSubtitles', svgSubtitle) }
-				{ bonusSelectorOption('saveAutoSubtitle', svgSubtitleFill) }
+				{ checkOption('saveThumbnail', svgPhoto, 'Save Thumbnail') }
+				{ checkOption('saveSubtitles', svgSubtitle, 'Save Subtitle') }
+				{ checkOption('saveAutoSubtitle', svgSubtitleFill, 'Save AutoSubtitle') }
 			</div>
 
 		const optionsArea =
@@ -820,17 +816,17 @@ export default class App extends React.Component<
 					{ bonusSelector }
 				</div>
 				<div className="options">
-					{ optionWithInput('isSpecifyDownloadPath', svgFolder, 'destPath', 'openDir',) }
-					{ optionWithInput('isProxy', svgNetwork, 'proxyHost',) }
-					{ optionWithInput('isUseCookie', svgCookie, 'cookieFile', 'openCookie',) }
-					{ optionWithInput('isUseHistory', svgHistory, 'historyFile', 'openHistory',) }
-					{ optionWithInput('isFormatFilename', svgFormat, 'fileNameTemplate',) }
+					{ optionWithInput('isSpecifyDownloadPath', 'Enable to download to the specific path. Otherwise to where the app exists', svgFolder, 'Open folder, depending on your setting', 'destPath', 'openDir',) }
+					{ optionWithInput('isProxy', 'Enable to use proxy. support http and socks5, but http is recomended', svgNetwork, '', 'proxyHost',) }
+					{ optionWithInput('isUseCookie', 'Enable to use cookie', svgCookie, 'Open specified cookie file', 'cookieFile', 'openCookie',) }
+					{ optionWithInput('isUseHistory', 'Enable to use history file. If downloaded and recorded in history file, it will not be downloaded twice', svgHistory, 'Open specified history file', 'historyFile', 'openHistory',) }
+					{ optionWithInput('isFormatFilename', 'Enable to format downloaded filename', svgFormat, '', 'fileNameTemplate',) }
 					{/* { option('saveThumbnail',) } */ }
 					{/* { option('saveSubtitles',) } */ }
 					{/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
 					{/* { option('saveAutoSubtitle',) } */ }
-					{ optionWithInput('isUseLocalYtdlp', 'Local Ytdlp') }
+					{ optionWithInput('isUseLocalYtdlp', 'Enable to use local yt-dlp command, required it in the path. If not understand, DO NOT enable it', 'Local Ytdlp', '') }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>
 			</div>
