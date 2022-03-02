@@ -1079,6 +1079,10 @@ class Task extends React.Component<
 
 	}
 	shouldComponentUpdate = (nextProps: Task['props'], nextState: Task['state']): boolean => {
+		/**
+		 * 如果沒有setState這個nextState就是指向this.state的引用
+		 * 如果set了,我猜nextState就指向了一個全新的object,和原來的this.state風馬牛不相及
+		 */
 		const result: boolean = (nextProps.isDisplay !== this.props.isDisplay) || this.state !== nextState
 		return result
 	}
