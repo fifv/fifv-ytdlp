@@ -781,7 +781,7 @@ export default class App extends React.Component<
 				buttonContent = id.replace(/([A-Z])/g, ' $1')
 				buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
 			}
-			return <Tippy content={ popupContent } disabled={ !popupContent } duration={100}>
+			return <Tippy content={ popupContent } disabled={ !popupContent } duration={ 100 }>
 				<div
 					className={ classNames("selectorOption", { 'checked': this.state[id] }) }
 					id={ id }
@@ -1078,7 +1078,10 @@ class Task extends React.Component<
 		})
 
 	}
-
+	shouldComponentUpdate = (nextProps: Task['props'], nextState: Task['state']): boolean => {
+		const result: boolean = (nextProps.isDisplay !== this.props.isDisplay) || this.state !== nextState
+		return result
+	}
 	// componentDidUpdate(){
 	// 	// console.log('*update');
 
@@ -1160,6 +1163,7 @@ class Task extends React.Component<
 		}
 	}
 	render() {
+		// console.log(this.props);
 		const info = {
 			timestamp: this.props.taskData.timestamp,
 			urlInput: this.props.taskData.urlInput,
@@ -1254,6 +1258,8 @@ class Task extends React.Component<
 			<div className="leftcol">
 				{ statusIndicator }
 			</div>
+		// console.log('Task rerended');
+
 		const midCol =
 			isNumber(info.percentValue) &&
 			<div className="midcol">
@@ -1314,9 +1320,11 @@ class Task extends React.Component<
 				onMouseLeave={
 					() => {
 						// console.log('out');
-						this.setState((state, props) => ({
-							removeConfirmed: false,
-						}))
+						if (this.state.removeConfirmed !== false) {
+							this.setState((state, props) => ({
+								removeConfirmed: false,
+							}))
+						}
 					}
 				}
 			>
