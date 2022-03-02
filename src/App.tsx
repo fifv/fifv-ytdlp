@@ -152,13 +152,37 @@ db.data ||= {
 }
 const { histories } = db.data
 let historiesComp = histories.slice()
-setInterval(() => {
-	if (!isEqual(histories, historiesComp)) {
-		// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
-		db.write()
-		historiesComp = histories.slice()
+const saveTimer: { timer: NodeJS.Timer | null, stopper: NodeJS.Timer | null, notice: () => void } = {
+	timer: null,
+	stopper: null,
+	notice() {
+		if (this.timer) {
+			// clearTimeout(this.timer)
+			// this.timer = null
+		} else {
+			this.timer = setInterval(() => {
+				console.log('*Histories saved');
+				if (!isEqual(histories, historiesComp)) {
+					// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
+					db.write()
+					historiesComp = histories.slice()
+				}
+			}, 1000)
+		}
+
+		if (this.stopper) {
+			clearTimeout(this.stopper)
+			this.stopper = null
+		}
+		this.stopper = setTimeout(() => {
+			if (this.timer) {
+				clearInterval(this.timer)
+				this.timer = null
+			}
+		}, 1000);
 	}
-}, 1000)
+}
+
 // db.write()
 // console.log(main.app.getPath('exe'));
 const quotePath = (path: string) => {
@@ -957,13 +981,13 @@ class Task extends React.PureComponent<
 			}
 			if (infoJson) {
 
-				// console.log('*json:', infoJson);
 				const title = infoJson['fulltitle']
 				const destPath = infoJson['requested_downloads'][0]['_filename'] as string
 				const fileSizeValue = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
 				const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
+				console.log('*getInfoJson.fileSizeString:', fileSizeString);
 
 				this.setState((state, props) => ({
 					title: title,
@@ -1213,6 +1237,7 @@ class Task extends React.PureComponent<
 		} else {
 			histories[dataIndex] = taskHistory
 		}
+		saveTimer.notice()
 
 		const progressBar =
 			<ProgressLine
@@ -1268,9 +1293,9 @@ class Task extends React.PureComponent<
 		// console.log('Task rerended');
 
 		const midCol =
-			isNumber(info.percentValue) &&
+			(isNumber(info.percentValue) || isNumber(info.fileSizeValue)) &&
 			<div className="midcol">
-				{ infoDiv(info.percentValue + '%', 'infoPercent') }
+				{ isNumber(info.percentValue) && infoDiv(info.percentValue + '%', 'infoPercent') }
 				{ infoDiv(info.fileSizeString, 'infoSize') }
 				{ infoDiv(info.speed, 'infoSpeed') }
 				{ infoDiv(info.etaString, 'infoEta') }
