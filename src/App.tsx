@@ -858,8 +858,8 @@ export default class App extends React.Component<
 										isDisplay={ taskData.status === 'finished' ? this.state.isDisplayFinished : this.state.isDisplayDownloading }
 										key={ taskData.timestamp }
 										taskData={ taskData }
-										reportStatus={ (status) => this.reportStatus(taskData.timestamp, status) }
-										handleRemove={ () => this.handleRemove(taskData.timestamp) }
+										reportStatus={ this.reportStatus }
+										handleRemove={ this.handleRemove }
 									/>
 								)
 							}).reverse()
@@ -884,12 +884,12 @@ export default class App extends React.Component<
 	}
 }
 
-class Task extends React.Component<
+class Task extends React.PureComponent<
 	{
 		isDisplay: boolean,
 		taskData: TaskData
-		reportStatus: (status: Status) => void
-		handleRemove: () => void
+		reportStatus: (timestamp: number, status: Status) => void
+		handleRemove: (timestamp: number,) => void
 	},
 	{
 		// processingOutput?: string[],
@@ -915,9 +915,11 @@ class Task extends React.Component<
 > {
 	child?: ChildProcess
 	childJson?: ChildProcess
+	timestamp: number
 	constructor(props: Task['props']) {
 		super(props);
 		const taskData = this.props.taskData
+		this.timestamp = this.props.taskData.timestamp
 		/**
 		 * 目前使用從上面傳下來的方法
 		 * 而上面的有兩種來源:新建 | 讀取自db
@@ -1033,7 +1035,7 @@ class Task extends React.Component<
 			}))
 		})
 		this.child?.on('close', (code) => {
-			console.log('*process close with code', `[${code}]`, ':', this.props.taskData.timestamp);
+			console.log('*process close with code', `[${code}]`, ':', this.timestamp);
 
 			/**
 			 * seems that 0 === finished
@@ -1044,7 +1046,7 @@ class Task extends React.Component<
 			 */
 			switch (code) {
 				case 0:
-					this.props.reportStatus('finished')
+					this.props.reportStatus(this.timestamp, 'finished')
 					this.setState((state, props) => ({
 						status: "finished",
 						otherInfo: 'Finished',
@@ -1065,7 +1067,7 @@ class Task extends React.Component<
 
 				default:
 					if (this.state.status !== 'stopped') {
-						this.props.reportStatus('error')
+						this.props.reportStatus(this.timestamp, 'error')
 						this.setState((state, props) => ({
 							status: "error",
 							otherInfo: this.state.otherInfo && "Failed"
@@ -1078,14 +1080,14 @@ class Task extends React.Component<
 		})
 
 	}
-	shouldComponentUpdate = (nextProps: Task['props'], nextState: Task['state']): boolean => {
-		/**
-		 * 如果沒有setState這個nextState就是指向this.state的引用
-		 * 如果set了,我猜nextState就指向了一個全新的object,和原來的this.state風馬牛不相及
-		 */
-		const result: boolean = (nextProps.isDisplay !== this.props.isDisplay) || this.state !== nextState
-		return result
-	}
+	// shouldComponentUpdate = (nextProps: Task['props'], nextState: Task['state']): boolean => {
+	// 	/**
+	// 	 * 如果沒有setState這個nextState就是指向this.state的引用
+	// 	 * 如果set了,我猜nextState就指向了一個全新的object,和原來的this.state風馬牛不相及
+	// 	 */
+	// 	const result: boolean = (nextProps.isDisplay !== this.props.isDisplay) || this.state !== nextState
+	// 	return result
+	// }
 	// componentDidUpdate(){
 	// 	// console.log('*update');
 
@@ -1112,7 +1114,7 @@ class Task extends React.Component<
 			 * 這邊直接來一發就能確保了
 			 * 不過會出現手動按叉叉會執行兩遍this.props.handleStop()的情況,不過無傷大雅
 			 */
-			this.props.reportStatus('stopped')
+			this.props.reportStatus(this.timestamp, 'stopped')
 		})
 	}
 	handleContextClick = (e: React.MouseEvent, data: ContextData) => {
@@ -1140,7 +1142,7 @@ class Task extends React.Component<
 				const removed = histories.splice(dataIndex, 1)
 				db.write()
 				console.log('*remove from db:', timestamp, removed,);
-				this.props.handleRemove()
+				this.props.handleRemove(this.timestamp)
 			} else {
 				console.error('*Should be found in histories but failed!:', timestamp,);
 			}
@@ -1168,6 +1170,7 @@ class Task extends React.Component<
 	}
 	render() {
 		// console.log(this.props);
+		// console.log('Task rerendered');
 		const info = {
 			timestamp: this.props.taskData.timestamp,
 			urlInput: this.props.taskData.urlInput,
@@ -1324,11 +1327,14 @@ class Task extends React.Component<
 				onMouseLeave={
 					() => {
 						// console.log('out');
-						if (this.state.removeConfirmed !== false) {
-							this.setState((state, props) => ({
-								removeConfirmed: false,
-							}))
-						}
+						// if (this.state.removeConfirmed !== false) {
+						/**
+						 * 用了pure之後這個判斷都用不著了,state不變就就會rerender
+						 */
+						this.setState((state, props) => ({
+							removeConfirmed: false,
+						}))
+						// }
 					}
 				}
 			>
