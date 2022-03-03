@@ -11,6 +11,13 @@
  * * 無法最大化復原.
  * 		* 其實是無法最大化,窗口變了,但是實際state沒動,導致unmaximize失敗
  * 		* 所以直接去除了按鈕,眼不見為淨
+ * 
+ * 
+ */
+/**
+ * commnent from deserted:
+ * 由於assign不會新建object,所以一定要我手動建一個,不然指來指去總是指向datas[dataIndex]
+ * 新的data就和他不同個了,用assign使他們值一樣,感覺是個shallow copy
  */
 import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
@@ -43,7 +50,7 @@ import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
 import path from 'path';
 import * as remote from '@electron/remote'
-import { isEqual, isNumber } from 'lodash-es';
+import { clone, isEqual, isNumber } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
 import { Scrollbars } from 'react-custom-scrollbars';
@@ -77,7 +84,7 @@ type ContextData = {
 	actionId?: string,
 	action?: () => void,
 }
-type History = {
+type TaskHistory = {
 	timestamp: number,
 	urlInput: string,
 	status: Status,
@@ -90,9 +97,9 @@ type History = {
 	durationString?: string,
 }
 type DB = {
-	histories: History[]
+	histories: TaskHistory[]
 }
-type TaskData = History & {
+type TaskData = TaskHistory & {
 	timestamp: number,
 	process?: ChildProcess,
 	processJson?: ChildProcess,
@@ -193,12 +200,26 @@ const getCurrentData = (datas: TaskData[], timestamp: number) => {
 	 * 當然data = ??? 這種應該會導致引用跑掉
 	 */
 	const dataIndex = datas.findIndex((data) => (timestamp === data.timestamp))
-	const data = datas[dataIndex]
-	return {
-		datas,
-		dataIndex,
-		data,
-		datasSliced: datas.slice(),
+	const datasSliced = datas.slice()
+	if (dataIndex !== -1) {
+
+		const data = datas[dataIndex]
+		datasSliced[dataIndex] = clone(data)
+		const dataInSliced = datasSliced[dataIndex]
+
+		return {
+			dataIndex,
+			datas,
+			datasSliced,
+			data,
+			dataInSliced,
+		}
+	} else {
+		return {
+			dataIndex,
+			datas,
+			datasSliced,
+		}
 	}
 }
 const store = new ElectronStore({
@@ -451,17 +472,18 @@ export default class App extends React.Component<
 		// 	})
 		// }
 		console.log('*child report', `[${status}]`, ':', timestamp,);
-		const { datasSliced, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+		const { datasSliced, dataIndex, dataInSliced } = getCurrentData(this.state.datas, timestamp)
 
 		// const datas = this.state.datas
 		// const dataIndex = datas.findIndex((data) => { return data.timestamp === timestamp })
 		if (dataIndex === -1) {
 			console.error('*Should be found in state.datas but failed!:', timestamp,);
+		} else if (dataInSliced) {
+			dataInSliced.status = status
+			this.setState((state, props) => ({
+				datas: datasSliced,
+			}))
 		}
-		data.status = status
-		this.setState((state, props) => ({
-			datas: datasSliced,
-		}))
 		// this.setState((state, props) => ({
 		// 	closedCount: state.closedCount + 1,
 		// }))
@@ -482,7 +504,7 @@ export default class App extends React.Component<
 	}
 	handleRemove = (timestamp: number) => {
 
-		const { datasSliced, dataIndex, data } = getCurrentData(this.state.datas, timestamp)
+		const { datasSliced, dataIndex } = getCurrentData(this.state.datas, timestamp)
 		// console.log('BEFORE:this.state.datas:', this.state.datas);
 		// console.log('BEFORE:datas:', datasSliced);
 
@@ -1207,7 +1229,7 @@ class Task extends React.PureComponent<
 
 			status: this.state.status,
 		}
-		const taskHistory: History = {
+		const taskHistory: TaskHistory = {
 			timestamp: info.timestamp,
 			status: info.status === 'downloading' ? 'stopped' : info.status,
 			urlInput: info.urlInput,
