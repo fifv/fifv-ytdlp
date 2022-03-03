@@ -543,20 +543,6 @@ export default class App extends React.Component<
 		// taskHistories.splice(taskHistories.findIndex((taskHistory: taskHistory) => taskHistory.timestamp === timestamp))
 		// store.set('taskHistories', taskHistories)
 	}
-	pasteUrl = (callback?: () => void) => {
-		// navigator.clipboard.readText().then((text) => {
-		// 	this.setState((state, props) => ({
-		// 		url: text
-		// 	}))
-		// 	console.log(text);
-		// })
-		const text = clipboard.readText()
-		this.setState((state, props) => ({
-			urlInput: text
-		}), callback
-		)
-		console.log('*paste:', text);
-	}
 	handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const target = e.currentTarget
 		const value = target.type === 'checkbox' ? target.checked : target.value
@@ -745,7 +731,11 @@ export default class App extends React.Component<
 					 */
 				}
 				<button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>{ svgPlay }</button>
-				<button className='btnPaste' tabIndex={ -1 } onClick={ () => this.pasteUrl() }>{ svgPaste }</button>
+				{ this.state.urlInput.trim() ?
+					<button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: '' }) } }>{ svgClose() }</button>
+					:
+					<button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: clipboard.readText() }) } }>{ svgPaste }</button>
+				}
 
 			</div>
 		/**
