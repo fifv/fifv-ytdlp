@@ -712,6 +712,7 @@ export default class App extends React.Component<
 					className='urlInput'
 					placeholder='Input a videopage url'
 					type='text'
+					// type='search'
 					id='urlInput'
 					value={ this.state.urlInput }
 					onChange={ this.handleInputChange }

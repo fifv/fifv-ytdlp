@@ -12,6 +12,12 @@ input {
 	outline: none;
 	border: 1px solid wheat;
 }
+/**
+ * disable override
+ */
+input[type=search] {
+    -webkit-appearance: none;
+}
 
 // @import "bootstrap/scss/bootstrap";
 $primary: rgb(236, 236, 236);
