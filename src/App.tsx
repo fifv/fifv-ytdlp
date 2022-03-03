@@ -160,7 +160,8 @@ const saveTimer: { timer: NodeJS.Timer | null, stopper: NodeJS.Timer | null, not
 			// clearTimeout(this.timer)
 			// this.timer = null
 		} else {
-			this.timer = setInterval(() => {
+			this.timer = setTimeout(() => {
+				this.timer = null
 				console.log('*Histories saved');
 				if (!isEqual(histories, historiesComp)) {
 					// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
@@ -169,17 +170,6 @@ const saveTimer: { timer: NodeJS.Timer | null, stopper: NodeJS.Timer | null, not
 				}
 			}, 1000)
 		}
-
-		if (this.stopper) {
-			clearTimeout(this.stopper)
-			this.stopper = null
-		}
-		this.stopper = setTimeout(() => {
-			if (this.timer) {
-				clearInterval(this.timer)
-				this.timer = null
-			}
-		}, 1000);
 	}
 }
 
