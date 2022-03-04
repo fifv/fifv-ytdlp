@@ -25,7 +25,7 @@ import './styles.scss'
 import { spawn, ChildProcess, spawnSync } from 'child_process'
 import classNames from 'classnames';
 import { decode } from 'iconv-lite';
-import { ipcRenderer, clipboard, shell } from 'electron';
+import { clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
 import { Line as ProgressLine } from 'rc-progress';
 import { IconContext } from 'react-icons'
@@ -79,12 +79,12 @@ type KeyofType<OBJ, TYPE> = {
 	[key in keyof OBJ]: OBJ[key] extends TYPE ? key : never
 }[keyof OBJ]
 type Status = "finished" | "stopped" | "downloading" | "error"
-type ContextData = {
+interface ContextData {
 	inputUrl?: string,
 	actionId?: string,
 	action?: () => void,
 }
-type TaskHistory = {
+interface TaskHistory {
 	timestamp: number,
 	urlInput: string,
 	status: Status,
@@ -96,10 +96,10 @@ type TaskHistory = {
 	title?: string,
 	durationString?: string,
 }
-type DB = {
+interface DB {
 	histories: TaskHistory[]
 }
-type TaskData = TaskHistory & {
+interface TaskData extends TaskHistory {
 	timestamp: number,
 	process?: ChildProcess,
 	processJson?: ChildProcess,
@@ -546,7 +546,8 @@ export default class App extends React.Component<
 	handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const target = e.currentTarget
 		const value = target.type === 'checkbox' ? target.checked : target.value
-		const id = target.id
+		// const value = target.value
+		const id = target.id /* as KeyofType<App['state'], string> */
 		this.setState<never>((state, props) => ({
 			[id]: value
 		}))
@@ -976,7 +977,10 @@ class Task extends React.PureComponent<
 		this.childJson = this.props.taskData.processJson
 		this.childJson?.stdout?.on('data', (data: Buffer) => {
 			// console.log('json:', typeof data, data);
-			let infoJson: any | null
+			/**
+			 * ???
+			 */
+			let infoJson: never | null
 			try {
 				infoJson = JSON.parse(decode(data, 'gbk'))
 			} catch {

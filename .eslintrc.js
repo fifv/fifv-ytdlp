@@ -3,7 +3,7 @@ module.exports = {
 	"env": {
 		"browser": true,
 		"es2021": true,
-		"node":true,
+		"node": true,
 	},
 	"extends": [
 		"eslint:recommended",
@@ -36,7 +36,10 @@ module.exports = {
 				}
 			}
 		],
-		"@typescript-eslint/no-var-requires":"off",
-		"@typescript-eslint/ban-ts-comment":"warn",
+		"@typescript-eslint/no-var-requires": "off",
+		"@typescript-eslint/ban-ts-comment": "warn",
+		// "@typescript-eslint/no-namespace":{
+		// 	"allowDeclarations": true,
+		// }
 	},
 };
