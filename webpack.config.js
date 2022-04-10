@@ -51,10 +51,10 @@ const rendererConfig = {
 		),
 		new CopyPlugin({
 			patterns: [
-				{ from: "./src/main.js", to: "./main.js" },
-				// { from: "./src/preload.js", to: "./preload.js" },
-				{ from: "./src/assets/yt-dlp.exe", to: "./" },
-				{ from: "./src/assets/youtube-icon.png", to: "./img" },
+				{ from: './src/main.js', to: './main.js' },
+				// { from: './src/preload.js', to: './preload.js' },
+				{ from: './src/assets/yt-dlp.exe', to: './' },
+				{ from: './src/assets/youtube-icon.png', to: './img' },
 			],
 			options: {},
 		}),
