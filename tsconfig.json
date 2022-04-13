@@ -5,7 +5,7 @@
 	"compilerOptions": {
 		"strict": true,
 		// "module": "CommonJS",
-		"target": "ES2021",
+		"target": "ESNext",
 		/**
 		 * "module": "ESNext" 可以用上新特性.
 		 * "moduleResolution":"Node" 不改的話會resolve不到modules

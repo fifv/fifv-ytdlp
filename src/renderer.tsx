@@ -3,7 +3,6 @@
 //@ts-ignore
 // window.myAPI.saySomething('here from renderer')
 // window.myAPI.alertSomething('alert')
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App'
