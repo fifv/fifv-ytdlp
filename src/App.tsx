@@ -42,7 +42,7 @@ import {
 	BsArrowRightCircle, BsFillExclamationTriangleFill,
 	BsFillArrowRightCircleFill, BsMusicNoteBeamed, BsCameraVideo, BsHddNetwork,
 } from 'react-icons/bs'
-import { Low, JSONFile } from 'lowdb'
+import { Low, JSONFile, LowSync, JSONFileSync } from 'lowdb'
 import { BiCookie } from 'react-icons/bi';
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
@@ -154,6 +154,11 @@ const main = {
 }
 const db = new Low<DB>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
 await db.read()
+/**
+ * 這個用sync會明顯降低啟動速度
+ */
+// const db = new LowSync<DB>(new JSONFileSync(path.join(main.app.getPath('userData'), 'histories.json')))
+// db.read()
 db.data ||= {
 	histories: []
 }
