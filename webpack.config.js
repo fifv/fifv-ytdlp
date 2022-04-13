@@ -2,8 +2,15 @@
  * 還是top-await的問題,導致esbuild不能用
  * 只能用loader湊合了
  * 
- * 用了loader後,dev: 3.9s, build: 4.7s
- * 原本: dev: 7.3s, build: 13.4s
+ * 用了loader + minimizer後,	dev: 3.9s, build: 4.7s
+ * 用了loader後,				dev: 3.9s, build: 10s
+ * 原本: 						dev: 7.3s, build: 13.4s
+ * 
+ * 不知道為什麼,esbuild的minimizer會讓開啟進入沒有動畫
+ * 至少也快了一點
+ * 
+ * 用esbuild的話,必須要external: ['electron'],
+ * 不過esbuild不支援top-await導致要用async的lowdb,明顯變慢很多
  */
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')

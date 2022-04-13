@@ -42,7 +42,7 @@ import {
 	BsArrowRightCircle, BsFillExclamationTriangleFill,
 	BsFillArrowRightCircleFill, BsMusicNoteBeamed, BsCameraVideo, BsHddNetwork,
 } from 'react-icons/bs'
-import { Low, JSONFile, LowSync, JSONFileSync } from 'lowdb'
+import { Low, JSONFile, } from 'lowdb'
 import { BiCookie } from 'react-icons/bi';
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
@@ -1313,23 +1313,22 @@ class Task extends React.PureComponent<
 				{ infoDiv(info.etaString, 'infoEta') }
 			</div>
 		const rightcolContext =
-			// @ts-ignore
+			/**
+			 * 這些鬼東西報錯就手動把children: any;加上去
+			 */
 			<ContextMenu id={ "rightcolContext" + info.timestamp } hideOnLeave>
 				{ info.urlInput &&
-					// @ts-ignore
 					<MenuItem data={ { actionId: 'copyUrl', action: () => { clipboard.writeText(info.urlInput) }, info: info } as ContextData } onClick={ this.handleContextClick }>
 						Copy Url: { info.urlInput }
 					</MenuItem>
 				}
 				{ info.destPath &&
-					// @ts-ignore
 					<MenuItem data={ { actionId: 'openFolder', action: this.handleOpenFolder } as ContextData } onClick={ this.handleContextClick }>
 						Open In Explorer
 					</MenuItem>
 				}
 			</ContextMenu>
 		const rightCol =
-			// @ts-ignore
 			<ContextMenuTrigger
 				id={ "rightcolContext" + info.timestamp }
 				attributes={ {
