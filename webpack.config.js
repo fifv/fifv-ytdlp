@@ -42,24 +42,24 @@ const rendererConfig = {
 	},
 	module: {
 		rules: [
-			{
-				test: /\.tsx?$/i,
-				use: "ts-loader",
-				exclude: /node_modules/,
-			},
+			// {
+			// 	test: /\.tsx?$/i,
+			// 	use: "ts-loader",
+			// 	exclude: /node_modules/,
+			// },
 			{
 				test: /\.s?css$/i,
 				use: ['style-loader', 'css-loader', 'sass-loader'],
 			},
 
-			// {
-			// 	test: /\.tsx?$/,
-			// 	loader: 'esbuild-loader',
-			// 	options: {
-			// 		loader: 'tsx',  // Or 'ts' if you don't need tsx
-			// 		target: 'esnext',
-			// 	}
-			// },
+			{
+				test: /\.tsx?$/,
+				loader: 'esbuild-loader',
+				options: {
+					loader: 'tsx',  // Or 'ts' if you don't need tsx
+					target: 'esnext',
+				}
+			},
 		],
 	},
 	resolve: {
