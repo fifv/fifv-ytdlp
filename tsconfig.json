@@ -18,7 +18,7 @@
 		"sourceMap": false,
 		"rootDir": "src",
 		"outDir": "build/js",
-		"noEmitOnError": true,
+		"noEmitOnError": false,
 		/**
 		 * 暫時無法理解,但是用react會提示缺少變量啥的,用react-jsx就好了
 		 */

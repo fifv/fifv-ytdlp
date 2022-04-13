@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const srcDir = path.join(__dirname, 'src')
 const CopyPlugin = require("copy-webpack-plugin");
+const { ESBuildMinifyPlugin } = require('esbuild-loader')
 
 const rendererConfig = {
 
@@ -25,6 +26,11 @@ const rendererConfig = {
 				return true
 			}
 		},
+		// minimizer: [
+		// 	new ESBuildMinifyPlugin({
+		// 		target: 'esnext'  // Syntax to compile to (see options below for possible values)
+		// 	})
+		// ]
 	},
 	module: {
 		rules: [
@@ -37,6 +43,14 @@ const rendererConfig = {
 				test: /\.s?css$/i,
 				use: ['style-loader', 'css-loader', 'sass-loader'],
 			},
+			// {
+			// 	test: /\.tsx?$/,
+			// 	loader: 'esbuild-loader',
+			// 	options: {
+			// 		loader: 'tsx',  // Or 'ts' if you don't need tsx
+			// 		target: 'esnext',
+			// 	}
+			// },
 		],
 	},
 	resolve: {
