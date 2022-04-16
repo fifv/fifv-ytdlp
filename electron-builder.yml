@@ -1,0 +1,14 @@
+directories:
+    output: dist
+appId: ytdlp-gui
+productName: YT-dlp GUI
+icon: ./build/img/youtube-icon.png
+files:
+    - build/**
+    - package.json
+# asar: false
+asar: true
+asarUnpack:
+    - ./build
+win:
+    target: zip

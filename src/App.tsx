@@ -59,9 +59,9 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css'; // optional
 
 
-
 const isDebug = false
 // const isDebug = true
+
 
 /**
  * 以下為type
@@ -152,28 +152,22 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
-const db = new Low<DB>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
-await db.read()
-/**
- * 這個用sync會明顯降低啟動速度
- */
-// const db = new LowSync<DB>(new JSONFileSync(path.join(main.app.getPath('userData'), 'histories.json')))
-// db.read()
-db.data ||= {
-	histories: []
+if (!main.app.isPackaged) {
+	//@ts-ignore
+	window.app = main.app
 }
-const { histories } = db.data
-let historiesComp = histories.slice()
-const saveTimer: { timer: NodeJS.Timer | null, stopper: NodeJS.Timer | null, notice: () => void } = {
-	timer: null,
-	stopper: null,
+let db: Low<DB>
+let histories: TaskHistory[] = []
+let historiesComp: TaskHistory[] = []
+const saveTimer: { chant: NodeJS.Timer | null, notice: () => void } = {
+	chant: null,
 	notice() {
-		if (this.timer) {
+		if (this.chant) {
 			// clearTimeout(this.timer)
 			// this.timer = null
 		} else {
-			this.timer = setTimeout(() => {
-				this.timer = null
+			this.chant = setTimeout(() => {
+				this.chant = null
 				console.log('*Histories saved');
 				if (!isEqual(histories, historiesComp)) {
 					// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
@@ -342,33 +336,55 @@ export default class App extends React.Component<
 > {
 	constructor(props: App['props']) {
 		super(props);
+		const storeContent = store.store
 		this.state = {
 			urlInput: '',
 			// processes: store.get('taskHistories').sort((a: TaskHistory, b: TaskHistory) => a.timestamp - b.timestamp),
-			datas: histories ? histories.slice() : [],
+			datas: /* histories ? histories.slice() : */[],
 			maximized: false,
 
-			isSpecifyDownloadPath: store.get('isSpecifyDownloadPath'),
-			isProxy: store.get('isProxy'),
-			isFormatFilename: store.get('isFormatFilename'),
-			saveThumbnail: store.get('saveThumbnail'),
-			saveSubtitles: store.get('saveSubtitles'),
-			isUseCookie: store.get('isUseCookie'),
-			isUseHistory: store.get('isUseHistory'),
-			saveAutoSubtitle: store.get('saveAutoSubtitle'),
-			saveAllSubtitles: store.get('saveAllSubtitles'),
-			isUseLocalYtdlp: store.get('isUseLocalYtdlp'),
-			contentSelector: store.get('contentSelector', 'video') as 'video' | 'audio' | 'skip',
-			isDisplayDownloading: store.get('isDisplayDownloading'),
-			isDisplayFinished: store.get('isDisplayFinished'),
+			isSpecifyDownloadPath: storeContent.isSpecifyDownloadPath,
+			isProxy: storeContent.isProxy,
+			isFormatFilename: storeContent.isFormatFilename,
+			saveThumbnail: storeContent.saveThumbnail,
+			saveSubtitles: storeContent.saveSubtitles,
+			isUseCookie: storeContent.isUseCookie,
+			isUseHistory: storeContent.isUseHistory,
+			saveAutoSubtitle: storeContent.saveAutoSubtitle,
+			saveAllSubtitles: storeContent.saveAllSubtitles,
+			isUseLocalYtdlp: storeContent.isUseLocalYtdlp,
+			contentSelector: (storeContent.contentSelector ?? 'video') as 'video' | 'audio' | 'skip',
+			isDisplayDownloading: storeContent.isDisplayDownloading,
+			isDisplayFinished: storeContent.isDisplayFinished,
 
-			proxyHost: store.get('proxyHost'),
-			cookieFile: store.get('cookieFile'),
-			historyFile: store.get('historyFile'),
-			destPath: store.get('destPath'),
-			tempPath: store.get('tempPath'),
-			fileNameTemplate: store.get('fileNameTemplate')
+			proxyHost: storeContent.proxyHost,
+			cookieFile: storeContent.cookieFile,
+			historyFile: storeContent.historyFile,
+			destPath: storeContent.destPath,
+			tempPath: storeContent.tempPath,
+			fileNameTemplate: storeContent.fileNameTemplate
 		}
+
+	}
+	initDB = async () => {
+		db = new Low<DB>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
+		await db.read()
+		/**
+		 * 這個用sync會明顯降低啟動速度
+		 */
+		// const db = new LowSync<DB>(new JSONFileSync(path.join(main.app.getPath('userData'), 'histories.json')))
+		// db.read()
+		db.data ||= {
+			histories: []
+		}
+		histories = db.data.histories
+		console.log('object');
+		this.setState((state, props) => ({
+			datas: histories.slice()
+		}))
+	}
+	componentDidMount() {
+		this.initDB()
 	}
 
 	startDownload = () => {
@@ -427,6 +443,9 @@ export default class App extends React.Component<
 		this.state.saveAutoSubtitle && ytdlpOptions.push('--write-auto-subs')
 		// this.state.saveAllSubtitles && ytdlpOptions.push('')
 
+		/**
+		 * wtf這裡的__filename指的是index.html
+		 */
 		ytdlpOptions.push(urlInput)
 		const ytdlpCommand = this.state.isUseLocalYtdlp ?
 			/**
@@ -436,7 +455,11 @@ export default class App extends React.Component<
 			'yt-dlp'
 			// 'D:/usr/bin/yt-dlp#.exe'
 			:
-			'"' + path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe') + '"'
+			main.app.isPackaged ?
+				quotePath(path.join(__dirname, '..', '..', 'app.asar.unpacked', 'build', 'yt-dlp.exe'))
+				:
+				quotePath(path.join(__dirname, 'yt-dlp.exe'))
+
 		console.log('*yt-dlp command:', ytdlpCommand);
 
 		// console.log(__dirname,'yt-dlp.exe');
@@ -669,19 +692,19 @@ export default class App extends React.Component<
 					{ svgRemove() }
 				</button>
 				{
-					this.state.maximized
-						?
-						<button tabIndex={ -1 } id='unmaximize'
-							onClick={ this.handleMax }
-						>
-							{ svgUnmaximize }
-						</button>
-						:
-						<button tabIndex={ -1 } id='maximize'
-							onClick={ this.handleMax }
-						>
-							{ svgMaximize }
-						</button>
+					// this.state.maximized
+					// 	?
+					// 	<button tabIndex={ -1 } id='unmaximize'
+					// 		onClick={ this.handleMax }
+					// 	>
+					// 		{ svgUnmaximize }
+					// 	</button>
+					// 	:
+					// 	<button tabIndex={ -1 } id='maximize'
+					// 		onClick={ this.handleMax }
+					// 	>
+					// 		{ svgMaximize }
+					// 	</button>
 				}
 				<button
 					tabIndex={ -1 } id='close'
@@ -859,7 +882,7 @@ export default class App extends React.Component<
 					{/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
 					{/* { option('saveAutoSubtitle',) } */ }
-					{ optionWithInput('isUseLocalYtdlp', 'Enable to use local yt-dlp command, required it in the path. If not understand, DO NOT enable it', 'Local Ytdlp', '') }
+					{ optionWithInput('isUseLocalYtdlp', 'Enable to use local yt-dlp command, required it in the path. This may be faster. If not understand, DO NOT enable it', 'Local Ytdlp', '') }
 					{/* { option('saveAllSubtitles',) } */ }
 				</div>
 			</div>

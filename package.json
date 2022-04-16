@@ -1,19 +1,21 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "2.10.5",
+	"version": "2.10.6",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",
 	"scripts": {
 		"start": "electron .",
-		"watch": "webpack --mode=development --watch --devtool=source-map",
-		"build": "webpack --mode=production && electron-builder",
 		"esbuild-watch": "node ./esbuild.js development",
-		"esbuild-prod": "node ./esbuild.js production",
+		"esbuild-dist": "node ./esbuild.js production && electron-builder",
+		"esbuild-prod": "node ./esbuild.js production sourcemap",
+		"analyze": "source-map-explorer 'build/**/*.js' --no-border-checks",
+		"electron-builder": "electron-builder",
+		"webpack-watch": "webpack --mode=development --watch --devtool=source-map",
+		"webpack-dist": "webpack --mode=production && electron-builder",
 		"webpack build": "webpack --mode=production",
-		"electron-forge make": "electron-forge make",
-		"electron-builder": "electron-builder"
+		"electron-forge make": "electron-forge make"
 	},
 	"config": {
 		"forge": {
@@ -37,26 +39,11 @@
 			]
 		}
 	},
-	"build": {
-		"appId": "ytdlp-gui",
-		"productName": "YT-dlp GUI",
-		"icon": "./build/img/youtube-icon.png",
-		"files": [
-			"build/**",
-			"package.json"
-		],
-		"asar": true,
-		"asarUnpack": [
-			"./build"
-		],
-		"win": {
-			"target": "zip"
-		}
-	},
 	"devDependencies": {
 		"@craftamap/esbuild-plugin-html": "^0.3.2",
 		"@electron-forge/cli": "^6.0.0-beta.63",
 		"@electron-forge/maker-squirrel": "^6.0.0-beta.63",
+		"@electron/remote": "^2.0.8",
 		"@swc/core": "^1.2.165",
 		"@tippyjs/react": "^4.2.6",
 		"@types/lodash-es": "^4.17.6",
@@ -75,6 +62,7 @@
 		"electron": "18.0.3",
 		"electron-builder": "^23.0.3",
 		"electron-reload": "^2.0.0-alpha.1",
+		"electron-store": "^8.0.1",
 		"esbuild": "^0.14.36",
 		"esbuild-loader": "^2.18.0",
 		"esbuild-plugin-clean": "^0.9.0",
@@ -99,6 +87,7 @@
 		"rimraf": "^3.0.2",
 		"sass": "^1.50.0",
 		"sass-loader": "^12.6.0",
+		"source-map-explorer": "^2.5.2",
 		"style-loader": "^3.3.1",
 		"ts-loader": "^9.2.8",
 		"ts-node": "^10.7.0",
@@ -108,8 +97,6 @@
 		"yarn": "^1.22.18"
 	},
 	"dependencies": {
-		"@electron/remote": "^2.0.8",
-		"electron-acrylic-window": "^0.5.11",
-		"electron-store": "^8.0.1"
+		"electron-acrylic-window": "^0.5.11"
 	}
 }

@@ -12,7 +12,7 @@ const t0 = Date.now()
 const path = require('path');
 const fs = require('fs');
 const { htmlPlugin } = require('@craftamap/esbuild-plugin-html'); // 550ms+
-const { clean } = require('esbuild-plugin-clean');
+// const { clean } = require('esbuild-plugin-clean');
 const { copy } = require('esbuild-plugin-copy');
 const { build } = require('esbuild')
 const rimraf = require('rimraf')
@@ -27,7 +27,6 @@ const { sassPlugin } = require('esbuild-sass-plugin') //200ms
 console.log(colorette.blue('>'), colorette.cyan((Date.now() - t0) + 'ms'), colorette.blue('<'));
 console.log(colorette.blue('----------Start Build------------'));
 const t1 = Date.now()
-
 const isProd = process.argv.includes('production')
 const isDev = process.argv.includes('development')
 // const isDev = true
@@ -40,7 +39,7 @@ const outdir =
 		'build'
 		:
 		(isProd ? 'dist' : 'dev')
-isDev && rimraf('dev', [], () => { })
+/* isDev &&  */rimraf(outdir, [], () => { })
 function whiteToFiles(result) {
 	const outputFiles = result.outputFiles
 	for (const outputFile of outputFiles) {
@@ -94,13 +93,19 @@ build({
 	minify: isProd,
 	metafile: true,
 	write: false,
+	define: {
+		/**
+		 * 臥槽,加了這個,react就用prod了
+		 */
+		'process.env.NODE_ENV': isProd ? "'production'" : "'development'",
+	},
 	plugins: [
-		clean({
-			/**
-			 * 每次rebuild都會clean
-			 */
-			patterns: isProd ? ['./dist/*',] : [],
-		}),
+		// clean({
+		// 	/**
+		// 	 * 每次rebuild都會clean
+		// 	 */
+		// 	patterns: isProd ? ['./dist/*',] : [],
+		// }),
 		sassPlugin(),
 		copy({
 			/**
@@ -121,7 +126,7 @@ build({
 						mainEntryPoint,
 					],
 					filename: 'index.html',
-					htmlTemplate: fs.readFileSync('public/index.html'),
+					htmlTemplate: fs.readFileSync('src/index.html'),
 					define: {
 						basehref: isProd ? './' : './'
 					},
@@ -172,6 +177,52 @@ build({
 		}
 	})
 	.catch(() => process.exit(1))
+
+
+
+
+
+isElectron &&
+	build({
+		entryPoints: [
+			'src/main.js',
+		],
+		outfile: path.join(outdir, 'main.js'),
+		external: [
+			'electron',  //must
+			'electron-acrylic-window', //must
+			// 'electron-store',
+			'electron-reload',  //must
+			// 'path', 
+			// '@electron/remote/main',
+		],
+		// bundle: false,
+		bundle: true,
+		platform: 'node',
+		watch: isDev && {
+			onRebuild(error, result) {
+				if (error) {
+					// 
+				}
+				else {
+					whiteToFiles(result)
+				}
+			},
+
+		},
+		sourcemap: isDev || process.argv.includes('sourcemap'),
+		minify: isProd,
+		write: false,
+		define: {
+			'process.env.NODE_ENV': isProd ? "'production'" : "'development'",
+		},
+	}).then(
+		(result) => {
+			whiteToFiles(result)
+		}
+	)
+
+
 
 // build({
 // 	/**

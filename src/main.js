@@ -7,13 +7,19 @@ const ElectronStore = require('electron-store');
 const { setVibrancy } = require('electron-acrylic-window')
 // console.log(app.getPath('exe'));
 
-if (app.getPath('exe').includes('electron.exe')) {
+// const isDev = process.env.NODE_ENV === 'development'
+/**
+ * 只能這樣,electron有預定義process.env,所以esbuild不會插process.env.NODE_ENV
+ */
+if (/* app.getPath('exe').includes('electron.exe') */!app.isPackaged) {
+	console.log('*development');
 	/**
 	 * 我能想到的原始的判斷是不是dev環境的方法
 	 * 這個加在devDep裡面所以在打包後用的話或報錯
 	 */
 	const electronReload = require('electron-reload')
-	electronReload(path.join(__dirname, '..', 'build'), {})
+	// console.log(__dirname);
+	electronReload(path.join(__dirname, /* '..', 'build' */), {})
 }
 
 ElectronStore.initRenderer()
@@ -73,6 +79,7 @@ const createWindow = () => {
 			// zoomFactor: 2.0,
 		}
 	})
+	global.win = win
 	/**
 	 * 這個好像會自動設置transparent: true,
 	 * 好像會讓上面的backgroundColor: '#d9a0b1ff',失效
