@@ -446,7 +446,7 @@ export default class App extends React.Component<
 		/**
 		 * wtf這裡的__filename指的是index.html
 		 */
-		ytdlpOptions.push(urlInput)
+		ytdlpOptions.push(quotePath(urlInput))
 		const ytdlpCommand = this.state.isUseLocalYtdlp ?
 			/**
 				 * 使用py要比用standalone快得多
@@ -1022,7 +1022,8 @@ class Task extends React.PureComponent<
 				const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
-				console.log('*getInfoJson.fileSizeString:', fileSizeString);
+				// console.log('*getInfoJson.fileSizeString:', fileSizeString);
+				console.log('*getInfoJson:', infoJson);
 
 				this.setState((state, props) => ({
 					title: title,
