@@ -237,7 +237,7 @@ const store = new ElectronStore({
 		isDisplayFinished: true,
 		isDisplayDownloading: true,
 
-		proxyHost: 'http://127.0.0.1:1080',
+		proxyHost: 'http://127.0.0.1:1081',
 		cookieFile: 'cookiejar.txt',
 		historyFile: 'history.txt',
 		fileNameTemplate: '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',
