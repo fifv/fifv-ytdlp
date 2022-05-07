@@ -22,12 +22,23 @@
 import React from 'react';
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
+import 'tippy.js/dist/tippy.css'; // optional
 import { spawn, ChildProcess, spawnSync } from 'child_process'
 import classNames from 'classnames';
 import { decode } from 'iconv-lite';
 import { clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
+import { Low, JSONFile, } from 'lowdb'
+import path from 'path';
+import * as remote from '@electron/remote'
+import { clone, isEqual, isNumber } from 'lodash-es';
+import { Flipper, Flipped, spring } from 'react-flip-toolkit'
+// import { Scrollbar } from "react-scrollbars-custom";
+import { Scrollbars } from 'react-custom-scrollbars';
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import Tippy from '@tippyjs/react';
 import { Line as ProgressLine } from 'rc-progress';
+
 import { IconContext } from 'react-icons'
 import {
 	MdOutlineKeyboardArrowUp, MdOutlineKeyboardArrowDown, MdOutlineRemove,
@@ -42,21 +53,11 @@ import {
 	BsArrowRightCircle, BsFillExclamationTriangleFill,
 	BsFillArrowRightCircleFill, BsMusicNoteBeamed, BsCameraVideo, BsHddNetwork,
 } from 'react-icons/bs'
-import { Low, JSONFile, } from 'lowdb'
 import { BiCookie } from 'react-icons/bi';
 import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
 import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
-import path from 'path';
-import * as remote from '@electron/remote'
-import { clone, isEqual, isNumber } from 'lodash-es';
-import { Flipper, Flipped, spring } from 'react-flip-toolkit'
-// import { Scrollbar } from "react-scrollbars-custom";
-import { Scrollbars } from 'react-custom-scrollbars';
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
-import Tippy from '@tippyjs/react';
-import 'tippy.js/dist/tippy.css'; // optional
 
 
 const isDebug = false
