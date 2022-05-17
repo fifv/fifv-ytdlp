@@ -87,6 +87,7 @@ const createWindow = () => {
 	setVibrancy(win, {
 		// theme:'#a0b1ffd9',
 		effect: 'blur',
+		// effect: 'acrylic',
 		// useCustomWindowRefreshMethod:false,
 		maximumRefreshRate: 1440,
 	})
