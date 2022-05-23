@@ -12,3 +12,4 @@ asarUnpack:
     - ./build
 win:
     target: zip
+npmRebuild: false # 這個可以强制他不要rebuild
