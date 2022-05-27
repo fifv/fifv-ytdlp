@@ -30,6 +30,7 @@ import { clipboard, shell } from 'electron';
 import ElectronStore from 'electron-store';
 import { Low, JSONFile, } from 'lowdb'
 import path from 'path';
+import { cyan, red, magentaBright } from 'colorette'
 import * as remote from '@electron/remote'
 import { clone, isEqual, isNumber } from 'lodash-es';
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
@@ -169,7 +170,7 @@ const saveTimer: { chant: NodeJS.Timer | null, notice: () => void } = {
 		} else {
 			this.chant = setTimeout(() => {
 				this.chant = null
-				console.log('*Histories saved');
+				console.log(magentaBright('*Histories saved'));
 				if (!isEqual(histories, historiesComp)) {
 					// console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
 					db.write()
@@ -379,7 +380,6 @@ export default class App extends React.Component<
 			histories: []
 		}
 		histories = db.data.histories
-		console.log('object');
 		this.setState((state, props) => ({
 			datas: histories.slice()
 		}))
@@ -413,8 +413,8 @@ export default class App extends React.Component<
 				urlInput: urlInput,
 			}))
 		}
-		console.log('*url inputed:', urlInput);
-		console.log('*start download');
+		console.log(cyan('*url inputed:'), urlInput);
+		console.log(magentaBright('*start download'));
 		/**
 		 * 直接用是會有注入的風險啦
 		 * \\TO\DO: 最好還是防注入做一下
@@ -461,7 +461,7 @@ export default class App extends React.Component<
 				:
 				quotePath(path.join(__dirname, 'yt-dlp.exe'))
 
-		console.log('*yt-dlp command:', ytdlpCommand);
+		console.log(cyan('*yt-dlp command:'), ytdlpCommand);
 
 		// console.log(__dirname,'yt-dlp.exe');
 		const child = spawn(
@@ -500,7 +500,7 @@ export default class App extends React.Component<
 		// 		process: null,
 		// 	})
 		// }
-		console.log('*child report', `[${status}]`, ':', timestamp,);
+		console.log(cyan('*child report'), `[${status}]`, ':', timestamp,);
 		const { datasSliced, dataIndex, dataInSliced } = getCurrentData(this.state.datas, timestamp)
 
 		// const datas = this.state.datas
@@ -555,7 +555,7 @@ export default class App extends React.Component<
 			 * 
 			 * 理論上
 			 */
-			console.log('*task removed:', timestamp, removed,);
+			console.log(red('*task removed:'), timestamp, removed,);
 			this.setState((state, props) => {
 				// const processes = state.datas
 				// const i = processes.findIndex(
@@ -595,7 +595,7 @@ export default class App extends React.Component<
 			[name]: value
 		}))
 		store.set(name, value)
-		console.log('*contentSelector:', 'name:', name, 'id:', id, 'value:', value);
+		console.log(cyan('*contentSelector:'), 'name:', name, 'id:', id, 'value:', value);
 	}
 	/**
 	 * 讚哦,用了remote,直接在這裡操縱win,不用ipc傳來傳去了
@@ -615,18 +615,18 @@ export default class App extends React.Component<
 		// ipcRenderer.invoke(id)
 		if (id === 'maximize') {
 			win.maximize()
-			console.log('*maximize', 'isMaximized:', win.isMaximized());
+			console.log(cyan('*maximize'), 'isMaximized:', win.isMaximized());
 			win.once('moved', () => {
 				win.unmaximize()
 				// win.webContents.send('moved-unmaximize')
 				this.setState((state, props) => ({
 					maximized: false,
 				}))
-				main.console.log('*moved-unmaximize');
+				main.console.log(cyan('*moved-unmaximize'));
 			})
 		} else if (id === 'unmaximize') {
 			win.unmaximize()
-			console.log('*unmaximize', 'isMaximized:', win.isMaximized());
+			console.log(cyan('*unmaximize'), 'isMaximized:', win.isMaximized());
 		}
 
 		this.setState((state, props) => ({
@@ -638,23 +638,23 @@ export default class App extends React.Component<
 		const className = e.currentTarget.className
 		const id = target.id
 		if (id === 'openDir' && this.state.isSpecifyDownloadPath) {
-			console.log('*open dir:', this.state.destPath);
+			console.log(cyan('*open dir:'), this.state.destPath);
 			spawn('start', ['""', `"${this.state.destPath}"`], { shell: true })
 			// shell.openPath(this.state.destPath)
 		} else if (id === 'openDir' && !this.state.isSpecifyDownloadPath) {
 			const cwd = remote.process.cwd()
-			console.log('*open dir:', cwd);
+			console.log(cyan('*open dir:'), cwd);
 			spawn('start', ['""', `"${cwd}"`], { shell: true })
 			// shell.openPath(cwd)
 		} else if (id === 'openHistory') {
 			// const appPath = main.app.getAppPath()
 			const historyFile = this.state.historyFile
-			console.log('*open historyFile:', historyFile);
+			console.log(cyan('*open historyFile:'), historyFile);
 			spawn('start', ['""', `"${historyFile}"`], { shell: true })
 		} else if (id === 'openCookie') {
 			// const appPath = main.app.getAppPath()
 			const cookieFile = this.state.cookieFile
-			console.log('*open cookieFile:', cookieFile);
+			console.log(cyan('*open cookieFile:'), cookieFile);
 			spawn('start', ['""', `"${cookieFile}"`], { shell: true })
 		} else if (className.includes('contentSelectorOption')) {
 			/**
@@ -1024,7 +1024,7 @@ class Task extends React.PureComponent<
 				const durationString = infoJson['duration_string']
 				const webpageUrl = infoJson['webpage_url']
 				// console.log('*getInfoJson.fileSizeString:', fileSizeString);
-				console.log('*getInfoJson:', infoJson);
+				console.log(cyan('*getInfoJson:'), infoJson);
 
 				this.setState((state, props) => ({
 					title: title,
@@ -1040,7 +1040,7 @@ class Task extends React.PureComponent<
 		this.child?.stdout?.on('data', (data: Buffer) => {
 			const info = decode(data, 'gbk').trim()
 			if (info.includes('[download process]')) {
-				console.log('*processingOutput:', info);
+				console.log(cyan('*processingOutput:'), info);
 				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
 				this.setState((state, props) => ({
 					// processingOutput: processingOutput,
@@ -1059,7 +1059,7 @@ class Task extends React.PureComponent<
 
 
 			} else if (info.includes('Writing video thumbnail')) {
-				console.log('*thumbnailInfo:', info);
+				console.log(cyan('*thumbnailInfo:'), info);
 				this.setState((state, props) => ({
 					thumbnailFinished: true,
 					otherInfo: info,
@@ -1079,7 +1079,7 @@ class Task extends React.PureComponent<
 				// } else if (info.includes('Downloading video thumbnail')) {
 				// 	console.log('*otherinfo:', info);
 			} else {
-				console.log('*other info:', info);
+				console.log(cyan('*other info:'), info);
 				this.setState((state, props) => ({
 					otherInfo: info
 				}))
@@ -1087,7 +1087,7 @@ class Task extends React.PureComponent<
 		})
 		this.child?.stderr?.on('data', (data) => {
 			let info = decode(data, 'gbk')
-			console.log('*stderr:', info);
+			console.log(red('*stderr:'), info);
 			if (info.includes('is not a valid URL') || info.includes('You must provide at least one URL')) {
 				info = 'Please input a vaild url'
 			}
@@ -1096,7 +1096,7 @@ class Task extends React.PureComponent<
 			}))
 		})
 		this.child?.on('close', (code) => {
-			console.log('*process close with code', `[${code}]`, ':', this.timestamp);
+			console.log(cyan('*process close with code'), `[${code}]`, ':', this.timestamp);
 
 			/**
 			 * seems that 0 === finished
@@ -1105,7 +1105,7 @@ class Task extends React.PureComponent<
 			 * 
 			 * if i use takkkill,force kill will be 1 not null
 			 */
-			switch (code) {
+			switch (code) { 
 				case 0:
 					this.props.reportStatus(this.timestamp, 'finished')
 					this.setState((state, props) => ({
@@ -1179,7 +1179,7 @@ class Task extends React.PureComponent<
 		})
 	}
 	handleContextClick = (e: React.MouseEvent, data: ContextData) => {
-		console.log('*context data:', data);
+		console.log(cyan('*context data:'), data);
 		data.action && data.action()
 	}
 	handleRemove = () => {
@@ -1202,7 +1202,7 @@ class Task extends React.PureComponent<
 			if (dataIndex !== -1) {
 				const removed = histories.splice(dataIndex, 1)
 				db.write()
-				console.log('*remove from db:', timestamp, removed,);
+				console.log(red('*remove from db:'), timestamp, removed,);
 				this.props.handleRemove(this.timestamp)
 			} else {
 				console.error('*Should be found in histories but failed!:', timestamp,);
@@ -1216,11 +1216,11 @@ class Task extends React.PureComponent<
 			// spawn('start', ['""', '"' + path.dirname(destPath) + '"'], { shell: true, })
 			// spawn('explorer', ['/select,', '"' + destPath + '"'], { shell: true, })
 			if (this.state.status === 'finished') {
-				console.log('*showItemInFolder:', destPath);
+				console.log(cyan('*showItemInFolder:'), destPath);
 				shell.showItemInFolder(destPath)
 				// shell.openPath(path.dirname(destPath))
 			} else {
-				console.log('*openPath:', destPath);
+				console.log(cyan('*openPath:'), destPath);
 				shell.openPath(path.dirname(destPath))
 				/**
 				 * part不行,因為有.f248.webm.part
@@ -1269,7 +1269,7 @@ class Task extends React.PureComponent<
 		// const historyIndex = histories.findIndex((history) => history.timestamp === info.timestamp)
 		const { dataIndex } = getCurrentData(histories, info.timestamp)
 		if (dataIndex === -1) {
-			console.log('*not in histories and will be added:', info.timestamp,);
+			console.log(cyan('*not in histories and will be added:'), info.timestamp,);
 			histories.push(taskHistory)
 		} else {
 			histories[dataIndex] = taskHistory
