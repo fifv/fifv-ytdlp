@@ -50,7 +50,7 @@ const createWindow = () => {
 		 * 然後這裡在argb裡設置透明度(這裡是argb,css是rgba),在css裡a設為00,這樣有無網頁加載的時候看起來一樣了
 		 * 兩邊顏色設置成一樣的,css裡不設置的話會變成白色,這裡不設置的話網頁加載前後顏色會變
 		 */
-		backgroundColor: '#d9a0b1ff', //藍色
+		// backgroundColor: '#d9a0b1ff', //藍色
 		// backgroundColor: '#00000000',
 		// trafficLightPosition:{沒用
 		// 	x:100,
@@ -86,8 +86,9 @@ const createWindow = () => {
 	 */
 	setVibrancy(win, {
 		// theme:'#a0b1ffd9',
-		effect: 'blur',
-		// effect: 'acrylic',
+		theme:'#282c3400',
+		// effect: 'blur',
+		effect: 'acrylic',
 		// useCustomWindowRefreshMethod:false,
 		maximumRefreshRate: 1440,
 	})

@@ -1,7 +1,7 @@
 {
 	"name": "try-ytdlp",
 	"packageManager": "yarn@3.1.1",
-	"version": "2.10.13",
+	"version": "2.10.14",
 	"main": "build/main.js",
 	"author": "Fifv",
 	"description": "A GUI to use yt-dlp",
@@ -60,7 +60,7 @@
 		"colorette": "^2.0.16",
 		"copy-webpack-plugin": "^10.2.4",
 		"css-loader": "^6.7.1",
-		"electron": "18.2.4",
+		"electron": "20.0.0-alpha.2",
 		"electron-builder": "^23.0.9",
 		"electron-reload": "^2.0.0-alpha.1",
 		"electron-store": "^8.0.1",

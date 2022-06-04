@@ -59,6 +59,7 @@ import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
 import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
+import { mkdirSync } from 'fs';
 
 
 const isDebug = false
@@ -431,6 +432,13 @@ export default class App extends React.Component<
 		// ytdlpOptions.push('--geo-verification-proxy', 'http://127.0.0.1:7890') //沒用啊...
 		// ytdlpOptions.push('--print', '%(title)s', '--no-simulate') 
 
+		/**
+		 * 好像已存在不會報錯
+		 */
+		if (this.state.isSpecifyDownloadPath) {
+			mkdirSync(this.state.destPath, { recursive: true })
+		}
+
 
 		this.state.isSpecifyDownloadPath && ytdlpOptions.push('-P', quotePath(this.state.destPath)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
 		this.state.isProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
@@ -438,7 +446,7 @@ export default class App extends React.Component<
 		this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
 		this.state.saveSubtitles && ytdlpOptions.push('--write-subs',)
 		this.state.isUseCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
-		this.state.isUseHistory && ytdlpOptions.push('--download-archive', this.state.historyFile)
+		this.state.isUseHistory && ytdlpOptions.push('--download-archive', this.state.historyFile || 'histories.txt')
 		this.state.contentSelector === 'skip' && ytdlpOptions.push('--skip-download')
 		this.state.contentSelector === 'audio' && ytdlpOptions.push('--format', 'bestaudio/best')
 		this.state.saveAutoSubtitle && ytdlpOptions.push('--write-auto-subs')
@@ -1105,7 +1113,7 @@ class Task extends React.PureComponent<
 			 * 
 			 * if i use takkkill,force kill will be 1 not null
 			 */
-			switch (code) { 
+			switch (code) {
 				case 0:
 					this.props.reportStatus(this.timestamp, 'finished')
 					this.setState((state, props) => ({
