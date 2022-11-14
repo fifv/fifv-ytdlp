@@ -46,7 +46,7 @@ const createWindow = () => {
 		// opacity:0.85,
 		frame: false,
 		titleBarStyle: 'hidden',
-		autoHideMenuBar:true,
+		autoHideMenuBar: true,
 		darkTheme: true,
 		/**
 		 * 很奇怪的顏色設置
@@ -91,7 +91,7 @@ const createWindow = () => {
 	 */
 	setVibrancy(win, {
 		// theme:'#a0b1ffd9',
-		theme:'#282c3400',
+		theme: '#282c3400',
 		// effect: 'blur',
 		effect: 'acrylic',
 		// useCustomWindowRefreshMethod:false,
