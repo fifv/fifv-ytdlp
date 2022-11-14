@@ -41,9 +41,13 @@ const createWindow = () => {
 		 * 直接start和生成出來的差很多誒
 		 * 目前transparent: true的dist可以正常最大化(start不行),也沒有怪框框
 		 */
-		transparent: true,
+		// transparent: true,
 		// transparent: false,
 		// opacity:0.85,
+		frame: false,
+		titleBarStyle: 'hidden',
+		autoHideMenuBar:true,
+		darkTheme: true,
 		/**
 		 * 很奇怪的顏色設置
 		 * 目前是這樣,這裡和css都不要用opacity,全都用argb
@@ -56,13 +60,13 @@ const createWindow = () => {
 		// 	x:100,
 		// 	y:100,
 		// },
-		darkTheme: true,
-		frame: false,
-		titleBarStyle: 'hidden',
+
 		icon: path.join(__dirname, 'img', 'youtube-icon.png'),
 		// titleBarOverlay: {
-		// 	color: '#2f3241',
-		// 	symbolColor: '#74b1be'
+		// 	color: '#282c34',
+		// 	symbolColor: '#ececec'
+		// 	// symbolColor: '#ececec'
+		// 	// height:1,
 		// },
 		// titleBarOverlay:true,
 		webPreferences: {
@@ -80,6 +84,7 @@ const createWindow = () => {
 		}
 	})
 	global.win = win
+	global.app = app
 	/**
 	 * 這個好像會自動設置transparent: true,
 	 * 好像會讓上面的backgroundColor: '#d9a0b1ff',失效

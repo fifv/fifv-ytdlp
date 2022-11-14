@@ -39,6 +39,7 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import Tippy from '@tippyjs/react';
 import { Line as ProgressLine } from 'rc-progress';
+import { mkdirSync } from 'fs';
 
 import { IconContext } from 'react-icons'
 import {
@@ -59,7 +60,6 @@ import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader';
 import GridLoader from 'react-spinners/GridLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
-import { mkdirSync } from 'fs';
 
 
 const isDebug = false
@@ -155,6 +155,7 @@ const main = {
 	console: remote.require('console'),
 	app: remote.app,
 }
+// win.setSize(771, 690)
 if (!main.app.isPackaged) {
 	//@ts-ignore
 	window.app = main.app
@@ -387,6 +388,12 @@ export default class App extends React.Component<
 	}
 	componentDidMount() {
 		this.initDB()
+		win.on('maximize', () => this.setState((state, props) => ({
+			maximized: true,
+		})))
+		win.on('unmaximize', () => this.setState((state, props) => ({
+			maximized: false,
+		})))
 	}
 
 	startDownload = () => {
@@ -624,14 +631,18 @@ export default class App extends React.Component<
 		if (id === 'maximize') {
 			win.maximize()
 			console.log(cyan('*maximize'), 'isMaximized:', win.isMaximized());
-			win.once('moved', () => {
-				win.unmaximize()
-				// win.webContents.send('moved-unmaximize')
-				this.setState((state, props) => ({
-					maximized: false,
-				}))
-				main.console.log(cyan('*moved-unmaximize'));
-			})
+			/**
+			 * 不用了,有frame的情況下windows會自動unmaximize
+			 * 而且由於系統操作也能控制maximize和unmaximize,兩者都永久監聽了
+			 */
+			// win.once('moved', () => {
+			// 	win.unmaximize()
+			// 	// win.webContents.send('moved-unmaximize')
+			// 	this.setState((state, props) => ({
+			// 		maximized: false,
+			// 	}))
+			// 	main.console.log(cyan('*moved-unmaximize'));
+			// })
 		} else if (id === 'unmaximize') {
 			win.unmaximize()
 			console.log(cyan('*unmaximize'), 'isMaximized:', win.isMaximized());
@@ -701,19 +712,19 @@ export default class App extends React.Component<
 					{ svgRemove() }
 				</button>
 				{
-					// this.state.maximized
-					// 	?
-					// 	<button tabIndex={ -1 } id='unmaximize'
-					// 		onClick={ this.handleMax }
-					// 	>
-					// 		{ svgUnmaximize }
-					// 	</button>
-					// 	:
-					// 	<button tabIndex={ -1 } id='maximize'
-					// 		onClick={ this.handleMax }
-					// 	>
-					// 		{ svgMaximize }
-					// 	</button>
+					this.state.maximized
+						?
+						<button tabIndex={ -1 } id='unmaximize'
+							onClick={ this.handleMax }
+						>
+							{ svgUnmaximize }
+						</button>
+						:
+						<button tabIndex={ -1 } id='maximize'
+							onClick={ this.handleMax }
+						>
+							{ svgMaximize }
+						</button>
 				}
 				<button
 					tabIndex={ -1 } id='close'

@@ -1,5 +1,5 @@
 let obj = {
 	wer:23
 }
-let a = obj?.wer = 3
+let a = obj?.wer
 console.log(obj.wer);
