@@ -395,7 +395,7 @@ html {
 		/**
 		 * 鬼了,升級到electron22-beta5之後就出現了橫向scrollbar
 		 */
-		
+
 		.display-area {
 			flex-grow: 1;
 			overflow-x: hidden;
@@ -519,6 +519,10 @@ html {
 
 						svg {
 							margin-right: 5px;
+						}
+
+						& span {
+							line-break: anywhere;
 						}
 					}
 
