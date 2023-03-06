@@ -4,14 +4,16 @@
  * 		* 因為讀到的是.f251.webm之類的中間檔案,而不是最終檔
  * * 歷史記錄又卡又慢,尤其是同時量大以及記錄多的時候
  * 		* 每次都要完整從檔案裡讀出,修改,完整的寫入檔案
- * * tooltip沒有
- * * 無限的totalLoader
+ * \* tooltip沒有
+ * \* 無限的totalLoader
  * 		* 因為原本用的是加一減一的方法算出有多少在運行的
  * 		* 用queuer裡的方法,好像不行,因為App的state裡面沒有儲存status
- * * 無法最大化復原.
+ * \* 無法最大化復原.
  * 		* 其實是無法最大化,窗口變了,但是實際state沒動,導致unmaximize失敗
  * 		* 所以直接去除了按鈕,眼不見為淨
  * 
+ * TODO: 更好的顯示download path,並且可以從歷史中選擇
+ * FIXME: history file如果是相對路徑應該要相對download path,能切換更好
  * 
  */
 /**
@@ -185,7 +187,11 @@ const saveTimer: { chant: NodeJS.Timer | null, notice: () => void } = {
 
 // db.write()
 // console.log(main.app.getPath('exe'));
+/**
+ * dirPath在用\\的時候會出現識別不到後面的參數,所以替換一下
+ */
 const quotePath = (path: string) => {
+	path = path.replaceAll('\\', '/')
 	if ((path[0] === `'` && path[path.length - 1] === `'`) || (path[0] === `"` && path[path.length - 1] === `"`)) {
 		return path
 	} else {
@@ -433,6 +439,7 @@ export default class App extends React.Component<
 		 */
 		urlInput = urlInput.replace(/( )|(^--?)/g, '')
 		const ytdlpOptions: string[] = [];
+        ytdlpOptions.push('--encoding','utf8')
 		ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
 		// ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
 		// ytdlpOptions.push('-r', '5K') //調試用降速
@@ -452,6 +459,7 @@ export default class App extends React.Component<
 		this.state.isFormatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
 		this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
 		this.state.saveSubtitles && ytdlpOptions.push('--write-subs',)
+		this.state.saveSubtitles && ytdlpOptions.push('--sub-langs', 'all')
 		this.state.isUseCookie && ytdlpOptions.push('--cookies', this.state.cookieFile)
 		this.state.isUseHistory && ytdlpOptions.push('--download-archive', this.state.historyFile || 'histories.txt')
 		this.state.contentSelector === 'skip' && ytdlpOptions.push('--skip-download')
@@ -476,7 +484,7 @@ export default class App extends React.Component<
 				:
 				quotePath(path.join(__dirname, 'yt-dlp.exe'))
 
-		console.log(cyan('*yt-dlp command:'), ytdlpCommand);
+		console.log(cyan('*yt-dlp command:'), ytdlpCommand, ytdlpOptions);
 
 		// console.log(__dirname,'yt-dlp.exe');
 		const child = spawn(
@@ -490,6 +498,9 @@ export default class App extends React.Component<
 			ytdlpOptions,
 			{ shell: true },
 		)
+		/**
+		 * 上面console.log的時候還沒有-J,但是在console裡查看的時候已經被修改了
+		 */
 		ytdlpOptions.push('-J',)
 		const childJson = spawn(
 			ytdlpCommand,
@@ -1030,7 +1041,8 @@ class Task extends React.PureComponent<
 			 */
 			let infoJson: never | null
 			try {
-				infoJson = JSON.parse(decode(data, 'gbk'))
+				// infoJson = JSON.parse(decode(data, 'gbk'))
+                infoJson = JSON.parse(data.toString())
 			} catch {
 				infoJson = null
 			}
@@ -1057,7 +1069,8 @@ class Task extends React.PureComponent<
 		})
 		this.child = this.props.taskData.process
 		this.child?.stdout?.on('data', (data: Buffer) => {
-			const info = decode(data, 'gbk').trim()
+			// const info = decode(data, 'gbk').trim()
+            const info = data.toString()
 			if (info.includes('[download process]')) {
 				console.log(cyan('*processingOutput:'), info);
 				const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
@@ -1105,7 +1118,8 @@ class Task extends React.PureComponent<
 			}
 		})
 		this.child?.stderr?.on('data', (data) => {
-			let info = decode(data, 'gbk')
+			// let info = decode(data, 'gbk')
+            let info = data.toString()
 			console.log(red('*stderr:'), info);
 			if (info.includes('is not a valid URL') || info.includes('You must provide at least one URL')) {
 				info = 'Please input a vaild url'
