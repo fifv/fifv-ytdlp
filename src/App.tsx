@@ -31,8 +31,8 @@ import { decode } from 'iconv-lite'
 import { clipboard, shell } from 'electron'
 import ElectronStore from 'electron-store'
 import { Low, JSONFile, } from 'lowdb'
-import path from 'path'
-import { cyan, red, magentaBright } from 'colorette'
+import path, { join } from 'path'
+import { cyan, red, magentaBright, bgCyan, bgYellow, black } from 'colorette'
 import * as remote from '@electron/remote'
 import { clone, isEqual, isNumber } from 'lodash-es'
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
@@ -66,7 +66,23 @@ import PuffLoader from 'react-spinners/PuffLoader'
 
 const isDebug = false
 // const isDebug = true
+export function getTimeString(totalSeconds: number) {
 
+    if (totalSeconds === Infinity) {
+        totalSeconds = 0
+    }
+    const absTotalSeconds = Math.abs(totalSeconds)
+    const hours = Math.floor(absTotalSeconds / 3600)
+    const minutes = Math.floor((absTotalSeconds - hours * 3600) / 60)
+    const seconds = Math.floor(absTotalSeconds - hours * 3600 - minutes * 60)
+
+    const hh = (hours !== 0) ? hours.toString().padStart(2, '0') + ':' : ''
+    const mm = minutes.toString().padStart(2, '0')
+    const ss = seconds.toString().padStart(2, '0')
+
+    return `${totalSeconds < 0 ? '-' : ''}${hh}${mm}:${ss}`
+
+}
 
 /**
  * 以下為type
@@ -95,8 +111,8 @@ interface TaskHistory {
     status: Status,
     thumbnailFinished?: boolean,
     destPath?: string,
-    percentValue?: number,
-    fileSizeValue?: number,
+    downloadedPercent?: number,
+    fileSizeBytes?: number,
     fileSizeString?: string,
     title?: string,
     durationString?: string,
@@ -109,6 +125,7 @@ interface TaskData extends TaskHistory {
     process?: ChildProcess,
     processJson?: ChildProcess,
     urlInput: string,
+    destPathDir?: string,
 }
 
 /**
@@ -164,7 +181,7 @@ if (!main.app.isPackaged) {
 }
 let db: Low<DB>
 let histories: TaskHistory[] = []
-let historiesComp: TaskHistory[] = []
+let historiesPrev: TaskHistory[] = []
 const saveTimer: { chant: NodeJS.Timer | null, notice: () => void } = {
     chant: null,
     notice() {
@@ -175,10 +192,10 @@ const saveTimer: { chant: NodeJS.Timer | null, notice: () => void } = {
             this.chant = setTimeout(() => {
                 this.chant = null
                 console.log(magentaBright('*Histories saved'))
-                if (!isEqual(histories, historiesComp)) {
+                if (!isEqual(histories, historiesPrev)) {
                     // console.log('*timer auto save histories:', 'from', historiesComp, 'to', histories);
                     db.write()
-                    historiesComp = histories.slice()
+                    historiesPrev = histories.slice()
                 }
             }, 1000)
         }
@@ -252,7 +269,7 @@ const store = new ElectronStore({
         historyFile: 'history.txt',
         fileNameTemplate: '[%(upload_date)s]%(title)s-%(id)s.%(ext)s',
 
-        destPath: main.app.getPath('downloads'),
+        destPathDir: main.app.getPath('downloads'),
         tempPath: path.join(main.app.getPath('downloads'), 'temp'),
 
         taskHistories: [],
@@ -269,51 +286,52 @@ window.onbeforeunload = (event) => {
 /**
  * svg
  */
-const svgLoaderHash = <HashLoader size={ 10 } color="white" />
-const svgLoaderGrid = <GridLoader size={ 4 } color="white" margin={ 1 } />
-const svgLoaderPuff = <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />
+const svg = {
+    LoaderHash: <HashLoader size={ 10 } color="white" />,
+    LoaderGrid: <GridLoader size={ 4 } color="white" margin={ 1 } />,
+    LoaderPuff: <PuffLoader size={ 10 } color="white" speedMultiplier={ 0.5 } />,
 
-const svgDownload = <MdDownload />
-const svgDownloadDone = <MdDownloadDone />
-const svgPaste = <MdOutlineContentPaste />
-const svgNetwork = <BsHddNetwork />
-const svgHistory = <MdHistory />
-const svgCookie = <BiCookie />
-const svgFormat = <MdFormatPaint />
-const svgFolder = <MdOutlineFolder />
-const svgSubtitleFill = <MdSubtitles />
-const svgSubtitle = <MdOutlineSubtitles />
-const svgVideo = <BsCameraVideo />
-const svgMusic = <BsMusicNoteBeamed />
-const svgUnmaximize = <CgMinimize />
-const svgMaximize = <VscChromeMaximize />
-const svgUp = <MdOutlineKeyboardArrowUp />
-const svgDown = <MdOutlineKeyboardArrowDown />
-const svgRemove = (className = 'svgRemove') =>
-    <IconContext.Provider value={ { className: className } }>
-        <MdOutlineRemove />
-    </IconContext.Provider>
-const svgSuccess =
-    <IconContext.Provider value={ { className: 'svgSuccess' } }>
-        <MdOutlineCheck />
-    </IconContext.Provider>
-const svgClose = (className = 'svgClose') =>
-    <IconContext.Provider value={ { className: className } }>
-        <MdClose />
-    </IconContext.Provider>
-const svgPlay = <IoPlayOutline />
-const svgPhoto =
-    <IconContext.Provider value={ { className: 'svgPhoto' } }>
-        <MdOutlineInsertPhoto />
-    </IconContext.Provider>
-const svgRight = <BsFillArrowRightCircleFill />
-const svgDanger =
-    <IconContext.Provider value={ { className: 'svgDanger' } }>
-        <BsFillExclamationTriangleFill />
-    </IconContext.Provider>
-const svgInfo = <MdInfo />
+    Download: <MdDownload />,
+    DownloadDone: <MdDownloadDone />,
+    Paste: <MdOutlineContentPaste />,
+    Network: <BsHddNetwork />,
+    History: <MdHistory />,
+    Cookie: <BiCookie />,
+    Format: <MdFormatPaint />,
+    Folder: <MdOutlineFolder />,
+    SubtitleFill: <MdSubtitles />,
+    Subtitle: <MdOutlineSubtitles />,
+    Video: <BsCameraVideo />,
+    Music: <BsMusicNoteBeamed />,
+    Unmaximize: <CgMinimize />,
+    Maximize: <VscChromeMaximize />,
+    Up: <MdOutlineKeyboardArrowUp />,
+    Down: <MdOutlineKeyboardArrowDown />,
+    Remove: (className = 'svgRemove') =>
+        <IconContext.Provider value={ { className: className } }>
+            <MdOutlineRemove />
+        </IconContext.Provider>,
+    Success:
+        <IconContext.Provider value={ { className: 'svgSuccess' } }>
+            <MdOutlineCheck />
+        </IconContext.Provider>,
+    Close: (className = 'svgClose') =>
+        <IconContext.Provider value={ { className: className } }>
+            <MdClose />
+        </IconContext.Provider>,
+    Play: <IoPlayOutline />,
+    Photo:
+        <IconContext.Provider value={ { className: 'svgPhoto' } }>
+            <MdOutlineInsertPhoto />
+        </IconContext.Provider>,
+    Right: <BsFillArrowRightCircleFill />,
+    Danger:
+        <IconContext.Provider value={ { className: 'svgDanger' } }>
+            <BsFillExclamationTriangleFill />
+        </IconContext.Provider>,
+    Info: <MdInfo />
 
-
+}
 export default class App extends React.Component<
     {},
     {
@@ -340,7 +358,7 @@ export default class App extends React.Component<
         proxyHost: string,
         cookieFile: string,
         historyFile: string,
-        destPath: string,
+        destPathDir: string,
         tempPath: string,
     }
 > {
@@ -370,7 +388,7 @@ export default class App extends React.Component<
             proxyHost: storeContent.proxyHost,
             cookieFile: storeContent.cookieFile,
             historyFile: storeContent.historyFile,
-            destPath: storeContent.destPath,
+            destPathDir: storeContent.destPathDir,
             tempPath: storeContent.tempPath,
             fileNameTemplate: storeContent.fileNameTemplate
         }
@@ -440,11 +458,12 @@ export default class App extends React.Component<
         urlInput = urlInput.replace(/( )|(^--?)/g, '')
         const ytdlpOptions: string[] = []
         ytdlpOptions.push('--encoding', 'utf8')
-        ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
-        // ytdlpOptions.push("--no-simulate")
-        // ytdlpOptions.push("--dump-json")
-        // ytdlpOptions.push("--progress")
-        // ytdlpOptions.push("--progress-template '%(progress)s'")
+        // ytdlpOptions.push('--progress-template', '"[download process]|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|"',)
+        ytdlpOptions.push("--no-simulate")
+        ytdlpOptions.push("--dump-json")
+        ytdlpOptions.push("--newline")
+        ytdlpOptions.push("--progress")
+        ytdlpOptions.push("--progress-template '%(progress)s'")
 
         // ytdlpOptions.push('-P', 'temp:'+this.state.tempPath)
         // ytdlpOptions.push('-r', '5K') //調試用降速
@@ -455,11 +474,11 @@ export default class App extends React.Component<
          * 好像已存在不會報錯
          */
         if (this.state.isSpecifyDownloadPath) {
-            mkdirSync(this.state.destPath, { recursive: true })
+            mkdirSync(this.state.destPathDir, { recursive: true })
         }
 
 
-        this.state.isSpecifyDownloadPath && ytdlpOptions.push('-P', quotePath(this.state.destPath)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
+        this.state.isSpecifyDownloadPath && ytdlpOptions.push('--paths', quotePath(this.state.destPathDir)) //如果不加home:或temp:就是下載在一塊兒(以前就是這樣的)
         this.state.isProxy && ytdlpOptions.push('--proxy', this.state.proxyHost,)
         this.state.isFormatFilename && ytdlpOptions.push('-o', this.state.fileNameTemplate,)
         this.state.saveThumbnail && ytdlpOptions.push('--write-thumbnail',)
@@ -506,19 +525,20 @@ export default class App extends React.Component<
         /**
          * 上面console.log的時候還沒有-J,但是在console裡查看的時候已經被修改了
          */
-        ytdlpOptions.push('-J',)
-        const childJson = spawn(
-            ytdlpCommand,
-            ytdlpOptions,
-            { shell: true },
-        )
+        // ytdlpOptions.push('-J',)
+        // const childJson = spawn(
+        //     ytdlpCommand,
+        //     ytdlpOptions,
+        //     { shell: true },
+        // )
         this.setState((state, props) => ({
             datas: state.datas.concat({
                 timestamp: Date.now(),
                 process: child,
-                processJson: childJson,
+                // processJson: childJson,
                 urlInput: urlInput,
                 status: 'downloading',
+                destPathDir: this.state.destPathDir,
             })
         }))
 
@@ -673,8 +693,8 @@ export default class App extends React.Component<
         const className = e.currentTarget.className
         const id = target.id
         if (id === 'openDir' && this.state.isSpecifyDownloadPath) {
-            console.log(cyan('*open dir:'), this.state.destPath)
-            spawn('start', ['""', `"${this.state.destPath}"`], { shell: true })
+            console.log(cyan('*open dir:'), this.state.destPathDir)
+            spawn('start', ['""', `"${this.state.destPathDir}"`], { shell: true })
             // shell.openPath(this.state.destPath)
         } else if (id === 'openDir' && !this.state.isSpecifyDownloadPath) {
             const cwd = remote.process.cwd()
@@ -718,14 +738,13 @@ export default class App extends React.Component<
     }
     render() {
 
-
-        const trafficLight =
+        const TrafficLight =
             <div className="trafficLight">
                 <button
                     tabIndex={ -1 } id='minimize'
                     onClick={ () => { win.minimize() } }
                 >
-                    { svgRemove() }
+                    { svg.Remove() }
                 </button>
                 {
                     this.state.maximized
@@ -733,24 +752,24 @@ export default class App extends React.Component<
                         <button tabIndex={ -1 } id='unmaximize'
                             onClick={ this.handleMax }
                         >
-                            { svgUnmaximize }
+                            { svg.Unmaximize }
                         </button>
                         :
                         <button tabIndex={ -1 } id='maximize'
                             onClick={ this.handleMax }
                         >
-                            { svgMaximize }
+                            { svg.Maximize }
                         </button>
                 }
                 <button
                     tabIndex={ -1 } id='close'
                     onClick={ () => { win.close() } }
                 >
-                    { svgClose() }
+                    { svg.Close() }
                 </button>
             </div>
 
-        const totalLoader =
+        const TotalLoader =
             /**
             * 哈...邏輯短路真的短路了...
             * this.state.process || 1 && Element
@@ -773,9 +792,9 @@ export default class App extends React.Component<
              */
             !!this.getStatusCount('downloading') &&
             <div className='totalLoader'>
-                { svgLoaderPuff }
+                { svg.LoaderPuff }
             </div>
-        const urlBar =
+        const UrlBar =
             <div className="urlBar">
                 <input
                     autoFocus
@@ -795,11 +814,11 @@ export default class App extends React.Component<
                      * 單個模式下要Stop好像有點麻煩
                      */
                 }
-                <button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>{ svgPlay }</button>
+                <button className='btnStart' tabIndex={ -1 } onClick={ this.startDownload }>{ svg.Play }</button>
                 { this.state.urlInput.trim() ?
-                    <button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: '' }) } }>{ svgClose() }</button>
+                    <button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: '' }) } }>{ svg.Close() }</button>
                     :
-                    <button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: clipboard.readText() }) } }>{ svgPaste }</button>
+                    <button className='btnPaste' tabIndex={ -1 } onClick={ () => { this.setState({ urlInput: clipboard.readText() }) } }>{ svg.Paste }</button>
                 }
 
             </div>
@@ -811,7 +830,7 @@ export default class App extends React.Component<
         // 	[key in keyof App['state']]: App['state'][key] extends boolean ? key : never
         // }[keyof App['state']]
 
-        const optionWithInput = (checkboxId: KeyofType<App['state'], boolean>, checkboxPopupContent?: string, buttonContent?: string | JSX.Element, buttonPopupContent?: string, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
+        const OptionWithInput = (checkboxId: KeyofType<App['state'], boolean>, checkboxPopupContent?: string, buttonContent?: string | JSX.Element, buttonPopupContent?: string, textInputId?: KeyofType<App['state'], string>, buttonId?: string, placeholder?: string,) => {
             /**
              * if no buttonName provided, checkboxId will be used
              * if no placeholder provided, textInputId will be used
@@ -831,7 +850,7 @@ export default class App extends React.Component<
              */
             return (
                 <div className="optionWithInput">
-                    { checkOption(checkboxId, svgSuccess, checkboxPopupContent) }
+                    { CheckOption(checkboxId, svg.Success, checkboxPopupContent) }
                     <Tippy content={ buttonPopupContent } disabled={ !buttonPopupContent }>
                         <div
                             id={ buttonId }
@@ -853,7 +872,7 @@ export default class App extends React.Component<
                 </div>
             )
         }
-        const radioOption = (id: 'video' | 'audio' | 'skip', buttonContent?: string | JSX.Element, popupContent?: string,) => {
+        const RadioOption = (id: 'video' | 'audio' | 'skip', buttonContent?: string | JSX.Element, popupContent?: string,) => {
             if (!buttonContent) {
                 buttonContent = id.replace(/([A-Z])/g, ' $1')
                 buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
@@ -868,7 +887,7 @@ export default class App extends React.Component<
                 </div>
             </Tippy>
         }
-        const checkOption = (id: KeyofType<App['state'], boolean>, buttonContent?: string | JSX.Element, popupContent?: string) => {
+        const CheckOption = (id: KeyofType<App['state'], boolean>, buttonContent?: string | JSX.Element, popupContent?: string) => {
             if (!buttonContent) {
                 buttonContent = id.replace(/([A-Z])/g, ' $1')
                 buttonContent = buttonContent[0].toUpperCase() + buttonContent.slice(1)
@@ -882,48 +901,48 @@ export default class App extends React.Component<
                 </div>
             </Tippy>
         }
-        const displaySelector =
+        const DisplaySelector =
             <div className="selector">
-                { checkOption('isDisplayDownloading', svgDownload, 'Show Tasks Downloading or Failed') }
-                { checkOption('isDisplayFinished', svgDownloadDone, 'Show Tasks Finished') }
+                { CheckOption('isDisplayDownloading', svg.Download, 'Show Tasks Downloading or Failed') }
+                { CheckOption('isDisplayFinished', svg.DownloadDone, 'Show Tasks Finished') }
             </div>
-        const contentSelector =
+        const ContentSelector =
             <div className="selector">
-                { radioOption('video', svgVideo, 'Download best video and audio, then merge') }
-                { radioOption('audio', svgMusic, 'Only download best audio') }
-                { radioOption('skip', svgClose(), 'Skip download, useful for downloading thumbnail or test') }
+                { RadioOption('video', svg.Video, 'Download best video and audio, then merge') }
+                { RadioOption('audio', svg.Music, 'Only download best audio') }
+                { RadioOption('skip', svg.Close(), 'Skip download, useful for downloading thumbnail or test') }
             </div>
-        const bonusSelector =
+        const BonusSelector =
             <div className="selector">
-                { checkOption('saveThumbnail', svgPhoto, 'Save Thumbnail') }
-                { checkOption('saveSubtitles', svgSubtitle, 'Save Subtitle') }
-                { checkOption('saveAutoSubtitle', svgSubtitleFill, 'Save AutoSubtitle') }
+                { CheckOption('saveThumbnail', svg.Photo, 'Save Thumbnail') }
+                { CheckOption('saveSubtitles', svg.Subtitle, 'Save Subtitle') }
+                { CheckOption('saveAutoSubtitle', svg.SubtitleFill, 'Save AutoSubtitle') }
             </div>
 
-        const optionsArea =
+        const OptionsArea =
             <div className="optionsArea">
                 <div className="selectors">
-                    { contentSelector }
-                    { displaySelector }
-                    { bonusSelector }
+                    { ContentSelector }
+                    { DisplaySelector }
+                    { BonusSelector }
                 </div>
                 <div className="options">
-                    { optionWithInput('isSpecifyDownloadPath', 'Enable to download at the specific path. Otherwise at where the app exists', svgFolder, 'Open folder, depending on your setting', 'destPath', 'openDir',) }
-                    { optionWithInput('isProxy', 'Enable to use proxy. support http and socks5, but http is recomended', svgNetwork, '', 'proxyHost',) }
-                    { optionWithInput('isUseCookie', 'Enable to use cookie', svgCookie, 'Open specified cookie file', 'cookieFile', 'openCookie',) }
-                    { optionWithInput('isUseHistory', 'Enable to use history file. If downloaded and recorded in history file, it will not be downloaded twice', svgHistory, 'Open specified history file', 'historyFile', 'openHistory',) }
-                    { optionWithInput('isFormatFilename', 'Enable to format downloaded filename', svgFormat, '', 'fileNameTemplate',) }
+                    { OptionWithInput('isSpecifyDownloadPath', 'Enable to download at the specific path. Otherwise at where the app exists', svg.Folder, 'Open folder, depending on your setting', 'destPathDir', 'openDir',) }
+                    { OptionWithInput('isProxy', 'Enable to use proxy. support http and socks5, but http is recomended', svg.Network, '', 'proxyHost',) }
+                    { OptionWithInput('isUseCookie', 'Enable to use cookie', svg.Cookie, 'Open specified cookie file', 'cookieFile', 'openCookie',) }
+                    { OptionWithInput('isUseHistory', 'Enable to use history file. If downloaded and recorded in history file, it will not be downloaded twice', svg.History, 'Open specified history file', 'historyFile', 'openHistory',) }
+                    { OptionWithInput('isFormatFilename', 'Enable to format downloaded filename', svg.Format, '', 'fileNameTemplate',) }
                     {/* { option('saveThumbnail',) } */ }
                     {/* { option('saveSubtitles',) } */ }
                     {/* { option('notDownloadVideo',) }
 					{ option('onlyDownloadAudio',) } */}
                     {/* { option('saveAutoSubtitle',) } */ }
-                    { optionWithInput('isUseLocalYtdlp', 'Enable to use local yt-dlp command, required it in the path. This may be faster. If not understand, DO NOT enable it', 'Local Ytdlp', '') }
+                    { OptionWithInput('isUseLocalYtdlp', 'Enable to use local yt-dlp command, required it in the path. This may be faster. If not understand, DO NOT enable it', 'Local Ytdlp', '') }
                     {/* { option('saveAllSubtitles',) } */ }
                 </div>
             </div>
 
-        const tasksArea =
+        const TasksArea =
             <Flipper
                 flipKey={ this.state.datas.length + +this.state.isDisplayDownloading + +this.state.isDisplayFinished + this.getStatusCount('downloading') }
                 className='flipper'
@@ -962,13 +981,13 @@ export default class App extends React.Component<
             </Flipper>
         return (
             <>
-                { trafficLight }
+                { TrafficLight }
                 <div className="container">
                     <div className="main">
-                        { totalLoader }
-                        { urlBar }
-                        { tasksArea }
-                        { optionsArea }
+                        { TotalLoader }
+                        { UrlBar }
+                        { TasksArea }
+                        { OptionsArea }
                     </div>
                 </div>
             </>
@@ -991,14 +1010,20 @@ class Task extends React.PureComponent<
 
         destPath?: string,
         title?: string,
-        fileSizeValue?: number,
-        fileSizeString?: string,
+        // fileSizeString?: string,
         durationString?: string,
         webpageUrl?: string,
 
-        speed?: string,
-        etaString?: string,
-        percentValue?: number,
+        downloadSpeedBytesPerSecond?: number,
+        fileSizeBytes?: number,
+        downloadedSizeBytes?: number,
+        // etaString?: string,
+        downloadedPercent?: number,
+        /**
+         * 0~1
+         */
+        // downloadedPercent?: number,
+        etaSeconds?: number,
 
         status: Status,
         removeConfirmed: boolean,
@@ -1025,102 +1050,174 @@ class Task extends React.PureComponent<
 
             destPath: taskData.destPath,
             title: taskData.title,
-            fileSizeValue: taskData.fileSizeValue,
-            fileSizeString: taskData.fileSizeString,
+            fileSizeBytes: taskData.fileSizeBytes,
+            // fileSizeString: taskData.fileSizeString,
             durationString: taskData.durationString,
             // webpageUrl: taskHistory.webpageUrl,
 
             // speed: taskHistory.speed,
             // etaString: taskHistory.etaString,
-            percentValue: taskData.percentValue,
+            downloadedPercent: taskData.downloadedPercent,
 
             status: taskData.status,
             removeConfirmed: false,
         }
 
-        this.childJson = this.props.taskData.processJson
-        this.childJson?.stdout?.on('data', (data: Buffer) => {
-            // console.log('json:', typeof data, data);
-            /**
-             * ???
-             */
-            let infoJson: never | null
-            try {
-                // infoJson = JSON.parse(decode(data, 'gbk'))
-                infoJson = JSON.parse(data.toString())
-            } catch {
-                infoJson = null
-            }
-            if (infoJson) {
+        // this.childJson = this.props.taskData.processJson
+        // this.childJson?.stdout?.on('data', (data: Buffer) => {
+        //     // console.log('json:', typeof data, data);
+        //     /**
+        //      * ???
+        //      */
+        //     let infoJson: never | null
+        //     try {
+        //         // infoJson = JSON.parse(decode(data, 'gbk'))
+        //         infoJson = JSON.parse(data.toString())
+        //     } catch {
+        //         infoJson = null
+        //     }
+        //     if (infoJson) {
 
-                const title = infoJson['fulltitle']
-                const destPath = infoJson['requested_downloads'][0]['_filename'] as string
-                const fileSizeValue = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
-                const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
-                const durationString = infoJson['duration_string']
-                const webpageUrl = infoJson['webpage_url']
-                // console.log('*getInfoJson.fileSizeString:', fileSizeString);
-                console.log(cyan('*getInfoJson:'), infoJson)
+        //         const title = infoJson['fulltitle']
+        //         const destPath = infoJson['requested_downloads'][0]['_filename'] as string
+        //         const fileSizeValue = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
+        //         const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
+        //         const durationString = infoJson['duration_string']
+        //         const webpageUrl = infoJson['webpage_url']
+        //         // console.log('*getInfoJson.fileSizeString:', fileSizeString);
+        //         console.log(cyan('*getInfoJson:'), infoJson)
 
-                this.setState((state, props) => ({
-                    title: title,
-                    destPath: destPath,
-                    fileSizeValue: fileSizeValue,
-                    fileSizeString: fileSizeString,
-                    durationString: durationString,
-                    webpageUrl: webpageUrl,
-                }))
-            }
-        })
+        //         this.setState((state, props) => ({
+        //             title: title,
+        //             destPath: destPath,
+        //             fileSizeBytes: fileSizeValue,
+        //             fileSizeString: fileSizeString,
+        //             durationString: durationString,
+        //             webpageUrl: webpageUrl,
+        //         }))
+        //     }
+        // })
+
         this.child = this.props.taskData.process
         this.child?.stdout?.on('data', (data: Buffer) => {
             // const info = decode(data, 'gbk').trim()
-            const info = data.toString()
-            if (info.includes('[download process]')) {
-                console.log(cyan('*processingOutput:'), info)
-                const processingOutput = info.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+            const stdoutStr = data.toString()
+            if (stdoutStr.startsWith('{"')) {
+                try {
+                    // infoJson = JSON.parse(decode(data, 'gbk'))
+                    const infoJson = JSON.parse(data.toString())
+                    console.log(
+                        bgCyan(black('[infoJson]')),
+                        // { info: data.toString() },
+                        infoJson,
+                    )
+                    // console.table(infoJson)
+
+
+
+                    const title = infoJson['fulltitle']
+                    const filename = infoJson['filename'] as string
+                    const fileSizeBytes = infoJson['filesize'] ?? infoJson['filesize_approx'] as number
+                    // const fileSizeString = (fileSizeValue / 1024 / 1024).toFixed(1) + ' MiB'
+                    const durationString = infoJson['duration_string']
+                    const webpageUrl = infoJson['webpage_url']
+                    // console.log('*getInfoJson.fileSizeString:', fileSizeString);
+                    // console.log(cyan('*getInfoJson:'), infoJson)
+
+                    console.log('title:::', title)
+                    this.setState((state, props) => ({
+                        title: title,
+                        destPath: filename,
+                        fileSizeBytes: fileSizeBytes,
+                        // fileSizeString: fileSizeString,
+                        durationString: durationString,
+                        webpageUrl: webpageUrl,
+                    }))
+                } catch (e) {
+                    // infoJson = null
+                    console.error('wtf', e)
+                }
+
+            } else {
+                // const processingOutput = stdoutStr.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+                // console.log({
+                //     replaced: stdoutStr.replaceAll(`'`, `"`).replaceAll('None', 'null'),
+                //     origin: stdoutStr,
+                // })
+                const progressObj = JSON.parse(
+                    stdoutStr
+                        /* py map -> json */
+                        .replaceAll(`'`, `"`)
+                        .replaceAll('None', 'null')
+                        /* 什麼鬼東西,為什麼收到的會有前後各一個' */
+                        .slice(1, -2)
+                )
+                console.log(
+                    bgYellow(black('[Progress]')),
+                    // stdoutStr,
+                    progressObj,
+                )
+                // console.table(progressObj)
+
                 this.setState((state, props) => ({
                     // processingOutput: processingOutput,
-                    percentValue: parseFloat(processingOutput[1]),
-                    speed: processingOutput[2],
-                    etaString: processingOutput[3],
+                    // downloadedPercent: parseFloat(processingOutput[1]),
+                    // downloadedPercent: progressObj['downloaded_bytes'] / progressObj['total_bytes_estimate'],
+                    downloadedSizeBytes: progressObj['downloaded_bytes'],
+                    fileSizeBytes: progressObj['total_bytes_estimate'],
+                    downloadSpeedBytesPerSecond: progressObj['speed'],
+                    // etaString: processingOutput[3],
+                    etaSeconds: progressObj['eta'],
 
-                    otherInfo: (state.percentValue && state.percentValue < 100) ? 'Downloading...' : state.otherInfo
-                }))
-                // } else if (info.includes('[download] Destination')) {
-                // 	console.log('*downloadingInfo:', info);
-                // 	this.setState((state, props) => ({
-                // 		otherInfo: info,
-                // 		destPath: info.replace('[download] Destination: ', '').trim().replace('\n', ''),
-                // 	}))
-
-
-            } else if (info.includes('Writing video thumbnail')) {
-                console.log(cyan('*thumbnailInfo:'), info)
-                this.setState((state, props) => ({
-                    thumbnailFinished: true,
-                    otherInfo: info,
-                }))
-
-
-                // } else if (info.includes('has already been downloaded')) {
-                // 	console.log('*otherinfo:', info);
-                // 	// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
-                // 	this.setState((state, props) => ({
-                // 		otherInfo: info,
-                // 		destPath: info.replace('[download] ', '').replace(' has already been downloaded', '').replace('\n', ''),
-                // 	}))
-            } else if (info.includes('idk')) {
-                /* empty */
-
-                // } else if (info.includes('Downloading video thumbnail')) {
-                // 	console.log('*otherinfo:', info);
-            } else {
-                console.log(cyan('*other info:'), info)
-                this.setState((state, props) => ({
-                    otherInfo: info
+                    // otherInfo: (downloadedPercent < 1) ? 'Downloading...' : state.otherInfo
+                    otherInfo: (progressObj['total_bytes_estimate'] - progressObj['downloaded_bytes'] < 1) ? 'Downloading...' : state.otherInfo
                 }))
             }
+            // if (stdoutStr.includes('[download process]')) {
+            //     console.log(cyan('*processingOutput:'), stdoutStr)
+            //     const processingOutput = stdoutStr.replace(/(\r)|(')|(")/g, '').split('|').map((str) => str.trim())
+            //     this.setState((state, props) => ({
+            //         // processingOutput: processingOutput,
+            //         downloadedPercent: parseFloat(processingOutput[1]),
+            //         downloadSpeedBytesPerSecond: processingOutput[2],
+            //         etaString: processingOutput[3],
+
+            //         otherInfo: (state.downloadedPercent && state.downloadedPercent < 100) ? 'Downloading...' : state.otherInfo
+            //     }))
+            //     // } else if (info.includes('[download] Destination')) {
+            //     // 	console.log('*downloadingInfo:', info);
+            //     // 	this.setState((state, props) => ({
+            //     // 		otherInfo: info,
+            //     // 		destPath: info.replace('[download] Destination: ', '').trim().replace('\n', ''),
+            //     // 	}))
+
+
+            // } else if (stdoutStr.includes('Writing video thumbnail')) {
+            //     console.log(cyan('*thumbnailInfo:'), stdoutStr)
+            //     this.setState((state, props) => ({
+            //         thumbnailFinished: true,
+            //         otherInfo: stdoutStr,
+            //     }))
+
+
+            //     // } else if (info.includes('has already been downloaded')) {
+            //     // 	console.log('*otherinfo:', info);
+            //     // 	// [download] D:\Downloads\CRTubeGet Downloaded\youtube-dl\[20220218]【メン限でアーカイブ残してます！】かわいくってごめんね？【神楽めあ】-1oOgfQA5KRc.webm has already been downloaded
+            //     // 	this.setState((state, props) => ({
+            //     // 		otherInfo: info,
+            //     // 		destPath: info.replace('[download] ', '').replace(' has already been downloaded', '').replace('\n', ''),
+            //     // 	}))
+            // } else if (stdoutStr.includes('idk')) {
+            //     /* empty */
+
+            //     // } else if (info.includes('Downloading video thumbnail')) {
+            //     // 	console.log('*otherinfo:', info);
+            // } else {
+            //     console.log(cyan('*other info:'), stdoutStr)
+            //     this.setState((state, props) => ({
+            //         otherInfo: stdoutStr
+            //     }))
+            // }
         })
         this.child?.stderr?.on('data', (data) => {
             // let info = decode(data, 'gbk')
@@ -1148,7 +1245,7 @@ class Task extends React.PureComponent<
                     this.props.reportStatus(this.timestamp, 'finished')
                     this.setState((state, props) => ({
                         status: "finished",
-                        otherInfo: 'Finished',
+                        // otherInfo: 'Finished',
                     }))
                     break
                 // case 1:
@@ -1270,6 +1367,10 @@ class Task extends React.PureComponent<
     render() {
         // console.log(this.props);
         // console.log('Task rerendered');
+        const downloadedPercent = this.state.downloadedSizeBytes && this.state.fileSizeBytes
+            ? this.state.downloadedSizeBytes / this.state.fileSizeBytes
+            : undefined
+
         const info = {
             timestamp: this.props.taskData.timestamp,
             urlInput: this.props.taskData.urlInput,
@@ -1280,14 +1381,16 @@ class Task extends React.PureComponent<
 
             destPath: this.state.destPath,
             title: this.state.title,
-            fileSizeValue: this.state.fileSizeValue,
-            fileSizeString: this.state.fileSizeString,
+            fileSizeBytes: this.state.fileSizeBytes,
+            // fileSizeString: this.state.fileSizeString,
             durationString: this.state.durationString,
             webpageUrl: this.state.webpageUrl,
 
-            speed: this.state.speed,
-            etaString: this.state.etaString,
-            percentValue: this.state.percentValue,
+            downloadSpeedBytesPerSecond: this.state.downloadSpeedBytesPerSecond,
+            // etaString: this.state.etaString,
+            // downloadedPercent: this.state.downloadedPercent,
+            downloadedPercent: downloadedPercent,
+            etaSeconds: this.state.etaSeconds,
 
             status: this.state.status,
         }
@@ -1296,9 +1399,9 @@ class Task extends React.PureComponent<
             status: info.status === 'downloading' ? 'stopped' : info.status,
             urlInput: info.urlInput,
             destPath: info.destPath,
-            percentValue: info.percentValue,
-            fileSizeValue: info.fileSizeValue,
-            fileSizeString: info.fileSizeString,
+            // downloadedPercent: info.downloadedPercent,
+            fileSizeBytes: info.fileSizeBytes,
+            // fileSizeString: info.fileSizeString,
             title: info.title,
             durationString: info.durationString,
             thumbnailFinished: info.thumbnailFinished,
@@ -1316,7 +1419,7 @@ class Task extends React.PureComponent<
 
         const progressBar =
             <ProgressLine
-                percent={ info.percentValue }
+                percent={ info.downloadedPercent * 100 }
                 // strokeColor={ '#cc66ff' }
                 strokeLinecap='square'
                 strokeWidth={ 0.4 }
@@ -1325,19 +1428,19 @@ class Task extends React.PureComponent<
         /**
          * TO\DO: progress bar
          */
-        let statusIcon: JSX.Element = svgLoaderHash
+        let statusIcon: JSX.Element = svg.LoaderHash
         switch (info.status) {
             case 'downloading':
-                statusIcon = svgLoaderHash
+                statusIcon = svg.LoaderHash
                 break
             case 'stopped':
-                statusIcon = svgClose('svgCloseStopped')
+                statusIcon = svg.Close('svgCloseStopped')
                 break
             case 'finished':
-                statusIcon = svgSuccess
+                statusIcon = svg.Success
                 break
             case 'error':
-                statusIcon = svgClose('svgCloseError')
+                statusIcon = svg.Close('svgCloseError')
                 break
 
             default:
@@ -1345,10 +1448,10 @@ class Task extends React.PureComponent<
         }
 
         const statusIndicator = <div className="statusIndicator">
-            { !!this.state.thumbnailFinished && svgPhoto }
+            { !!this.state.thumbnailFinished && svg.Photo }
             { statusIcon }
         </div>
-        const infoDiv = (info: string | undefined, classname: string, svg?: JSX.Element) =>
+        const InfoDiv = (info: string | undefined, classname: string, svg?: JSX.Element) =>
             (isDebug || (
                 !!info &&
                 info !== 'NA' &&
@@ -1361,21 +1464,21 @@ class Task extends React.PureComponent<
                 </span>
             </div>
 
-        const leftCol =
+        const LeftCol =
             <div className="leftcol">
                 { statusIndicator }
             </div>
         // console.log('Task rerended');
 
-        const midCol =
-            (isNumber(info.percentValue) || isNumber(info.fileSizeValue)) &&
+        const MidCol =
+            (isNumber(info.downloadedPercent) || isNumber(info.fileSizeBytes)) &&
             <div className="midcol">
-                { isNumber(info.percentValue) && infoDiv(info.percentValue + '%', 'infoPercent') }
-                { infoDiv(info.fileSizeString, 'infoSize') }
-                { infoDiv(info.speed, 'infoSpeed') }
-                { infoDiv(info.etaString, 'infoEta') }
+                { isNumber(info.downloadedPercent) && InfoDiv((info.downloadedPercent * 100).toFixed(1) + '%', 'infoPercent') }
+                { info.fileSizeBytes && InfoDiv(`${(info.fileSizeBytes / 1024 / 1024).toFixed(1)} MB`, 'infoSize') }
+                { info.downloadSpeedBytesPerSecond && InfoDiv(`${(info.downloadSpeedBytesPerSecond / 1024).toFixed(1)} KB/s`, 'infoSpeed') }
+                { info.etaSeconds && InfoDiv(getTimeString(info.etaSeconds), 'infoEta') }
             </div>
-        const rightcolContext =
+        const RightcolContext =
             /**
              * 這些鬼東西報錯就手動把children: any;加上去
              */
@@ -1391,7 +1494,7 @@ class Task extends React.PureComponent<
                     </MenuItem>
                 }
             </ContextMenu>
-        const rightCol =
+        const RightCol =
             <ContextMenuTrigger
                 id={ "rightcolContext" + info.timestamp }
                 attributes={ {
@@ -1401,17 +1504,17 @@ class Task extends React.PureComponent<
             >
 
                 {/* <div className="rightcol" onDoubleClick={ this.handleOpenFolder }> */ }
-                { infoDiv(info.title ?? this.props.taskData.urlInput, 'infoTitle', svgRight) }
-                { ((info.percentValue && !isNaN(info.percentValue)) || isDebug) && progressBar }
+                { InfoDiv(info.title ?? this.props.taskData.urlInput, 'infoTitle', svg.Right) }
+                { ((info.downloadedPercent && !isNaN(info.downloadedPercent)) || isDebug) && progressBar }
                 { !!info.otherInfo &&
                     <div className="infoOther">
-                        { svgInfo }
+                        { svg.Info }
                         <span>{ info.otherInfo }</span>
                     </div>
                 }
                 { !!info.errorInfo &&
                     <div className="infoError">
-                        { svgDanger }
+                        { svg.Danger }
                         <span> { info.errorInfo }</span>
                     </div>
                 }
@@ -1419,7 +1522,7 @@ class Task extends React.PureComponent<
 
             </ContextMenuTrigger>
 
-        const rightMostCol =
+        const RightMostCol =
             <div
                 className="rightMostCol"
                 /**
@@ -1442,9 +1545,9 @@ class Task extends React.PureComponent<
                 }
             >
                 { info.status === 'downloading' ?
-                    svgClose()
+                    svg.Close()
                     :
-                    svgRemove(this.state.removeConfirmed ? 'svgRemoveConfirmed' : 'svgRemove')
+                    svg.Remove(this.state.removeConfirmed ? 'svgRemoveConfirmed' : 'svgRemove')
                 }
             </div>
 
@@ -1453,10 +1556,10 @@ class Task extends React.PureComponent<
                 { this.props.isDisplay &&
                     <Flipped flipId={ info.timestamp } onAppear={ onElementAppear } /* onExit={ onElementExit } */>
                         <div className="task">
-                            { leftCol }
-                            { midCol }
-                            { rightCol }
-                            { rightMostCol }
+                            { LeftCol }
+                            { MidCol }
+                            { RightCol }
+                            { RightMostCol }
                         </div>
                     </Flipped>
                 }
@@ -1465,7 +1568,7 @@ class Task extends React.PureComponent<
                      * 這個如果unmount的話會出現詭異的bug,那就不要讓他unmount好了
                      * 然後他在這個位置之後,就不會隨著列表滾動了
                      */
-                    rightcolContext
+                    RightcolContext
                 }
             </>
         )

@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "type": "npm",
+            "script": "esbuild-watch",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "npm: esbuild-watch",
+            "detail": "node ./esbuild.js development",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}
