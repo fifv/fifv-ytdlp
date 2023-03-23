@@ -248,6 +248,11 @@ const getCurrentData = (datas: TaskData[], timestamp: number) => {
         }
     }
 }
+/**
+ * 有一堆東西要keep sync
+ * store(config.json)和state(App)
+ * histories.json和state(Task)
+ */
 const store = new ElectronStore({
     defaults: {
         isSpecifyDownloadPath: true,
@@ -1170,7 +1175,7 @@ class Task extends React.PureComponent<
                     etaSeconds: progressObj['eta'],
 
                     // otherInfo: (downloadedPercent < 1) ? 'Downloading...' : state.otherInfo
-                    otherInfo: (progressObj['total_bytes_estimate'] - progressObj['downloaded_bytes'] < 1) ? 'Downloading...' : state.otherInfo
+                    // otherInfo: (progressObj['total_bytes_estimate'] - progressObj['downloaded_bytes'] < 1) ? 'Downloading...' : state.otherInfo
                 }))
             }
             // if (stdoutStr.includes('[download process]')) {
@@ -1419,7 +1424,7 @@ class Task extends React.PureComponent<
 
         const progressBar =
             <ProgressLine
-                percent={ info.downloadedPercent * 100 }
+                percent={ info.downloadedPercent && info.downloadedPercent * 100 }
                 // strokeColor={ '#cc66ff' }
                 strokeLinecap='square'
                 strokeWidth={ 0.4 }
