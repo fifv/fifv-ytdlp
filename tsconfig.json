@@ -12,6 +12,8 @@
 		 * 其實我沒有懂這是什麼意思
 		 * 查node.green可得node16(electron的版本,本機的目前也是)完全支援es2021,es2022沒有百分百
 		 */
+		"skipLibCheck": true,
+		"isolatedModules": true,
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"esModuleInterop": true,
@@ -24,11 +26,11 @@
 		 */
 		"jsx": "react-jsx",
 	},
-	"ts-node": {
-		"swc": true,
-		// "compilerOptions": {
-			// "module": "CommonJS"
-		// },
+	// "ts-node": {
+	// 	"swc": true,
+	// 	// "compilerOptions": {
+	// 		// "module": "CommonJS"
+	// 	// },
 
-	},
+	// },
 }

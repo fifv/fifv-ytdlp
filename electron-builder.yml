@@ -11,5 +11,5 @@ asar: true
 asarUnpack:
     - ./build
 win:
-    target: zip
+    target: dir # That's it! Only package, no installer. You can use `zip` to get a portable zip
 npmRebuild: false # 這個可以强制他不要rebuild

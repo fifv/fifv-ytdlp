@@ -9,5 +9,6 @@ node_modules
 *cookie*
 *.exe
 *.png
+pnpm-lock.yaml
 
 -j*.json

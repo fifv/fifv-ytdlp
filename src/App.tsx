@@ -26,12 +26,13 @@ import React from 'react'
 import './styles.scss'
 import 'tippy.js/dist/tippy.css' // optional
 import { spawn, ChildProcess, spawnSync } from 'child_process'
-import classNames from 'classnames'
+import classNames from 'clsx'
 import { decode } from 'iconv-lite'
 import { clipboard, shell } from 'electron'
 import ElectronStore from 'electron-store'
-import { Low, JSONFile, } from 'lowdb'
-import path, { join } from 'path'
+import { Low, } from 'lowdb'
+import { JSONFile, } from 'lowdb/node'
+import path, { join } from 'node:path'
 import { cyan, red, magentaBright, bgCyan, bgYellow, black } from 'colorette'
 import * as remote from '@electron/remote'
 import { clone, isEqual, isNumber } from 'lodash-es'
@@ -65,8 +66,10 @@ import PuffLoader from 'react-spinners/PuffLoader'
 
 
 const isDebug = false
+// console.log(__dirname);
+console.log(path.join('123'))
 // const isDebug = true
-export function getTimeString(totalSeconds: number) {
+function getTimeString(totalSeconds: number) {
 
     if (totalSeconds === Infinity) {
         totalSeconds = 0
@@ -400,7 +403,12 @@ export default class App extends React.Component<
 
     }
     initDB = async () => {
-        db = new Low<DB>(new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')))
+        db = new Low<DB>(
+            new JSONFile(path.join(main.app.getPath('userData'), 'histories.json')),
+            {
+                histories: [],
+            }
+        )
         await db.read()
         /**
          * 這個用sync會明顯降低啟動速度
@@ -1578,4 +1586,10 @@ class Task extends React.PureComponent<
             </>
         )
     }
+}
+function Test() {
+    const [count, setCount] = useState(0)
+    return (
+        <div>213ddssdd</div>
+    )
 }
