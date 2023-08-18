@@ -1,6 +1,6 @@
 {
     "name": "try-ytdlp",
-    "version": "3.1.0-beta.0",
+    "version": "3.1.0-beta.1",
     "main": "build/main.js",
     "author": "Fifv",
     "description": "A GUI to use yt-dlp",
@@ -11,7 +11,7 @@
         "pack electron-builder": "taskkill /im \"YT-dlp GUI.exe\" /F & electron-builder",
         "analyze": "source-map-explorer 'build/**/*.js' --no-border-checks",
         "start": "electron .",
-        "//dev esbuild": "node ./esbuild.cjs electron dev  esbuild-watch & nodemon --watch ./src/main.ts  --exec electron -r esbuild-register ./src/main.ts",
+        "//dev esbuild": "node ./esbuild.cjs electron dev & nodemon --watch ./src/main.ts  --exec electron -r esbuild-register ./src/main.ts",
         "//webpack-watch": "webpack --mode=development --watch --devtool=source-map",
         "//webpack-dist": "webpack --mode=production && electron-builder",
         "//webpack build": "webpack --mode=production",
