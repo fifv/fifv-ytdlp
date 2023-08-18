@@ -8,8 +8,12 @@ const externals = [
     'electron',
     'electron-store',
     '@electron/remote',
-    // 'lowdb/node',    
+    // './external/lowdb/index',
+    // './external/lowdb/node',
+    'lowdb',
+    'lowdb/node',    
     // 'node:path',
+    // 'steno',
     // 'fs/promises',
     // // 'node:fs',
     // 'os',
@@ -30,10 +34,13 @@ export default defineConfig({
         port: 5133,
         sourcemapIgnoreList: false,
     },
-    resolve: {
-        conditions: [
-            'node'
-        ],
+    // resolve: {
+    //     conditions: [
+    //         'node'
+    //     ],
+    // },
+    build: {
+        outDir: 'build',
     },
     optimizeDeps: {
         exclude: [...externals,],

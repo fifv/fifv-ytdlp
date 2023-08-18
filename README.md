@@ -1,7 +1,7 @@
 ## YT-dlp GUI
 Self-use `yt-dlp` GUI client, written in Electron+React
 
-## Notes
+## Notes: pnpm
 
 these packages are required by `electron-acrylic-window`
 
@@ -17,4 +17,11 @@ so I list them under `dependencies`, so they will be copied to `dist` during bui
 
 This problem occurs after I switch to pnpm, I think pnpm's strict structure brokes it
 
-TODO: figure out how electron-builder copy node_modules
+TO\DO: figure out how electron-builder copy node_modules. See notion.
+
+
+## Notes: build
+
+Now use `Vite` to serve `renderer.tsx` and `esbuild-register` to serve `main.ts` during dev
+
+And use `esbuild` to build production for both `renderer.tsx` and `main.ts`. It is wayyy more faster than vite

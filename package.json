@@ -1,22 +1,21 @@
 {
     "name": "try-ytdlp",
-    "version": "3.1.0-alpha.0",
+    "version": "3.1.0-beta.0",
     "main": "build/main.js",
     "author": "Fifv",
     "description": "A GUI to use yt-dlp",
     "scripts": {
         "dev vite": "vite & nodemon --watch ./src/main.ts  --exec electron -r esbuild-register ./src/main.ts",
-        "dev esbuild": "pnpm  esbuild-watch & nodemon --watch ./src/main.ts  --exec electron -r esbuild-register ./src/main.ts",
-        "start": "electron .",
-        "esbuild-watch": "node ./esbuild.cjs electron dev",
-        "esbuild-dist": "node ./esbuild.cjs electron && electron-builder",
-        "esbuild-prod": "node ./esbuild.cjs electron sourcemap",
+        "dist esbuild": "node ./esbuild.cjs electron && electron-builder",
+        "build esbuild": "node ./esbuild.cjs electron sourcemap",
+        "pack electron-builder": "taskkill /im \"YT-dlp GUI.exe\" /F & electron-builder",
         "analyze": "source-map-explorer 'build/**/*.js' --no-border-checks",
-        "electron-builder": "taskkill /im \"YT-dlp GUI.exe\" /F & electron-builder",
-        "webpack-watch": "webpack --mode=development --watch --devtool=source-map",
-        "webpack-dist": "webpack --mode=production && electron-builder",
-        "webpack build": "webpack --mode=production",
-        "electron-forge make": "electron-forge make"
+        "start": "electron .",
+        "//dev esbuild": "node ./esbuild.cjs electron dev  esbuild-watch & nodemon --watch ./src/main.ts  --exec electron -r esbuild-register ./src/main.ts",
+        "//webpack-watch": "webpack --mode=development --watch --devtool=source-map",
+        "//webpack-dist": "webpack --mode=production && electron-builder",
+        "//webpack build": "webpack --mode=production",
+        "//electron-forge make": "electron-forge make"
     },
     "config": {
         "forge": {
@@ -83,7 +82,7 @@
         "html-webpack-plugin": "^5.5.3",
         "iconv-lite": "^0.6.3",
         "lodash-es": "^4.17.21",
-        "lowdb": "^6.0.1",
+        "lowdb": "npm:@fifv/lowdb@^6.0.1",
         "nodemon": "^3.0.1",
         "postcss": "^8.4.28",
         "rc-progress": "^3.4.2",

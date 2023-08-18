@@ -20,10 +20,10 @@ if (/* app.getPath('exe').includes('electron.exe') */!app.isPackaged) {
      * 我能想到的原始的判斷是不是dev環境的方法
      * 這個加在devDep裡面所以在打包後用的話或報錯 
      */
-    const electronReload = require('electron-reload') 
-    // // console.log(__dirname);
-    // electronReload(path.join(__dirname, /* '..', 'build' */), {})
-    electronReload(path.join(__dirname, '..', 'build'), {})
+    // const electronReload = require('electron-reload')
+    // // // console.log(__dirname);
+    // // electronReload(path.join(__dirname, /* '..', 'build' */), {})
+    // electronReload(path.join(__dirname, '..', 'build'), {})
 }
 /**
  * isolate is off, so this can be passed
@@ -115,13 +115,15 @@ const createWindow = () => {
         /**
          * the path is not important, the key is set this env to hack electron to pass check 
          */
-        // process.env.ELECTRON_OVERRIDE_DIST_PATH = '.'
-        // console.log(__dirname)
-        // win.loadURL("http://localhost:5133/", {
+        process.env.ELECTRON_OVERRIDE_DIST_PATH = '.'
+        console.log(__dirname)
+        win.loadURL("http://localhost:5133/", {
 
-        // })
-        win.loadFile(path.join(__dirname, '..', 'build', 'index.html'))
-
+        })
+        // win.loadFile(path.join(__dirname, '..', 'build', 'index.html'))
+        setTimeout(function () {
+            win.webContents.openDevTools()
+        }, 100)
     } else {
         win.loadFile(path.join(__dirname, 'index.html'))
 
@@ -139,6 +141,7 @@ const createWindow = () => {
     win.once('ready-to-show', () => {
         console.log('*Ready to show')
     })
+
     // ipcMain.handle('close', () => {
     // 	win.close()
     // })
@@ -162,10 +165,7 @@ console.log('*App start')
 app.whenReady().then(() => {
     console.log('*App is ready')
     createWindow()
-    if (isDev) {
-        win.webContents.openDevTools()
 
-    }
     console.log('*Window created')
 })
 // console.log('3');

@@ -21,7 +21,7 @@
  * 由於assign不會新建object,所以一定要我手動建一個,不然指來指去總是指向datas[dataIndex]
  * 新的data就和他不同個了,用assign使他們值一樣,感覺是個shallow copy
  */
-import React from 'react'
+import React, { useState } from 'react'
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
 import 'tippy.js/dist/tippy.css' // optional
@@ -32,7 +32,9 @@ import { clipboard, shell } from 'electron'
 import ElectronStore from 'electron-store'
 import { Low, } from 'lowdb'
 import { JSONFile, } from 'lowdb/node'
-import path, { join } from 'node:path'
+// import { Low, } from './external/lowdb/index'
+// import { JSONFile, } from './external/lowdb/node'
+import path, { join } from 'path'
 import { cyan, red, magentaBright, bgCyan, bgYellow, black } from 'colorette'
 import * as remote from '@electron/remote'
 import { clone, isEqual, isNumber } from 'lodash-es'
@@ -67,7 +69,6 @@ import PuffLoader from 'react-spinners/PuffLoader'
 
 const isDebug = false
 // console.log(__dirname);
-console.log(path.join('123'))
 // const isDebug = true
 function getTimeString(totalSeconds: number) {
 

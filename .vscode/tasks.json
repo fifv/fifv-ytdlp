@@ -3,11 +3,10 @@
 	"tasks": [
         {
             "type": "npm",
-            "script": "esbuild-watch",
+            "script": "dev vite",
             "group": "build",
             "problemMatcher": [],
-            "label": "npm: esbuild-watch",
-            "detail": "node ./esbuild.js development",
+            "label": "npm: dev",
             "runOptions": {
                 "runOn": "folderOpen"
             }

@@ -5,9 +5,7 @@ productName: YT-dlp GUI
 icon: ./build/img/youtube-icon.png
 files:
     - build/**
-    - package.json
-# asar: false
-asar: true
+asar: false
 asarUnpack:
     - ./build
 win:
