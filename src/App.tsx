@@ -21,22 +21,12 @@
  * 由於assign不會新建object,所以一定要我手動建一個,不然指來指去總是指向datas[dataIndex]
  * 新的data就和他不同個了,用assign使他們值一樣,感覺是個shallow copy
  */
-import React, { useState } from 'react'
-// import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.scss'
 import 'tippy.js/dist/tippy.css' // optional
-import { spawn, ChildProcess, spawnSync } from 'child_process'
+import React, { useState } from 'react'
 import classNames from 'clsx'
 import { decode } from 'iconv-lite'
-import { clipboard, shell } from 'electron'
-import ElectronStore from 'electron-store'
-import { Low, } from 'lowdb'
-import { JSONFile, } from 'lowdb/node'
-// import { Low, } from './external/lowdb/index'
-// import { JSONFile, } from './external/lowdb/node'
-import path, { join } from 'path'
 import { cyan, red, magentaBright, bgCyan, bgYellow, black } from 'colorette'
-import * as remote from '@electron/remote'
 import { clone, isEqual, isNumber } from 'lodash-es'
 import { Flipper, Flipped, spring } from 'react-flip-toolkit'
 // import { Scrollbar } from "react-scrollbars-custom";
@@ -44,7 +34,6 @@ import { Scrollbars } from 'react-custom-scrollbars'
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu"
 import Tippy from '@tippyjs/react'
 import { Line as ProgressLine } from 'rc-progress'
-import { mkdirSync } from 'fs'
 
 import { IconContext } from 'react-icons'
 import {
@@ -65,6 +54,21 @@ import { IoPlayOutline } from 'react-icons/io5'
 import HashLoader from 'react-spinners/HashLoader'
 import GridLoader from 'react-spinners/GridLoader'
 import PuffLoader from 'react-spinners/PuffLoader'
+
+/**
+ * use require to use node.js modules
+ * vite won't do anything on these, use import can broke vite
+ * edit: oh no, require will return any
+ */
+
+import { mkdirSync } from 'fs'
+import path from 'path'
+import { spawn, ChildProcess, spawnSync } from 'child_process'
+import { clipboard, shell } from 'electron'
+import ElectronStore from 'electron-store'
+import * as remote from '@electron/remote'
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 
 
 const isDebug = false

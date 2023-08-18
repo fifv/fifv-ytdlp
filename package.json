@@ -1,6 +1,6 @@
 {
     "name": "try-ytdlp",
-    "version": "3.1.0-beta.1",
+    "version": "3.1.0-beta.2",
     "main": "build/main.js",
     "author": "Fifv",
     "description": "A GUI to use yt-dlp",
@@ -82,7 +82,7 @@
         "html-webpack-plugin": "^5.5.3",
         "iconv-lite": "^0.6.3",
         "lodash-es": "^4.17.21",
-        "lowdb": "npm:@fifv/lowdb@^6.0.1",
+        "lowdb": "npm:@fifv/lowdb@latest",
         "nodemon": "^3.0.1",
         "postcss": "^8.4.28",
         "rc-progress": "^3.4.2",
