@@ -1,10 +1,10 @@
 /**
  * 刷新不會重新執行這個腳本(當然啦)
  */
-const { app, BrowserWindow, } = require('electron')
-const path = require('path')
-const ElectronStore = require('electron-store')
-const { setVibrancy } = require('electron-acrylic-window')
+import { app, BrowserWindow } from 'electron'
+import path from 'path'
+import ElectronStore from 'electron-store'
+import { setVibrancy, BrowserWindow as BrowserWindow_wtf } from 'electron-acrylic-window'
 // console.log(app.getPath('exe'));
 
 let isDev = false
@@ -99,7 +99,7 @@ const createWindow = () => {
      * 這個好像會自動設置transparent: true,
      * 好像會讓上面的backgroundColor: '#d9a0b1ff',失效
      */
-    setVibrancy(win, {
+    setVibrancy(win as BrowserWindow_wtf, {
         // theme:'#a0b1ffd9',
         theme: '#282c3400',
         // effect: 'blur',

@@ -14,7 +14,7 @@
 		 */
 		"skipLibCheck": true,
 		"isolatedModules": true,
-		"module": "ESNext",
+		"module": "CommonJS",
 		"moduleResolution": "Node",
 		"esModuleInterop": true,
 		"sourceMap": false,
